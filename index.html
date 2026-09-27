@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>THERMABOT — Cálculo de cargas térmicas</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#19211e" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="rail">
+      <div>
+        <div class="brand">THERMA<span>BOT</span></div>
+        <div class="brand-sub">CARGAS TÉRMICAS · QUADRI</div>
+      </div>
+
+      <section class="rail-section">
+        <div class="rail-label">PROYECTO</div>
+        <select id="projectSelect" class="rail-select"></select>
+        <button id="newProject" class="rail-outline full">+ Nuevo proyecto</button>
+      </section>
+
+      <section class="rail-section amb-section">
+        <div class="rail-label">AMBIENTES</div>
+        <div id="ambientList" class="ambient-list"></div>
+        <div class="rail-actions">
+          <button id="addAmbient" class="rail-chip">+ Ambiente</button>
+          <button id="dupAmbient" class="rail-chip">Duplicar</button>
+          <button id="delAmbient" class="rail-chip subtle">Eliminar</button>
+        </div>
+      </section>
+
+      <nav class="rail-section steps">
+        <div class="rail-label">PASOS</div>
+        <button data-step="clima" class="step active"><b>01</b><span>Clima y confort</span></button>
+        <button data-step="geometria" class="step"><b>02</b><span>Geometría</span></button>
+        <button data-step="envolvente" class="step"><b>03</b><span>Envolvente</span></button>
+        <button data-step="ventanas" class="step"><b>04</b><span>Aberturas</span></button>
+        <button data-step="internas" class="step"><b>05</b><span>Cargas internas</span></button>
+        <button data-step="aire" class="step"><b>06</b><span>Aire y caudales</span></button>
+        <button data-step="equipo" class="step"><b>07</b><span>Equipo</span></button>
+      </nav>
+
+      <div id="saveStatus" class="save-status">Preparando…</div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">AMBIENTE EN CÁLCULO</div>
+          <h1 id="ambientTitle">Living comedor</h1>
+          <div id="ambientMeta" class="meta">—</div>
+        </div>
+        <div class="top-actions">
+          <div class="unit-switch">
+            <button class="unit active" data-unit="kW">kW</button>
+            <button class="unit" data-unit="kcal/h">kcal/h</button>
+            <button class="unit" data-unit="TR">TR</button>
+          </div>
+          <button id="modeBtn" class="pill">Modo rápido</button>
+          <button id="aiBtn" class="pill accent-outline">Eficiencia con IA</button>
+          <button id="reportBtn" class="pill dark">Informe</button>
+        </div>
+      </header>
+
+      <section class="quick card">
+        <div class="quick-head">
+          <div class="eyebrow">LOCALES · <span id="ambientCount">1</span></div>
+          <div class="quick-actions">
+            <label class="duplicate-inline">Duplicar ×
+              <input id="dupCount" type="number" min="1" max="50" value="1" />
+              <button id="dupMany" class="mini-primary">OK</button>
+            </label>
+            <button id="quickToggle" class="pill small">+ Carga rápida</button>
+          </div>
+        </div>
+        <div id="ambientPills" class="ambient-pills"></div>
+        <div id="quickBody" class="quick-body hidden">
+          <div>
+            <div class="eyebrow">DESDE PLANTILLA</div>
+            <div id="templatePills" class="template-pills"></div>
+            <div class="inline-form">
+              <label>Cantidad <input id="templateQty" type="number" min="1" max="100" value="5" /></label>
+              <button id="addTemplate" class="primary">Agregar 5</button>
+            </div>
+          </div>
+          <div>
+            <div class="eyebrow">PEGAR LISTA (UNO POR LÍNEA)</div>
+            <textarea id="pasteList" rows="4" placeholder="Consultorio 1&#10;Consultorio 2&#10;Sala de espera&#10;Enfermería"></textarea>
+            <button id="addList" class="primary small-btn">Agregar lista</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="step-clima" class="step-panel active-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">01 · CONDICIONES DE DISEÑO</div><h2>Clima y confort</h2></div>
+          <div class="section-note">Definí condiciones exteriores e interiores de cálculo.</div>
+        </div>
+        <div class="form-card card">
+          <div class="grid-2">
+            <label>Ciudad<select id="ciudad"></select></label>
+            <label>Hora de diseño<input id="horaDiseno" type="number" min="0" max="23" /></label>
+            <label>Temperatura exterior [°C]<input id="tempExterior" type="number" step="0.1" /></label>
+            <label>Humedad exterior [%]<input id="humedadExterior" type="number" min="0" max="100" step="1" /></label>
+            <label>Temperatura interior [°C]<input id="tempInterior" type="number" step="0.1" /></label>
+            <label>Humedad interior [%]<input id="humedadInterior" type="number" min="0" max="100" step="1" /></label>
+          </div>
+          <div class="formula">Condición psicrométrica: humedad absoluta mediante presión de saturación (Magnus).</div>
+        </div>
+      </section>
+
+      <section id="step-geometria" class="step-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">02 · DIMENSIONES</div><h2>Geometría</h2></div>
+          <div class="section-note">Dimensiones base del ambiente.</div>
+        </div>
+        <div class="form-card card">
+          <label>Nombre del ambiente<input id="nombreAmbiente" type="text" /></label>
+          <div class="grid-3">
+            <label>Largo [m]<input id="largo" type="number" min="0" step="0.1" /></label>
+            <label>Ancho [m]<input id="ancho" type="number" min="0" step="0.1" /></label>
+            <label>Altura [m]<input id="altura" type="number" min="0" step="0.1" /></label>
+          </div>
+          <div class="metric-row">
+            <div class="metric"><span>SUPERFICIE</span><strong id="geoArea">—</strong></div>
+            <div class="metric"><span>VOLUMEN</span><strong id="geoVolume">—</strong></div>
+          </div>
+          <div class="formula">Superficie = largo × ancho · Volumen = superficie × altura</div>
+        </div>
+      </section>
+
+      <section id="step-envolvente" class="step-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">03 · TRANSMISIÓN</div><h2>Envolvente</h2></div>
+          <button id="addWall" class="pill">+ Muro</button>
+        </div>
+        <div class="form-card card">
+          <div class="grid-2">
+            <label>Techo<select id="techoCerramiento"></select></label>
+            <label class="checkline"><input id="techoExpuesto" type="checkbox" /> Techo expuesto</label>
+            <label>Piso<select id="pisoCerramiento"></select></label>
+            <label class="checkline"><input id="pisoExpuesto" type="checkbox" /> Piso expuesto</label>
+          </div>
+        </div>
+        <div id="wallsContainer" class="stack"></div>
+        <div class="formula">Muros: Q = U × A neta × ΔT · Techo expuesto: ΔT + 8 K según el motor suministrado.</div>
+      </section>
+
+      <section id="step-ventanas" class="step-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">04 · ABERTURAS</div><h2>Ventanas y radiación</h2></div>
+          <button id="addWindow" class="pill">+ Ventana</button>
+        </div>
+        <div id="windowsContainer" class="stack"></div>
+        <div class="formula">Ventana = conducción U × A × ΔT + radiación por orientación, hora, sombra y protección.</div>
+      </section>
+
+      <section id="step-internas" class="step-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">05 · GANANCIAS</div><h2>Cargas internas</h2></div>
+          <div class="section-note">Personas, iluminación y equipos.</div>
+        </div>
+        <div class="form-card card">
+          <div class="grid-2">
+            <label>Personas<input id="personas" type="number" min="0" step="1" /></label>
+            <label>Actividad<select id="actividad">
+              <option value="reposo">Reposo</option><option value="sentado">Sentado</option>
+              <option value="oficina">Oficina</option><option value="moderada">Moderada</option>
+              <option value="intensa">Intensa</option>
+            </select></label>
+            <label>Iluminación [W]<input id="iluminacionW" type="number" min="0" step="10" /></label>
+            <label>Tipo de iluminación<select id="iluminacionTipo">
+              <option value="led">LED</option><option value="incandescente">Incandescente</option><option value="fluorescente">Fluorescente</option>
+            </select></label>
+            <label>Equipos sensible [W]<input id="equiposW" type="number" min="0" step="10" /></label>
+            <label>Equipos latente [W]<input id="equiposLatenteW" type="number" min="0" step="10" /></label>
+          </div>
+        </div>
+      </section>
+
+      <section id="step-aire" class="step-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">06 · VENTILACIÓN</div><h2>Aire y caudales</h2></div>
+          <div class="section-note">Aire exterior y caudal de impulsión.</div>
+        </div>
+        <div class="form-card card">
+          <div class="grid-2">
+            <label>Modo de aire exterior<select id="aireExteriorModo"><option value="persona">Por persona</option><option value="ach">ACH</option></select></label>
+            <label>Aire exterior por persona [m³/h·pers]<input id="aireExteriorPorPersona" type="number" min="0" step="1" /></label>
+            <label>Renovaciones [ACH]<input id="aireExteriorACH" type="number" min="0" step="0.1" /></label>
+            <label>ΔT impulsión [K]<input id="deltaTImpulsion" type="number" min="0.1" step="0.5" /></label>
+            <label>Factor de seguridad [%]<input id="factorSeguridad" type="number" min="0" max="100" step="1" /></label>
+          </div>
+          <div class="metric-row">
+            <div class="metric"><span>AIRE EXTERIOR</span><strong id="airExteriorMetric">—</strong></div>
+            <div class="metric"><span>IMPULSIÓN</span><strong id="airSupplyMetric">—</strong></div>
+          </div>
+          <div class="formula">Qs aire = 0,34 × V × ΔT · Ql aire = 0,83 × V × Δw</div>
+        </div>
+      </section>
+
+      <section id="step-equipo" class="step-panel">
+        <div class="section-title">
+          <div><div class="step-kicker">07 · SELECCIÓN</div><h2>Equipo</h2></div>
+          <div class="section-note">Primer equipo del catálogo cuya capacidad cubre la carga calculada.</div>
+        </div>
+        <div class="equipment-card card">
+          <div class="eyebrow">EQUIPO SUGERIDO</div>
+          <h3 id="equipName">—</h3>
+          <div class="equip-grid">
+            <div><span>Capacidad</span><strong id="equipCapacity">—</strong></div>
+            <div><span>Tipo</span><strong id="equipType">—</strong></div>
+            <div><span>Holgura</span><strong id="equipMargin">—</strong></div>
+          </div>
+        </div>
+        <div class="card breakdown-card">
+          <div class="eyebrow">DESGLOSE DE CARGA</div>
+          <div id="breakdown"></div>
+        </div>
+      </section>
+
+      <footer class="step-footer">
+        <button id="prevStep" class="pill">← Anterior</button>
+        <button id="nextStep" class="pill primary">Siguiente →</button>
+      </footer>
+    </main>
+
+    <aside class="summary">
+      <div class="summary-head">
+        <div class="eyebrow">RESUMEN EN VIVO</div>
+        <div id="summaryName" class="summary-name">Living comedor</div>
+        <div id="summaryCity" class="summary-city">Buenos Aires</div>
+      </div>
+
+      <div class="summary-total">
+        <span>CARGA TOTAL</span>
+        <strong id="sumTotal">—</strong>
+        <small id="sumSecondary">—</small>
+      </div>
+
+      <div class="summary-grid">
+        <div><span>Sensible</span><strong id="sumSensible">—</strong></div>
+        <div><span>Latente</span><strong id="sumLatente">—</strong></div>
+        <div><span>FCS</span><strong id="sumFcs">—</strong></div>
+        <div><span>W/m²</span><strong id="sumWm2">—</strong></div>
+      </div>
+
+      <div class="summary-block">
+        <div class="eyebrow">CAUDALES</div>
+        <div class="sumline"><span>Impulsión</span><b id="sumSupply">—</b></div>
+        <div class="sumline"><span>Aire exterior</span><b id="sumOutdoor">—</b></div>
+      </div>
+
+      <div class="summary-block">
+        <div class="eyebrow">EQUIPO</div>
+        <div id="sumEquip" class="equip-summary">—</div>
+      </div>
+
+      <div id="alerts" class="alerts"></div>
+      <div class="summary-foot">Motor Python · guardado local portable</div>
+    </aside>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="modalClose" class="modal-close">×</button>
+      <div class="eyebrow">THERMABOT</div>
+      <h3 id="modalTitle">Información</h3>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

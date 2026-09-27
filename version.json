@@ -1,0 +1,5 @@
+{
+  "version": "0.2.0",
+  "channel": "stable-candidate",
+  "notes": "Base estable convertida a PWA instalable con actualización automática desde GitHub Pages."
+}
