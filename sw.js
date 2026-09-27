@@ -1,10 +1,9 @@
-const CACHE = "thermabot-v0.2.0";
+const CACHE = "thermabot-v0.2.2";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
-  "./engine.js",
-  "./app.js",
+  "./app-v022.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png"
@@ -27,7 +26,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   if(event.request.method !== "GET") return;
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, {cache:"no-store"})
       .then(response => {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, copy));
