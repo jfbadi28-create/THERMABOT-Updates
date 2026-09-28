@@ -1,0 +1,71 @@
+name: Validate THERMABOT static web
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check required files
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            index.html
+            styles.css
+            app-v023.js
+            engine.js
+            pressure.html
+            pressure.css
+            pressure-network.js
+            pressure-app.js
+            sw.js
+            manifest.webmanifest
+            version.json
+            icon-192.png
+            icon-512.png
+            .nojekyll
+          )
+          for f in "${required[@]}"; do
+            test -e "$f" || { echo "Missing required file: $f"; exit 1; }
+          done
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check app-v023.js
+          node --check engine.js
+          node --check pressure-network.js
+          node --check pressure-app.js
+          node --check sw.js
+
+      - name: Validate JSON files
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); JSON.parse(require('fs').readFileSync('version.json','utf8')); console.log('JSON OK')"
+
+      - name: Validate static references
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'app-v023.js' index.html
+          grep -q 'styles.css' index.html
+          grep -q 'manifest.webmanifest' index.html
+          grep -q 'engine.js' pressure.html
+          grep -q 'pressure-network.js' pressure.html
+          grep -q 'pressure-app.js' pressure.html
+          grep -q 'pressure.css' pressure.html
+          echo 'Static references OK'
