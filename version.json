@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.4-web",
   "channel": "stable-candidate",
-  "notes": "Base estable convertida a PWA instalable con actualización automática desde GitHub Pages."
+  "notes": "Preparación para publicación web estática: validación automática, cache PWA actualizado y documentación de despliegue. Sin cambios en fórmulas ni motor HVAC."
 }
