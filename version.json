@@ -1,5 +1,5 @@
 {
-  "version": "0.2.4-web",
+  "version": "0.2.5-livecalc",
   "channel": "stable-candidate",
-  "notes": "Preparación para publicación web estática: validación automática, cache PWA actualizado y documentación de despliegue. Sin cambios en fórmulas ni motor HVAC."
+  "notes": "Recalculo en vivo para campos numericos: geometria, cargas y caudales se actualizan mientras el usuario modifica valores. Sin cambios en formulas ni motor HVAC."
 }
