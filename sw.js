@@ -1,10 +1,16 @@
-const CACHE = "thermabot-v0.2.2";
+const CACHE = "thermabot-v0.2.4-web";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
-  "./app-v022.js",
+  "./app-v023.js",
+  "./engine.js",
+  "./pressure.html",
+  "./pressure.css",
+  "./pressure-network.js",
+  "./pressure-app.js",
   "./manifest.webmanifest",
+  "./version.json",
   "./icon-192.png",
   "./icon-512.png"
 ];
