@@ -39,6 +39,7 @@ jobs:
             version.json
             icon-192.png
             icon-512.png
+            functions/_middleware.js
             .nojekyll
           )
           for f in "${required[@]}"; do
@@ -52,6 +53,7 @@ jobs:
           node --check pressure-network.js
           node --check pressure-app.js
           node --check sw.js
+          node --input-type=module --check < functions/_middleware.js
 
       - name: Validate JSON files
         run: |
