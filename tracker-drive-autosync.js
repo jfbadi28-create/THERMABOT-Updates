@@ -225,6 +225,17 @@
     return safeJson(localStorage.getItem(STORAGE_KEY)) || {schemaVersion:1,updatedAt:new Date().toISOString(),projects:[],equipment:[],milestones:[],documents:[]};
   }
 
+  async function readRemoteCandidate({allowBackup=true}={}) {
+    try {
+      const current = await readJsonFile(syncState.masterFileId);
+      return {...current,source:'master'};
+    } catch (masterError) {
+      if (!allowBackup || !syncState.backupFileId) throw masterError;
+      const backup = await readJsonFile(syncState.backupFileId);
+      return {...backup,source:'backup',masterError};
+    }
+  }
+
   async function pushLocal({showMessage=true}={}) {
     if (!syncState.connected || !syncState.masterFileId || syncState.syncing) return;
     syncState.syncing = true;
@@ -232,12 +243,9 @@
     if (showMessage) setMessage('Guardando proyectos en la carpeta fija de Google Drive…');
     try {
       const local = localState();
-      let remoteRaw = null, remote = null;
-      try {
-        const remoteRead = await readJsonFile(syncState.masterFileId);
-        remoteRaw = remoteRead.raw;
-        remote = remoteRead.parsed;
-      } catch {}
+      const remoteRead = await readJsonFile(syncState.masterFileId);
+      const remoteRaw = remoteRead.raw;
+      const remote = remoteRead.parsed;
 
       const localCount = stateCount(local);
       const remoteCount = stateCount(remote);
@@ -263,7 +271,7 @@
     syncState.syncing = true;
     updateUi();
     try {
-      const remoteRead = await readJsonFile(syncState.masterFileId);
+      const remoteRead = await readRemoteCandidate({allowBackup:true});
       const remote = remoteRead.parsed;
       const local = localState();
       const shouldPull = force || stateTime(remote) > stateTime(local) || (stateCount(local) === 0 && stateCount(remote) > 0);
@@ -286,8 +294,11 @@
 
   async function initialSync() {
     await ensureFiles();
-    const remoteRead = await readJsonFile(syncState.masterFileId);
+    const remoteRead = await readRemoteCandidate({allowBackup:true});
     const remote = remoteRead.parsed;
+    if (remoteRead.source === 'backup') {
+      setMessage('Se detectó un problema en el archivo maestro. THERMABOT recuperará la copia de respaldo de Drive.','error');
+    }
     const local = localState();
     const rt = stateTime(remote), lt = stateTime(local);
     const rc = stateCount(remote), lc = stateCount(local);
@@ -326,7 +337,7 @@
     syncState.pollingTimer = setInterval(async()=>{
       if (!syncState.connected || syncState.syncing || document.hidden) return;
       try {
-        const remoteRead = await readJsonFile(syncState.masterFileId);
+        const remoteRead = await readRemoteCandidate({allowBackup:false});
         const remote = remoteRead.parsed;
         const local = localState();
         if (stateTime(remote) > stateTime(local)) await pullRemote({force:true,reload:true});
