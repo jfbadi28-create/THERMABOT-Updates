@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>THERMABOT — Importar proyectos desde Drive</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="tracker.css" />
+  <meta name="theme-color" content="#19211e" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body{min-height:100vh;background:#f3eee3}
+    .import-shell{max-width:980px;margin:0 auto;padding:34px 24px 60px}
+    .import-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
+    .import-head h1{font-size:34px;margin:5px 0 4px}
+    .import-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+    .import-card{padding:22px}
+    .import-card h2{margin:8px 0 10px;font-size:22px}
+    .import-copy{font-size:12px;line-height:1.65;color:#555b57}
+    .import-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+    .import-status{margin-top:16px;border-radius:10px;padding:12px 14px;background:#ece7dc;font-size:11px;line-height:1.55}
+    .import-status.ok{background:#e7efe8;color:#47604b}
+    .import-status.error{background:#f8e2df;color:#8e4138}
+    .import-kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .import-kpi div{border:1px solid #ddd4c6;border-radius:12px;padding:13px;background:#fbf8f1}
+    .import-kpi span{display:block;font:9px Consolas,monospace;color:#7b7c76;letter-spacing:.06em}
+    .import-kpi strong{display:block;font-size:25px;margin-top:3px}
+    .import-note{margin-top:14px;padding-top:14px;border-top:1px solid #ddd4c6;color:#777970;font-size:10px;line-height:1.55}
+    @media(max-width:760px){.import-grid{grid-template-columns:1fr}.import-head{flex-direction:column}.import-shell{padding:22px 14px}}
+  </style>
+</head>
+<body>
+  <main class="import-shell">
+    <header class="import-head">
+      <div>
+        <div class="eyebrow">THERMABOT · SEGUIMIENTO HVAC</div>
+        <h1>Importar proyectos desde Google Drive</h1>
+        <div class="meta">Carga privada del inventario HVAC preparado en Drive hacia este navegador.</div>
+      </div>
+      <a class="pill" href="tracker.html" style="text-decoration:none">Volver al seguimiento</a>
+    </header>
+
+    <div class="import-grid">
+      <section class="card import-card">
+        <div class="eyebrow">01 · AUTORIZACIÓN</div>
+        <h2>Conectar tu Drive</h2>
+        <p class="import-copy">Esta pantalla busca únicamente el archivo <b>seguimiento-proyectos.json</b> de tu Google Drive, valida su estructura y lo guarda en el almacenamiento local de THERMABOT. Los datos no se publican en GitHub.</p>
+        <label>Google OAuth Client ID
+          <input id="clientId" type="text" autocomplete="off" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com" />
+        </label>
+        <div class="import-actions">
+          <button id="saveClient" class="pill">Guardar Client ID</button>
+          <button id="connectImport" class="pill dark">Conectar e importar</button>
+        </div>
+        <div id="status" class="import-status">Esperando conexión. Si todavía no creaste el Client ID, terminá primero la configuración de Google Auth Platform.</div>
+      </section>
+
+      <section class="card import-card">
+        <div class="eyebrow">02 · RESULTADO</div>
+        <h2>Datos preparados</h2>
+        <div class="import-kpi">
+          <div><span>PROYECTOS</span><strong id="projectCount">—</strong></div>
+          <div><span>DOCUMENTOS</span><strong id="documentCount">—</strong></div>
+          <div><span>EQUIPOS</span><strong id="equipmentCount">—</strong></div>
+          <div><span>HITOS</span><strong id="milestoneCount">—</strong></div>
+        </div>
+        <div id="sourceInfo" class="import-note">Se seleccionará automáticamente la copia válida más completa y reciente encontrada en Drive.</div>
+        <div class="import-actions">
+          <button id="openTracker" class="pill dark" disabled>Abrir seguimiento</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="import-drive.js"></script>
+</body>
+</html>
