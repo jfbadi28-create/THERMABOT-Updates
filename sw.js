@@ -1,4 +1,4 @@
-const CACHE = "thermabot-v0.2.5-livecalc";
+const CACHE = "thermabot-v0.3.0-tracker";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,9 @@ const ASSETS = [
   "./pressure.css",
   "./pressure-network.js",
   "./pressure-app.js",
+  "./tracker.html",
+  "./tracker.css",
+  "./tracker.js",
   "./manifest.webmanifest",
   "./version.json",
   "./icon-192.png",
