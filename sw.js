@@ -1,4 +1,4 @@
-const CACHE = "thermabot-v0.3.1-drive-autosync";
+const CACHE = "thermabot-v0.3.2-drive-permanent";
 const ASSETS = [
   "./",
   "./index.html",
