@@ -47,7 +47,7 @@
     <main class="workspace tracker-workspace">
       <header class="topbar tracker-topbar">
         <div>
-          <h1 id="trackerTitle">BIOINGENIERÍA · GESTIÓN TÉCNICA HVAC</h1>
+          <h1 id="trackerTitle" class="bio-title"><span class="bio-title-main">BIOINGENIERÍA</span><span class="bio-title-sep">·</span><span class="bio-title-tech">GESTIÓN TÉCNICA HVAC</span></h1>
           <div id="trackerMeta" class="meta">Proyectos, equipos, hitos y documentación técnica.</div>
         </div>
         <div class="top-actions">
@@ -217,8 +217,8 @@
     (()=>{
       const title=document.getElementById('trackerTitle');
       if(!title)return;
-      const fixed='BIOINGENIERÍA · GESTIÓN TÉCNICA HVAC';
-      const keep=()=>{if(title.textContent!==fixed)title.textContent=fixed;};
+      const fixed='<span class="bio-title-main">BIOINGENIERÍA</span><span class="bio-title-sep">·</span><span class="bio-title-tech">GESTIÓN TÉCNICA HVAC</span>';
+      const keep=()=>{if(title.innerHTML!==fixed)title.innerHTML=fixed;};
       keep();
       new MutationObserver(keep).observe(title,{childList:true,characterData:true,subtree:true});
     })();
