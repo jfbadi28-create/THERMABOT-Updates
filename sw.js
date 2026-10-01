@@ -1,4 +1,4 @@
-const CACHE = "thermabot-v0.3.0-tracker";
+const CACHE = "thermabot-v0.3.1-drive-autosync";
 const ASSETS = [
   "./",
   "./index.html",
@@ -13,6 +13,7 @@ const ASSETS = [
   "./tracker.html",
   "./tracker.css",
   "./tracker.js",
+  "./tracker-drive-autosync.js",
   "./manifest.webmanifest",
   "./version.json",
   "./icon-192.png",
