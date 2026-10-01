@@ -127,7 +127,7 @@
           <section class="card tracker-panel">
             <div class="eyebrow">CONEXIÓN</div>
             <h3>Drive del usuario</h3>
-            <p class="tracker-copy">THERMABOT guarda una copia estructurada del seguimiento en <b>THERMABOT / Seguimiento / seguimiento-proyectos.json</b>. La aplicación puede seguir funcionando sin Drive.</p>
+            <p class="tracker-copy">THERMABOT usa siempre la carpeta fija <b>THERMABOT / Seguimiento</b> de tu Google Drive. Mantiene <b>seguimiento-proyectos.json</b> como archivo maestro y una copia anterior en <b>seguimiento-proyectos.backup.json</b>. La aplicación puede seguir funcionando localmente si Drive no está disponible.</p>
             <label>Google OAuth Client ID
               <input id="driveClientId" type="text" autocomplete="off" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com" />
             </label>
@@ -135,7 +135,7 @@
               <button id="saveDriveClientBtn" class="pill">Guardar Client ID</button>
               <button id="connectDriveBtn" class="pill dark">Conectar Google Drive</button>
             </div>
-            <div class="formula">El Client ID identifica la aplicación y no es una contraseña. THERMABOT no guarda Client Secret, tokens ni contraseñas en GitHub.</div>
+            <div class="formula">Después de autorizar Google una vez, THERMABOT intentará reconectarse y sincronizar automáticamente cada vez que abras el seguimiento. No se guardan contraseñas ni tokens en GitHub.</div>
           </section>
 
           <section class="card tracker-panel">
@@ -213,6 +213,7 @@
   </div>
 
   <script src="tracker.js"></script>
+  <script src="tracker-drive-autosync.js"></script>
   <script>
     (()=>{
       const title=document.getElementById('trackerTitle');

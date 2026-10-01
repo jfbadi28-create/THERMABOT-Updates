@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0-tracker",
+  "version": "0.3.1-drive-autosync",
   "channel": "stable-candidate",
-  "notes": "Integra seguimiento técnico HVAC con proyectos, equipos, hitos y documentos; acceso desde Balance Térmico; sincronización opcional con Google Drive mediante OAuth sin guardar secretos. Sin cambios en fórmulas ni motor HVAC."
+  "notes": "Seguimiento técnico HVAC con sincronización automática a la carpeta fija THERMABOT/Seguimiento en Google Drive. Mantiene archivo maestro y copia de respaldo previa; intenta reconexión automática al abrir la aplicación. Sin cambios en fórmulas ni motor HVAC."
 }

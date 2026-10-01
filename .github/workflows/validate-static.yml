@@ -38,6 +38,7 @@ jobs:
             tracker.html
             tracker.css
             tracker.js
+            tracker-drive-autosync.js
             sw.js
             manifest.webmanifest
             version.json
@@ -58,6 +59,7 @@ jobs:
           node --check pressure-network.js
           node --check pressure-app.js
           node --check tracker.js
+          node --check tracker-drive-autosync.js
           node --check sw.js
           node --input-type=module --check < functions/_middleware.js
 
@@ -78,7 +80,9 @@ jobs:
           grep -q 'pressure-app.js' pressure.html
           grep -q 'pressure.css' pressure.html
           grep -q 'tracker.js' tracker.html
+          grep -q 'tracker-drive-autosync.js' tracker.html
           grep -q 'tracker.css' tracker.html
           grep -q 'styles.css' tracker.html
           grep -q 'accounts.google.com/gsi/client' tracker.html
+          grep -q 'tracker-drive-autosync.js' sw.js
           echo 'Static references OK'
