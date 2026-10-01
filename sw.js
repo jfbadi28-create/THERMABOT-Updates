@@ -1,4 +1,4 @@
-const CACHE = "thermabot-v0.3.2-drive-permanent";
+const CACHE = "thermabot-v0.3.3-sheets-master";
 const ASSETS = [
   "./",
   "./index.html",
