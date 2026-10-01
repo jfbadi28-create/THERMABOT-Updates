@@ -86,4 +86,7 @@ jobs:
           grep -q 'tracker.css' tracker.html
           grep -q 'styles.css' tracker.html
           grep -q 'tracker-drive-autosync.js' sw.js
+          grep -q '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs' tracker-drive-autosync.js
+          grep -q '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs' functions/api/tracker-sync.js
+          grep -q 'urn:ietf:params:oauth:grant-type:jwt-bearer' functions/api/tracker-sync.js
           echo 'Static references OK'

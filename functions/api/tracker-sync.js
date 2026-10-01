@@ -1,263 +1,34 @@
-// THERMABOT · sincronización permanente del seguimiento con Google Drive.
-// Cloudflare Pages Function. Google no se autentica en el navegador:
-// la Function usa una Service Account guardada exclusivamente en Secrets.
-//
-// Secrets requeridos en Cloudflare Pages:
-//   GOOGLE_SERVICE_ACCOUNT_EMAIL
-//   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-//
-// Compartir con esa Service Account (Editor) la carpeta de Seguimiento o,
-// como mínimo, los dos JSON indicados abajo.
-
-const FOLDER_ID = '1u6FTkPnQaVbA9f8FIACLTI0YsR6OPeaZ';
-const MASTER_FILE_ID = '1BglmmoarrBiFdOPFybF0kBxg8HBsL6Oj';
-const BACKUP_FILE_ID = '1AGenMZhPPk-7iTWJ0stdcn66VWVUNgJd';
-const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
-const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
-const DRIVE_FILES = 'https://www.googleapis.com/drive/v3/files';
-const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
-
-let tokenCache = { accessToken: null, expiresAt: 0 };
-
-function json(data, status = 200, extraHeaders = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store, private',
-      'X-Content-Type-Options': 'nosniff',
-      ...extraHeaders,
-    },
-  });
-}
-
-function base64UrlBytes(bytes) {
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-function base64UrlText(text) {
-  return base64UrlBytes(new TextEncoder().encode(text));
-}
-
-function pemToArrayBuffer(pem) {
-  const normalized = String(pem || '').replace(/\\n/g, '\n').trim();
-  const b64 = normalized
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
-    .replace(/\s+/g, '');
-  if (!b64) throw new Error('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY vacío o inválido.');
-  const raw = atob(b64);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-  return bytes.buffer;
-}
-
-async function signJwt(email, privateKeyPem) {
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const payload = {
-    iss: email,
-    scope: DRIVE_SCOPE,
-    aud: TOKEN_ENDPOINT,
-    iat: now,
-    exp: now + 3600,
-  };
-  const unsigned = `${base64UrlText(JSON.stringify(header))}.${base64UrlText(JSON.stringify(payload))}`;
-  const key = await crypto.subtle.importKey(
-    'pkcs8',
-    pemToArrayBuffer(privateKeyPem),
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const signature = await crypto.subtle.sign(
-    { name: 'RSASSA-PKCS1-v1_5' },
-    key,
-    new TextEncoder().encode(unsigned),
-  );
-  return `${unsigned}.${base64UrlBytes(new Uint8Array(signature))}`;
-}
-
-async function getAccessToken(env) {
-  if (tokenCache.accessToken && Date.now() < tokenCache.expiresAt - 60_000) {
-    return tokenCache.accessToken;
-  }
-  const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-  if (!email || !privateKey) {
-    throw new Error('Faltan los Secrets GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.');
-  }
-  const assertion = await signJwt(email, privateKey);
-  const body = new URLSearchParams({
-    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-    assertion,
-  });
-  const response = await fetch(TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.access_token) {
-    throw new Error(`Google OAuth service account: ${data.error_description || data.error || response.status}`);
-  }
-  tokenCache = {
-    accessToken: data.access_token,
-    expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000,
-  };
-  return tokenCache.accessToken;
-}
-
-async function driveRequest(env, url, options = {}) {
-  const token = await getAccessToken(env);
-  const headers = new Headers(options.headers || {});
-  headers.set('Authorization', `Bearer ${token}`);
-  const response = await fetch(url, { ...options, headers });
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Google Drive ${response.status}: ${detail.slice(0, 300)}`);
-  }
-  return response;
-}
-
-async function readDriveJson(env, fileId) {
-  const response = await driveRequest(env, `${DRIVE_FILES}/${encodeURIComponent(fileId)}?alt=media`);
-  const text = await response.text();
-  let parsed;
-  try { parsed = JSON.parse(text); }
-  catch { throw new Error(`El archivo ${fileId} no contiene JSON válido.`); }
-  return { text, parsed };
-}
-
-async function writeDriveJson(env, fileId, payload) {
-  const response = await driveRequest(
-    env,
-    `${DRIVE_UPLOAD}/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,modifiedTime,size`,
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify(payload, null, 2),
-    },
-  );
-  return response.json();
-}
-
-function normalizeState(raw) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Formato de seguimiento inválido.');
-  return {
-    ...raw,
-    schemaVersion: Number(raw.schemaVersion || 1),
-    updatedAt: raw.updatedAt || new Date().toISOString(),
-    projects: Array.isArray(raw.projects) ? raw.projects : [],
-    equipment: Array.isArray(raw.equipment) ? raw.equipment : [],
-    milestones: Array.isArray(raw.milestones) ? raw.milestones : [],
-    documents: Array.isArray(raw.documents) ? raw.documents : [],
-  };
-}
-
-function counts(state) {
-  return {
-    projects: state.projects.length,
-    equipment: state.equipment.length,
-    milestones: state.milestones.length,
-    documents: state.documents.length,
-  };
-}
-
-function totalRecords(c) {
-  return c.projects + c.equipment + c.milestones + c.documents;
-}
-
-async function status(env) {
-  const master = normalizeState((await readDriveJson(env, MASTER_FILE_ID)).parsed);
-  return json({
-    ok: true,
-    mode: 'permanent-server-side',
-    folderId: FOLDER_ID,
-    masterFileId: MASTER_FILE_ID,
-    backupFileId: BACKUP_FILE_ID,
-    updatedAt: master.updatedAt,
-    counts: counts(master),
-  });
-}
-
-async function readMaster(env) {
-  const master = normalizeState((await readDriveJson(env, MASTER_FILE_ID)).parsed);
-  return json(master, 200, {
-    'X-THERMABOT-Drive-Mode': 'permanent',
-    'X-THERMABOT-Master-File': MASTER_FILE_ID,
-  });
-}
-
-async function saveMaster(request, env) {
-  let incomingRaw;
-  try { incomingRaw = await request.json(); }
-  catch { return json({ ok: false, error: 'JSON de entrada inválido.' }, 400); }
-
-  let incoming;
-  try { incoming = normalizeState(incomingRaw); }
-  catch (error) { return json({ ok: false, error: error.message }, 400); }
-
-  const currentRead = await readDriveJson(env, MASTER_FILE_ID);
-  const current = normalizeState(currentRead.parsed);
-  const inCounts = counts(incoming);
-  const remoteCounts = counts(current);
-  const force = new URL(request.url).searchParams.get('force') === '1';
-
-  // Protección anticorrupción: una base vacía o de 1 proyecto no puede pisar
-  // accidentalmente una base consolidada de varios proyectos.
-  if (!force) {
-    if (totalRecords(inCounts) === 0 && totalRecords(remoteCounts) > 0) {
-      return json({
-        ok: false,
-        error: 'Protección activa: se rechazó reemplazar una base de Drive con datos por una base local vacía.',
-        remoteCounts,
-        incomingCounts: inCounts,
-      }, 409);
-    }
-    if (remoteCounts.projects >= 5 && inCounts.projects <= 1) {
-      return json({
-        ok: false,
-        error: 'Protección activa: se rechazó una reducción accidental de la cartera a uno o cero proyectos.',
-        remoteCounts,
-        incomingCounts: inCounts,
-      }, 409);
-    }
-  }
-
-  // Primero preserva la versión anterior completa en el segundo JSON de Drive.
-  const backupPayload = {
-    ...current,
-    _backupAt: new Date().toISOString(),
-    _backupSourceFileId: MASTER_FILE_ID,
-  };
-  await writeDriveJson(env, BACKUP_FILE_ID, backupPayload);
-
-  incoming.updatedAt = incoming.updatedAt || new Date().toISOString();
-  const saved = await writeDriveJson(env, MASTER_FILE_ID, incoming);
-  return json({
-    ok: true,
-    mode: 'permanent-server-side',
-    updatedAt: incoming.updatedAt,
-    counts: inCounts,
-    drive: saved,
-  });
-}
-
-export async function onRequest(context) {
-  try {
-    const method = context.request.method.toUpperCase();
-    if (method === 'GET') {
-      const url = new URL(context.request.url);
-      return url.searchParams.get('status') === '1'
-        ? status(context.env)
-        : readMaster(context.env);
-    }
-    if (method === 'PUT' || method === 'POST') return saveMaster(context.request, context.env);
-    return json({ ok: false, error: 'Método no permitido.' }, 405, { Allow: 'GET, PUT, POST' });
-  } catch (error) {
-    return json({ ok: false, error: error?.message || String(error) }, 500);
-  }
-}
+const SHEET_ID='1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs';
+const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+const FOLDER_ID='1u6FTkPnQaVbA9f8FIACLTI0YsR6OPeaZ';
+const MIRROR_ID='1BglmmoarrBiFdOPFybF0kBxg8HBsL6Oj';
+const BACKUP_ID='1AGenMZhPPk-7iTWJ0stdcn66VWVUNgJd';
+const TOKEN_URL='https://oauth2.googleapis.com/token';
+const SCOPE='https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
+const SHEETS='https://sheets.googleapis.com/v4/spreadsheets';
+const UPLOAD='https://www.googleapis.com/upload/drive/v3/files';
+const SCHEMA={
+  projects:['Proyectos',['id','establishment','name','sector','system','priority','stage','status','progress','owner','targetDate','lastMove','nextAction','blocker','specRevision','drawingRevision','supplier','expediente','notes','sourceDriveUrl','sourceBalanceId','createdAt','updatedAt']],
+  equipment:['Equipos',['id','projectId','name','model','capacity','location','status','supplier','tag','notes']],
+  milestones:['Hitos',['id','projectId','title','type','dueDate','status','owner','notes']],
+  documents:['Documentos',['id','projectId','type','title','revision','status','driveUrl','updatedAt']],
+};
+let cache={token:null,exp:0};
+const j=(x,s=200,h={})=>new Response(JSON.stringify(x),{status:s,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store, private',...h}});
+function b64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'');}
+const b64t=s=>b64(new TextEncoder().encode(s));
+function pk(p){const x=String(p||'').replace(/\\n/g,'\n').replace('-----BEGIN PRIVATE KEY-----','').replace('-----END PRIVATE KEY-----','').replace(/\s+/g,'');if(!x)throw Error('Private key inválida.');const r=atob(x),u=new Uint8Array(r.length);for(let i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u.buffer;}
+async function token(env){if(cache.token&&Date.now()<cache.exp-60000)return cache.token;const email=env.GOOGLE_SERVICE_ACCOUNT_EMAIL,key=env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;if(!email||!key)throw Error('Faltan Secrets de Google Service Account.');const now=Math.floor(Date.now()/1000),u=`${b64t(JSON.stringify({alg:'RS256',typ:'JWT'}))}.${b64t(JSON.stringify({iss:email,scope:SCOPE,aud:TOKEN_URL,iat:now,exp:now+3600}))}`,k=await crypto.subtle.importKey('pkcs8',pk(key),{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']),sig=await crypto.subtle.sign({name:'RSASSA-PKCS1-v1_5'},k,new TextEncoder().encode(u)),assertion=`${u}.${b64(new Uint8Array(sig))}`;const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion})}),p=await r.json().catch(()=>({}));if(!r.ok||!p.access_token)throw Error(p.error_description||p.error||`OAuth ${r.status}`);cache={token:p.access_token,exp:Date.now()+Number(p.expires_in||3600)*1000};return cache.token;}
+async function g(env,url,o={}){const h=new Headers(o.headers||{});h.set('Authorization',`Bearer ${await token(env)}`);const r=await fetch(url,{...o,headers:h});if(!r.ok)throw Error(`Google API ${r.status}: ${(await r.text().catch(()=>'' )).slice(0,400)}`);return r;}
+function norm(x){if(!x||typeof x!=='object'||Array.isArray(x))throw Error('Formato inválido.');return{...x,schemaVersion:Number(x.schemaVersion||1),updatedAt:x.updatedAt||new Date().toISOString(),projects:Array.isArray(x.projects)?x.projects:[],equipment:Array.isArray(x.equipment)?x.equipment:[],milestones:Array.isArray(x.milestones)?x.milestones:[],documents:Array.isArray(x.documents)?x.documents:[]};}
+const cnt=s=>({projects:s.projects.length,equipment:s.equipment.length,milestones:s.milestones.length,documents:s.documents.length});
+const total=c=>c.projects+c.equipment+c.milestones+c.documents;
+function objs(v=[]){if(!v.length)return[];const h=v[0].map(x=>String(x??'').trim());return v.slice(1).filter(r=>r.some(x=>String(x??'').trim())).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]??'']).filter(([k])=>k)));}
+const vals=(h,rows)=>[h,...rows.map(r=>h.map(k=>r?.[k]??''))];
+function cfg(v=[]){const x={};for(const r of v.slice(1))if(r?.[0])x[String(r[0])]=r[1]??'';return x;}
+async function range(env,a){const r=await g(env,`${SHEETS}/${SHEET_ID}/values/${encodeURIComponent(a)}?majorDimension=ROWS&valueRenderOption=UNFORMATTED_VALUE`);return (await r.json()).values||[];}
+async function read(env){const [p,e,m,d,c]=await Promise.all([range(env,'Proyectos!A1:W1000'),range(env,'Equipos!A1:J1000'),range(env,'Hitos!A1:H1000'),range(env,'Documentos!A1:H1000'),range(env,'Configuracion!A1:B100')]),q=cfg(c);return norm({schemaVersion:Number(q.schemaVersion||1),updatedAt:String(q.updatedAt||new Date().toISOString()),importSource:String(q.importSource||'Google Sheets'),projects:objs(p).map(x=>({...x,progress:Number(x.progress||0)})),equipment:objs(e),milestones:objs(m),documents:objs(d),trackerMetadata:{generatedBy:String(q.generatedBy||'THERMABOT project tracker'),statusPolicy:String(q.statusPolicy||''),sourceOfTruth:'Google Sheets',spreadsheetId:SHEET_ID}});}
+async function driveJson(env,id,x){return (await g(env,`${UPLOAD}/${id}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(x,null,2)})).json();}
+async function write(env,s){const c=cnt(s),config=[['Clave','Valor'],['schemaVersion',s.schemaVersion||1],['updatedAt',s.updatedAt],['importSource',s.importSource||'THERMABOT / Google Sheets'],['sourceOfTruth','Google Sheets'],['folderId',FOLDER_ID],['spreadsheetId',SHEET_ID],['projects',c.projects],['equipment',c.equipment],['milestones',c.milestones],['documents',c.documents],['generatedBy',s.trackerMetadata?.generatedBy||'THERMABOT project tracker'],['statusPolicy',s.trackerMetadata?.statusPolicy||'']];await g(env,`${SHEETS}/${SHEET_ID}/values:batchClear`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ranges:['Proyectos!A1:W1000','Equipos!A1:J1000','Hitos!A1:H1000','Documentos!A1:H1000','Configuracion!A1:B100']})});const data=Object.entries(SCHEMA).map(([k,[sh,h]])=>({range:`${sh}!A1`,majorDimension:'ROWS',values:vals(h,s[k])}));data.push({range:'Configuracion!A1',majorDimension:'ROWS',values:config});await g(env,`${SHEETS}/${SHEET_ID}/values:batchUpdate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data})});await g(env,`${SHEETS}/${SHEET_ID}/values/${encodeURIComponent('Historial!A:D')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:[[new Date().toISOString(),'THERMABOT Web','Sincronización',`Guardados ${c.projects} proyectos, ${c.equipment} equipos, ${c.milestones} hitos y ${c.documents} documentos.`]]})});}
+async function save(req,env){let x;try{x=norm(await req.json());}catch(e){return j({ok:false,error:e.message},400);}const cur=await read(env),ic=cnt(x),rc=cnt(cur),force=new URL(req.url).searchParams.get('force')==='1';if(!force&&((total(ic)===0&&total(rc)>0)||(rc.projects>=5&&ic.projects<=1)))return j({ok:false,error:'Protección activa: se rechazó una reducción accidental de la cartera.',remoteCounts:rc,incomingCounts:ic},409);await driveJson(env,BACKUP_ID,{...cur,_backupAt:new Date().toISOString(),_backupSource:'Google Sheets'});x.updatedAt=new Date().toISOString();x.trackerMetadata={...(x.trackerMetadata||{}),sourceOfTruth:'Google Sheets',spreadsheetId:SHEET_ID};await write(env,x);await driveJson(env,MIRROR_ID,{...x,_mirrorOfSpreadsheet:SHEET_ID});return j({ok:true,mode:'google-sheets-master',spreadsheetId:SHEET_ID,spreadsheetUrl:SHEET_URL,updatedAt:x.updatedAt,counts:ic});}
+export async function onRequest(ctx){try{const m=ctx.request.method.toUpperCase();if(m==='GET'){const s=await read(ctx.env);if(new URL(ctx.request.url).searchParams.get('status')==='1')return j({ok:true,mode:'google-sheets-master',folderId:FOLDER_ID,spreadsheetId:SHEET_ID,spreadsheetUrl:SHEET_URL,updatedAt:s.updatedAt,counts:cnt(s)});return j(s,200,{'X-THERMABOT-Mode':'google-sheets-master'});}if(m==='PUT'||m==='POST')return save(ctx.request,ctx.env);return j({ok:false,error:'Método no permitido.'},405,{Allow:'GET, PUT, POST'});}catch(e){return j({ok:false,error:e?.message||String(e)},500);}}
