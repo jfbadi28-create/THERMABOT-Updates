@@ -45,6 +45,7 @@ jobs:
             icon-192.png
             icon-512.png
             functions/_middleware.js
+            functions/api/tracker-sync.js
             .nojekyll
           )
           for f in "${required[@]}"; do
@@ -62,6 +63,7 @@ jobs:
           node --check tracker-drive-autosync.js
           node --check sw.js
           node --input-type=module --check < functions/_middleware.js
+          node --input-type=module --check < functions/api/tracker-sync.js
 
       - name: Validate JSON files
         run: |
@@ -83,6 +85,5 @@ jobs:
           grep -q 'tracker-drive-autosync.js' tracker.html
           grep -q 'tracker.css' tracker.html
           grep -q 'styles.css' tracker.html
-          grep -q 'accounts.google.com/gsi/client' tracker.html
           grep -q 'tracker-drive-autosync.js' sw.js
           echo 'Static references OK'
