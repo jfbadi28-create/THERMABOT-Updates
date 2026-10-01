@@ -2,8 +2,9 @@
   'use strict';
 
   // THERMABOT · sincronización permanente del seguimiento.
-  // Drive es la fuente maestra. El navegador conserva una copia local para
-  // trabajar rápido/offline, pero al abrir siempre vuelve a leer el maestro.
+  // Drive es la fuente maestra cuando el backend Cloudflare está disponible.
+  // Si el backend todavía no fue configurado, tracker.js conserva el OAuth
+  // de navegador anterior como fallback, para no cortar el trabajo actual.
   const STORAGE_KEY = 'thermabot.tracker.v1';
   const API_URL = './api/tracker-sync';
   const FIXED_FOLDER_ID = '1u6FTkPnQaVbA9f8FIACLTI0YsR6OPeaZ';
@@ -13,11 +14,13 @@
   const PUSH_DELAY_MS = 1200;
 
   const state = {
+    permanentMode: false,
     connected: false,
     syncing: false,
     suppressHook: false,
     pushTimer: null,
     pollTimer: null,
+    uiTimer: null,
     lastSync: null,
     lastRemoteUpdatedAt: null,
     backendError: null,
@@ -86,6 +89,7 @@
   }
 
   function updateUi() {
+    if (!state.permanentMode) return;
     const quick = $('driveQuickBtn');
     if (quick) {
       quick.textContent = state.connected ? 'Drive permanente ✓' : 'Drive permanente';
@@ -108,7 +112,8 @@
       link.classList.remove('disabled');
     }
 
-    // El OAuth del navegador queda fuera de uso en el modo permanente.
+    // El OAuth del navegador deja de ser necesario sólo cuando el backend
+    // permanente realmente está operativo.
     const clientInput = $('driveClientId');
     if (clientInput?.closest('label')) clientInput.closest('label').style.display = 'none';
     if ($('saveDriveClientBtn')) $('saveDriveClientBtn').style.display = 'none';
@@ -137,10 +142,13 @@
 
   async function probe() {
     const info = await apiFetch(`${API_URL}?status=1`);
-    state.connected = info?.ok === true && info?.mode === 'permanent-server-side';
+    if (info?.ok !== true || info?.mode !== 'permanent-server-side') {
+      throw new Error('El backend respondió, pero no está en modo permanente.');
+    }
+    state.permanentMode = true;
+    state.connected = true;
     state.backendError = null;
     state.lastRemoteUpdatedAt = info?.updatedAt || null;
-    updateUi();
     return info;
   }
 
@@ -158,7 +166,7 @@
   }
 
   async function pull({ reload = true, announce = true } = {}) {
-    if (!state.connected || state.syncing) return false;
+    if (!state.permanentMode || !state.connected || state.syncing) return false;
     state.syncing = true;
     updateUi();
     try {
@@ -183,7 +191,7 @@
   }
 
   async function push({ announce = false } = {}) {
-    if (!state.connected || state.syncing || state.suppressHook) return false;
+    if (!state.permanentMode || !state.connected || state.syncing || state.suppressHook) return false;
     state.syncing = true;
     updateUi();
     try {
@@ -195,8 +203,8 @@
       setMessage(`Guardado permanente: ${result?.counts?.projects ?? local.projects.length} proyectos.`, 'ok');
       return true;
     } catch (error) {
-      // La API protege expresamente contra el caso que originó el problema:
-      // una copia local vacía o de un solo proyecto no puede borrar la cartera.
+      // Protección explícita contra el problema observado: una copia local
+      // vacía o de un solo proyecto no puede borrar la cartera consolidada.
       if (error.status === 409) {
         setMessage(`${error.message} Se restaurará la cartera maestra de Drive.`, 'error');
         setTimeout(() => pull({ reload: true, announce: false }).catch(() => {}), 400);
@@ -210,7 +218,7 @@
   }
 
   function schedulePush() {
-    if (!state.connected || state.syncing || state.suppressHook) return;
+    if (!state.permanentMode || !state.connected || state.syncing || state.suppressHook) return;
     clearTimeout(state.pushTimer);
     state.pushTimer = setTimeout(() => {
       push({ announce: false }).catch(error => {
@@ -232,7 +240,7 @@
   }
 
   async function poll() {
-    if (!state.connected || state.syncing || document.hidden) return;
+    if (!state.permanentMode || !state.connected || state.syncing || document.hidden) return;
     try {
       const info = await apiFetch(`${API_URL}?status=1`);
       const remoteTime = info?.updatedAt ? new Date(info.updatedAt).getTime() : 0;
@@ -269,15 +277,15 @@
   async function initialize({ manual = false } = {}) {
     if (state.syncing) return;
     state.syncing = true;
-    updateUi();
-    setMessage(manual ? 'Verificando conexión permanente con Google Drive…' : 'Conectando con la cartera maestra de Google Drive…');
     try {
       await probe();
       state.syncing = false;
+      overrideControls();
       updateUi();
+      if (!state.uiTimer) state.uiTimer = setInterval(updateUi, 1500);
 
-      // Drive manda al abrir. Esto evita que localStorage de otra PC o una
-      // sesión incompleta se convierta accidentalmente en la fuente maestra.
+      // Drive manda al abrir. Evita que localStorage de otra PC o una sesión
+      // incompleta se convierta accidentalmente en la fuente maestra.
       await pull({ reload: true, announce: false });
       state.connected = true;
       state.lastSync = new Date();
@@ -285,26 +293,18 @@
       updateUi();
     } catch (error) {
       state.syncing = false;
+      state.permanentMode = false;
       state.connected = false;
       state.backendError = error;
-      updateUi();
-
-      const host = location.hostname;
-      if (host.endsWith('github.io')) {
-        setMessage('Esta URL de GitHub Pages no puede mantener Drive conectado de forma permanente. Usá la versión de THERMABOT publicada en Cloudflare Pages.', 'error');
-      } else if (/Secrets|SERVICE_ACCOUNT|GOOGLE_/i.test(error.message)) {
-        setMessage('El módulo permanente está instalado, pero faltan configurar las credenciales de la Service Account en Cloudflare Pages.', 'error');
-      } else {
-        setMessage(`No se pudo abrir el Drive maestro: ${error.message}`, 'error');
-      }
+      // No tocamos los controles: queda funcionando el OAuth de navegador
+      // original de tracker.js hasta que Cloudflare quede configurado.
+      console.warn('THERMABOT permanent Drive backend unavailable:', error.message);
+      if (manual) setMessage(`Modo permanente todavía no disponible: ${error.message}`, 'error');
     }
   }
 
   async function init() {
     hookLocalStorage();
-    overrideControls();
-    updateUi();
-    setInterval(updateUi, 1500); // tracker.js también actualiza esta vista; reafirmamos el estado real.
     await initialize({ manual: false });
   }
 
