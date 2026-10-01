@@ -1,5 +1,5 @@
 {
-  "version": "0.2.5-livecalc",
+  "version": "0.3.0-tracker",
   "channel": "stable-candidate",
-  "notes": "Recalculo en vivo para campos numericos: geometria, cargas y caudales se actualizan mientras el usuario modifica valores. Sin cambios en formulas ni motor HVAC."
+  "notes": "Integra seguimiento técnico HVAC con proyectos, equipos, hitos y documentos; acceso desde Balance Térmico; sincronización opcional con Google Drive mediante OAuth sin guardar secretos. Sin cambios en fórmulas ni motor HVAC."
 }
