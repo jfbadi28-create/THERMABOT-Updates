@@ -29,6 +29,17 @@
     volumeEl.textContent=`${volume.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})} m³`;
   }
 
+  function installTrackerLink(){
+    const newProject=document.getElementById('newProject');
+    if(!newProject||document.getElementById('openProjectTracker')) return;
+    const button=document.createElement('button');
+    button.id='openProjectTracker';
+    button.className='rail-outline full';
+    button.textContent='Seguimiento de proyectos';
+    button.onclick=()=>{window.location.href='tracker.html';};
+    newProject.insertAdjacentElement('afterend',button);
+  }
+
   function shouldRecalculate(el){
     if(!(el instanceof HTMLInputElement)) return false;
     if(LIVE_IDS.has(el.id)) return true;
@@ -58,6 +69,6 @@
     pending.set(el,timer);
   });
 
-  // Vista previa correcta desde el primer render.
-  window.addEventListener('DOMContentLoaded',()=>setTimeout(updateGeometryPreview,0));
+  // Vista previa correcta desde el primer render y acceso al seguimiento integrado.
+  window.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{updateGeometryPreview();installTrackerLink();},0));
 })();
