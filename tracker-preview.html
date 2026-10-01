@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>THERMABOT — Vista previa Bioingeniería Hoy</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#19211e}
+    #previewFrame{border:0;width:100%;height:100%;display:block;background:#f5f1e8}
+    .preview-badge{position:fixed;right:18px;bottom:16px;z-index:99999;background:#19211e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 12px;font:700 10px/1 Consolas,monospace;letter-spacing:.08em;box-shadow:0 7px 26px rgba(0,0,0,.2);pointer-events:none}
+  </style>
+</head>
+<body>
+  <iframe id="previewFrame" src="tracker.html" title="Vista previa THERMABOT"></iframe>
+  <div class="preview-badge">VISTA PREVIA · NO MODIFICA DATOS</div>
+  <script>
+  (()=>{
+    const frame=document.getElementById('previewFrame');
+    const STORAGE_KEY='thermabot.tracker.v1';
+    const esc=v=>String(v??'').replace(/[&<>\"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
+    const n=v=>Number.isFinite(Number(v))?Number(v):0;
+    const parseDate=v=>{if(!v)return null;const d=new Date(v.length===10?v+'T12:00:00':v);return Number.isNaN(d.getTime())?null:d};
+    const daysFrom=v=>{const d=parseDate(v);if(!d)return null;return Math.floor((Date.now()-d.getTime())/86400000)};
+    const daysTo=v=>{const d=parseDate(v);if(!d)return null;const t=new Date();t.setHours(12,0,0,0);return Math.round((d.getTime()-t.getTime())/86400000)};
+    const parseTR=value=>{const s=String(value||'').replace(',','.');const m=s.match(/(\d+(?:\.\d+)?)\s*TR\b/i);return m?Number(m[1]):0};
+    const fmtTR=v=>new Intl.NumberFormat('es-AR',{minimumFractionDigits:v%1?1:0,maximumFractionDigits:1}).format(v);
+
+    function scoreProject(p){
+      let score=0;const reasons=[];const due=daysTo(p.targetDate);const stale=daysFrom(p.updatedAt||p.createdAt);
+      if(p.status==='Urgente'){score+=100;reasons.push('Marcado urgente')}
+      if(p.status==='Bloqueado'){score+=90;reasons.push('Proyecto bloqueado')}
+      if(p.status==='Esperando tercero'){score+=60;reasons.push('Esperando tercero')}
+      if(p.priority==='Urgente')score+=40; else if(p.priority==='Alta')score+=25;
+      if(due!==null&&due<0){score+=55;reasons.push(`Vencido hace ${Math.abs(due)} d`)}
+      else if(due!==null&&due<=3){score+=30;reasons.push(due===0?'Vence hoy':`Vence en ${due} d`)}
+      else if(due!==null&&due<=7){score+=15;reasons.push(`Vence en ${due} d`)}
+      if(stale!==null&&stale>14){score+=20;reasons.push(`${stale} d sin movimiento`)}
+      else if(stale!==null&&stale>7){score+=10;reasons.push(`${stale} d sin movimiento`)}
+      if(!p.nextAction){score+=8;reasons.push('Sin próxima acción')}
+      let level='EN CURSO',tone='ok';
+      if((due!==null&&due<0)||p.status==='Urgente'||p.status==='Bloqueado'){level=due!==null&&due<0?'VENCIDO':'AHORA';tone='risk'}
+      else if(p.status==='Esperando tercero'){level=stale!==null?`ESPERA ${Math.max(stale,0)} D`:'ESPERA';tone='wait'}
+      else if(due!==null&&due<=7){level='ESTA SEMANA';tone='soon'}
+      return {p,score,reasons,due,stale,level,tone};
+    }
+
+    function install(){
+      const doc=frame.contentDocument,win=frame.contentWindow;
+      if(!doc||!doc.body)return;
+      const style=doc.createElement('style');
+      style.textContent=`
+        .bio-today{margin:0 0 18px;padding:0;overflow:hidden;border:1px solid #d9d0c1;background:#fbf8f1;box-shadow:0 7px 24px rgba(35,40,37,.06)}
+        .bio-today-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;background:#202925;color:#f7f3e9;border-bottom:1px solid #37413c}
+        .bio-today-kicker{font:700 9px/1 Consolas,monospace;letter-spacing:.12em;color:#c9d1cd;margin-bottom:6px}
+        .bio-today-head h2{margin:0;font-size:22px;color:#fff}.bio-today-head p{margin:4px 0 0;color:#bfc8c3;font-size:11px}
+        .bio-today-cap{text-align:right;min-width:150px}.bio-today-cap span{display:block;font:700 9px/1.2 Consolas,monospace;letter-spacing:.08em;color:#c9d1cd}.bio-today-cap strong{display:block;font-size:26px;margin-top:4px;color:#f0b34a}.bio-today-cap small{color:#aeb9b3;font-size:9px}
+        .bio-today-table{width:100%;border-collapse:collapse;font-size:11px}.bio-today-table th{padding:9px 10px;text-align:left;font:700 8px/1 Consolas,monospace;letter-spacing:.08em;color:#777b76;border-bottom:1px solid #ded7ca;text-transform:uppercase}.bio-today-table td{padding:10px;border-bottom:1px solid #ebe5da;vertical-align:middle}.bio-today-table tr:last-child td{border-bottom:0}.bio-today-table strong{font-size:11px}.bio-sub{display:block;color:#8a8c87;font-size:9px;margin-top:3px}.bio-reason{color:#575c58}.bio-action{font-weight:700;color:#303834}.bio-level{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;font:700 8px/1 Consolas,monospace;white-space:nowrap;border:1px solid #d7d0c4;background:#f2eee5}.bio-level:before{content:'';width:6px;height:6px;border-radius:50%;background:#79977e}.bio-level.risk{background:#fae6e2;border-color:#dfb7b0;color:#8d4037}.bio-level.risk:before{background:#b45348}.bio-level.wait{background:#fff1d5;border-color:#e5c98e;color:#755c2b}.bio-level.wait:before{background:#d6a14b}.bio-level.soon{background:#f6f1db;border-color:#d8cf9a;color:#71672d}.bio-level.soon:before{background:#b5a340}
+        .bio-actions{display:flex;gap:5px;flex-wrap:wrap}.bio-mini{border:1px solid #d8d0c3;background:#fff;border-radius:999px;padding:5px 8px;font:700 8px/1 Consolas,monospace;cursor:pointer;color:#333b37}.bio-mini.primary{background:#202925;color:#fff;border-color:#202925}.bio-mini:hover{border-color:#d29a3f}.bio-empty{padding:20px;color:#777;text-align:center;font-size:11px}
+        .bio-preview-note{padding:8px 18px;background:#fff4db;border-top:1px solid #e7d4a5;color:#79612e;font:9px/1.45 Consolas,monospace}
+        .bio-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#202925;color:#fff;border-radius:999px;padding:9px 14px;font:700 9px/1 Consolas,monospace;box-shadow:0 8px 30px rgba(0,0,0,.22);opacity:0;transition:opacity .2s}.bio-toast.show{opacity:1}
+        @media(max-width:900px){.bio-today-head{align-items:flex-start}.bio-today-cap{display:none}.bio-today-table th:nth-child(3),.bio-today-table td:nth-child(3){display:none}.bio-actions .bio-mini:not(.primary){display:none}}
+      `;
+      doc.head.appendChild(style);
+
+      const filter=doc.querySelector('.tracker-filterbar');
+      if(!filter||doc.getElementById('bioTodayPreview'))return;
+      const box=doc.createElement('section');box.id='bioTodayPreview';box.className='card bio-today';
+      filter.insertAdjacentElement('afterend',box);
+      const toast=doc.createElement('div');toast.className='bio-toast';toast.id='bioPreviewToast';doc.body.appendChild(toast);
+
+      function showToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove('show'),2200)}
+      function read(){try{return JSON.parse(win.localStorage.getItem(STORAGE_KEY)||'{}')}catch{return {}}}
+      function render(){
+        const data=read();const projects=Array.isArray(data.projects)?data.projects:[];const equipment=Array.isArray(data.equipment)?data.equipment:[];
+        const ranked=projects.filter(p=>!['Finalizado','Suspendido'].includes(p.status)).map(scoreProject).sort((a,b)=>b.score-a.score).slice(0,6);
+        const attention=ranked.filter(x=>x.score>=25).length;
+        const totalTR=equipment.reduce((s,e)=>s+parseTR(e.capacity),0);
+        const trKnown=equipment.filter(e=>parseTR(e.capacity)>0).length;
+        const rows=ranked.map(x=>`<tr>
+          <td><span class="bio-level ${x.tone}">${esc(x.level)}</span></td>
+          <td><strong>${esc(x.p.name||'Proyecto')}</strong><span class="bio-sub">${esc(x.p.establishment||'Sin establecimiento')} · ${esc(x.p.stage||'—')}</span></td>
+          <td class="bio-reason">${esc(x.reasons.slice(0,2).join(' · ')||'Seguimiento normal')}</td>
+          <td class="bio-action">${esc(x.p.nextAction||'Definir próxima acción')}</td>
+          <td><div class="bio-actions"><button class="bio-mini primary" data-open-project="${esc(x.p.name||'')}">Abrir</button><button class="bio-mini" data-preview-action="Esperando tercero">⏳ Esperando</button><button class="bio-mini" data-preview-action="Actualizar avance">+ Avance</button><button class="bio-mini" data-preview-action="Marcar resuelto">✓ Resuelto</button></div></td>
+        </tr>`).join('');
+        box.innerHTML=`<div class="bio-today-head"><div><div class="bio-today-kicker">BANDEJA OPERATIVA</div><h2>BIOINGENIERÍA · HOY</h2><p>${attention?`${attention} asunto${attention===1?'':'s'} requieren atención prioritaria`:'Sin urgencias detectadas · se muestran los próximos trabajos'}</p></div><div class="bio-today-cap"><span>CAPACIDAD HVAC REGISTRADA</span><strong>${totalTR?fmtTR(totalTR):'—'} TR</strong><small>${trKnown?`${trKnown} equipos con TR identificadas`:'Completar capacidad [TR] para consolidar'}</small></div></div><div class="table-wrap"><table class="bio-today-table"><thead><tr><th>Nivel</th><th>Proyecto</th><th>Motivo</th><th>Qué hacer</th><th>Acción rápida</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="bio-empty">No hay proyectos activos cargados en este navegador.</td></tr>'}</tbody></table></div><div class="bio-preview-note">MODO PRUEBA: usa tus datos locales reales, pero los botones rápidos no modifican información. “Abrir” filtra el proyecto en la vista Proyectos.</div>`;
+        box.querySelectorAll('[data-preview-action]').forEach(b=>b.onclick=()=>showToast(`Vista previa · ${b.dataset.previewAction} no modifica datos`));
+        box.querySelectorAll('[data-open-project]').forEach(b=>b.onclick=()=>{
+          const nav=doc.querySelector('[data-view="projects"]');if(nav)nav.click();
+          const input=doc.getElementById('projectSearch');if(input){input.value=b.dataset.openProject;input.dispatchEvent(new Event('input',{bubbles:true}));input.scrollIntoView({behavior:'smooth',block:'center'})}
+        });
+      }
+      render();
+      win.addEventListener('storage',render);
+      setInterval(render,4000);
+    }
+    frame.addEventListener('load',()=>setTimeout(install,350));
+  })();
+  </script>
+</body>
+</html>
