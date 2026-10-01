@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>THERMABOT — Seguimiento de proyectos HVAC</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="tracker.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#19211e" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="app-shell tracker-shell">
+    <aside class="rail">
+      <div>
+        <div class="brand">THERMA<span>BOT</span></div>
+        <div class="brand-sub">SEGUIMIENTO HVAC · PROYECTOS</div>
+      </div>
+
+      <section class="rail-section">
+        <div class="rail-label">HERRAMIENTAS</div>
+        <a class="rail-outline full rail-link" href="index.html">Balance térmico</a>
+        <a class="rail-outline full rail-link" href="pressure.html">Presurización</a>
+      </section>
+
+      <nav class="rail-section steps tracker-nav">
+        <div class="rail-label">SEGUIMIENTO</div>
+        <button class="step active" data-view="dashboard"><b>01</b><span>Dashboard</span></button>
+        <button class="step" data-view="projects"><b>02</b><span>Proyectos</span></button>
+        <button class="step" data-view="equipment"><b>03</b><span>Equipos</span></button>
+        <button class="step" data-view="milestones"><b>04</b><span>Hitos</span></button>
+        <button class="step" data-view="documents"><b>05</b><span>Documentos</span></button>
+        <button class="step" data-view="drive"><b>06</b><span>Google Drive</span></button>
+      </nav>
+
+      <div class="rail-section tracker-legend">
+        <div class="rail-label">ESTADOS</div>
+        <div><span class="status-dot ok"></span> Activo / en curso</div>
+        <div><span class="status-dot wait"></span> Esperando tercero</div>
+        <div><span class="status-dot risk"></span> Bloqueado / urgente</div>
+      </div>
+
+      <div id="trackerSaveStatus" class="save-status">Seguimiento · iniciando…</div>
+    </aside>
+
+    <main class="workspace tracker-workspace">
+      <header class="topbar tracker-topbar">
+        <div>
+          <div class="eyebrow">GESTIÓN TÉCNICA HVAC</div>
+          <h1 id="trackerTitle">Seguimiento de proyectos</h1>
+          <div id="trackerMeta" class="meta">Proyectos, equipos, hitos y documentación técnica.</div>
+        </div>
+        <div class="top-actions">
+          <button id="importBalancesBtn" class="pill">Importar balances</button>
+          <button id="driveQuickBtn" class="pill accent-outline">Drive desconectado</button>
+          <button id="newProjectBtn" class="pill dark">+ Proyecto</button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="tracker-view active-view">
+        <div class="tracker-filterbar card">
+          <label>Establecimiento<select id="filterEstablishment"><option value="">Todos</option></select></label>
+          <label>Sector<select id="filterSector"><option value="">Todos</option></select></label>
+          <label>Sistema<select id="filterSystem"><option value="">Todos</option></select></label>
+          <label>Etapa<select id="filterStage"><option value="">Todas</option></select></label>
+          <button id="clearFiltersBtn" class="pill small">Limpiar</button>
+        </div>
+
+        <div class="kpi-grid">
+          <article class="kpi-card card"><span>PROYECTOS ACTIVOS</span><strong id="kpiActive">0</strong><small id="kpiActiveNote">—</small></article>
+          <article class="kpi-card card"><span>ESPERANDO TERCEROS</span><strong id="kpiWaiting">0</strong><small>Requieren seguimiento</small></article>
+          <article class="kpi-card card"><span>BLOQUEADOS / URGENTES</span><strong id="kpiRisk">0</strong><small>Atención prioritaria</small></article>
+          <article class="kpi-card card"><span>AVANCE PROMEDIO</span><strong id="kpiProgress">0%</strong><small>Proyectos no finalizados</small></article>
+          <article class="kpi-card card"><span>HITOS PRÓXIMOS</span><strong id="kpiMilestones">0</strong><small>Próximos 14 días</small></article>
+          <article class="kpi-card card"><span>EQUIPOS REGISTRADOS</span><strong id="kpiEquipment">0</strong><small>Asociados a proyectos</small></article>
+        </div>
+
+        <div class="tracker-two-col">
+          <section class="card tracker-panel">
+            <div class="panel-head">
+              <div><div class="eyebrow">CARTERA</div><h2>Proyectos</h2></div>
+              <button class="pill small" data-go-view="projects">Ver todos</button>
+            </div>
+            <div class="table-wrap"><table class="tracker-table"><thead><tr><th>Proyecto</th><th>Etapa</th><th>Estado</th><th>Avance</th><th>Próxima acción</th></tr></thead><tbody id="dashboardProjectsBody"></tbody></table></div>
+          </section>
+
+          <section class="card tracker-panel">
+            <div class="panel-head"><div><div class="eyebrow">AGENDA</div><h2>Próximos hitos</h2></div></div>
+            <div id="dashboardMilestones" class="timeline-list"></div>
+          </section>
+        </div>
+
+        <section class="card tracker-panel attention-panel">
+          <div class="panel-head"><div><div class="eyebrow">ATENCIÓN</div><h2>Esperando terceros y bloqueos</h2></div></div>
+          <div id="attentionList" class="attention-list"></div>
+        </section>
+      </section>
+
+      <section id="view-projects" class="tracker-view">
+        <div class="section-title tracker-section-title">
+          <div><div class="step-kicker">02 · CARTERA DE TRABAJO</div><h2>Proyectos</h2></div>
+          <div class="table-actions"><input id="projectSearch" class="search-input" placeholder="Buscar proyecto, sector, sistema…" /><button id="newProjectBtn2" class="pill dark">+ Proyecto</button></div>
+        </div>
+        <section class="card tracker-panel">
+          <div class="table-wrap"><table class="tracker-table project-table"><thead><tr><th>Establecimiento</th><th>Proyecto</th><th>Sector</th><th>Sistema</th><th>Prioridad</th><th>Etapa</th><th>Estado</th><th>Avance</th><th>Fecha objetivo</th></tr></thead><tbody id="projectsBody"></tbody></table></div>
+        </section>
+      </section>
+
+      <section id="view-equipment" class="tracker-view">
+        <div class="section-title tracker-section-title"><div><div class="step-kicker">03 · ACTIVOS TÉCNICOS</div><h2>Equipos</h2></div><button id="newEquipmentBtn" class="pill dark">+ Equipo</button></div>
+        <section class="card tracker-panel"><div class="table-wrap"><table class="tracker-table"><thead><tr><th>Proyecto</th><th>Equipo</th><th>Modelo</th><th>Ubicación</th><th>Estado</th><th>Proveedor</th></tr></thead><tbody id="equipmentBody"></tbody></table></div></section>
+      </section>
+
+      <section id="view-milestones" class="tracker-view">
+        <div class="section-title tracker-section-title"><div><div class="step-kicker">04 · CRONOGRAMA</div><h2>Hitos</h2></div><button id="newMilestoneBtn" class="pill dark">+ Hito</button></div>
+        <section class="card tracker-panel"><div class="table-wrap"><table class="tracker-table"><thead><tr><th>Fecha</th><th>Proyecto</th><th>Hito</th><th>Tipo</th><th>Estado</th><th>Responsable</th></tr></thead><tbody id="milestonesBody"></tbody></table></div></section>
+      </section>
+
+      <section id="view-documents" class="tracker-view">
+        <div class="section-title tracker-section-title"><div><div class="step-kicker">05 · TRAZABILIDAD</div><h2>Documentos</h2></div><button id="newDocumentBtn" class="pill dark">+ Documento</button></div>
+        <section class="card tracker-panel"><div class="table-wrap"><table class="tracker-table"><thead><tr><th>Proyecto</th><th>Tipo</th><th>Documento</th><th>Revisión</th><th>Estado</th><th>Actualizado</th><th>Drive</th></tr></thead><tbody id="documentsBody"></tbody></table></div></section>
+      </section>
+
+      <section id="view-drive" class="tracker-view">
+        <div class="section-title tracker-section-title"><div><div class="step-kicker">06 · RESPALDO Y SINCRONIZACIÓN</div><h2>Google Drive</h2></div></div>
+        <div class="tracker-two-col drive-grid">
+          <section class="card tracker-panel">
+            <div class="eyebrow">CONEXIÓN</div>
+            <h3>Drive del usuario</h3>
+            <p class="tracker-copy">THERMABOT guarda una copia estructurada del seguimiento en <b>THERMABOT / Seguimiento / seguimiento-proyectos.json</b>. La aplicación puede seguir funcionando sin Drive.</p>
+            <label>Google OAuth Client ID
+              <input id="driveClientId" type="text" autocomplete="off" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com" />
+            </label>
+            <div class="drive-actions">
+              <button id="saveDriveClientBtn" class="pill">Guardar Client ID</button>
+              <button id="connectDriveBtn" class="pill dark">Conectar Google Drive</button>
+            </div>
+            <div class="formula">El Client ID identifica la aplicación y no es una contraseña. THERMABOT no guarda Client Secret, tokens ni contraseñas en GitHub.</div>
+          </section>
+
+          <section class="card tracker-panel">
+            <div class="eyebrow">ESTADO</div>
+            <h3 id="driveStateTitle">Drive desconectado</h3>
+            <div class="drive-state-grid">
+              <div><span>Carpeta</span><strong id="driveFolderState">—</strong></div>
+              <div><span>Archivo maestro</span><strong id="driveFileState">—</strong></div>
+              <div><span>Última sincronización</span><strong id="driveSyncState">—</strong></div>
+              <div><span>Modo actual</span><strong id="driveModeState">Local</strong></div>
+            </div>
+            <div class="drive-actions">
+              <button id="pushDriveBtn" class="pill" disabled>Guardar ahora</button>
+              <button id="pullDriveBtn" class="pill" disabled>Cargar desde Drive</button>
+              <a id="openDriveFolder" class="pill tracker-anchor disabled" href="#" target="_blank" rel="noopener">Abrir carpeta</a>
+            </div>
+            <div id="driveMessage" class="drive-message">El seguimiento está guardado localmente en este navegador.</div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <aside class="summary tracker-summary">
+      <div class="summary-head">
+        <div class="eyebrow">PROYECTO SELECCIONADO</div>
+        <div id="selectedProjectName" class="summary-name">Sin proyecto</div>
+        <div id="selectedProjectMeta" class="summary-city">Seleccioná un proyecto de la tabla.</div>
+      </div>
+
+      <div id="selectedProjectEmpty" class="empty-summary">Creá un proyecto o importá los balances térmicos existentes para comenzar el seguimiento.</div>
+
+      <div id="selectedProjectPanel" class="hidden">
+        <div class="summary-total tracker-progress-block">
+          <span>AVANCE</span>
+          <strong id="selectedProgressText">0%</strong>
+          <div class="progress-track"><i id="selectedProgressBar"></i></div>
+        </div>
+
+        <div class="quick-editor">
+          <label>Estado<select id="quickStatus"></select></label>
+          <label>Etapa<select id="quickStage"></select></label>
+          <label>Avance [%]<input id="quickProgress" type="number" min="0" max="100" step="5" /></label>
+          <label>Fecha objetivo<input id="quickTargetDate" type="date" /></label>
+          <label>Próxima acción<textarea id="quickNextAction" rows="2"></textarea></label>
+          <label>Bloqueo / espera<textarea id="quickBlocker" rows="2"></textarea></label>
+        </div>
+
+        <div class="summary-block">
+          <div class="eyebrow">ÚLTIMO MOVIMIENTO</div>
+          <div id="selectedLastMove" class="summary-note">—</div>
+        </div>
+        <div class="summary-block">
+          <div class="eyebrow">REFERENCIAS</div>
+          <div class="sumline"><span>Expediente</span><b id="selectedExpediente">—</b></div>
+          <div class="sumline"><span>Pliego</span><b id="selectedSpec">—</b></div>
+          <div class="sumline"><span>Plano</span><b id="selectedDrawing">—</b></div>
+        </div>
+        <div class="summary-block project-summary-actions">
+          <button id="editProjectBtn" class="pill full-summary">Editar ficha completa</button>
+          <button id="deleteProjectBtn" class="pill danger-outline full-summary">Eliminar proyecto</button>
+        </div>
+      </div>
+
+      <div class="summary-foot">THERMABOT · Seguimiento técnico HVAC</div>
+    </aside>
+  </div>
+
+  <div id="trackerModal" class="modal hidden">
+    <div class="modal-box tracker-modal-box">
+      <button id="trackerModalClose" class="modal-close">×</button>
+      <div class="eyebrow">THERMABOT</div>
+      <h3 id="trackerModalTitle">Proyecto</h3>
+      <div id="trackerModalBody"></div>
+    </div>
+  </div>
+
+  <script src="tracker.js"></script>
+</body>
+</html>
