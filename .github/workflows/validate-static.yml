@@ -29,11 +29,15 @@ jobs:
             index.html
             styles.css
             app-v023.js
+            realtime-input.js
             engine.js
             pressure.html
             pressure.css
             pressure-network.js
             pressure-app.js
+            tracker.html
+            tracker.css
+            tracker.js
             sw.js
             manifest.webmanifest
             version.json
@@ -49,9 +53,11 @@ jobs:
       - name: JavaScript syntax checks
         run: |
           node --check app-v023.js
+          node --check realtime-input.js
           node --check engine.js
           node --check pressure-network.js
           node --check pressure-app.js
+          node --check tracker.js
           node --check sw.js
           node --input-type=module --check < functions/_middleware.js
 
@@ -64,10 +70,15 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'app-v023.js' index.html
+          grep -q 'realtime-input.js' index.html
           grep -q 'styles.css' index.html
           grep -q 'manifest.webmanifest' index.html
           grep -q 'engine.js' pressure.html
           grep -q 'pressure-network.js' pressure.html
           grep -q 'pressure-app.js' pressure.html
           grep -q 'pressure.css' pressure.html
+          grep -q 'tracker.js' tracker.html
+          grep -q 'tracker.css' tracker.html
+          grep -q 'styles.css' tracker.html
+          grep -q 'accounts.google.com/gsi/client' tracker.html
           echo 'Static references OK'
