@@ -1,5 +1,5 @@
 {
-  "version": "0.3.1-drive-autosync",
+  "version": "0.3.2-drive-permanent",
   "channel": "stable-candidate",
-  "notes": "Seguimiento técnico HVAC con sincronización automática a la carpeta fija THERMABOT/Seguimiento en Google Drive. Mantiene archivo maestro y copia de respaldo previa; intenta reconexión automática al abrir la aplicación. Sin cambios en fórmulas ni motor HVAC."
+  "notes": "Seguimiento HVAC con Google Drive como fuente maestra permanente mediante backend Cloudflare y Service Account. Al abrir carga el maestro de Drive, guarda cambios automáticamente, conserva una copia de respaldo y bloquea reducciones accidentales a uno o cero proyectos. Sin cambios en fórmulas ni motor HVAC."
 }
