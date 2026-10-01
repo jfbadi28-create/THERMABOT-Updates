@@ -28,6 +28,41 @@
     return state;
   }
 
+  function renderCounts(state){
+    $('projectCount').textContent=state.projects.length;
+    $('documentCount').textContent=state.documents.length;
+    $('equipmentCount').textContent=state.equipment.length;
+    $('milestoneCount').textContent=state.milestones.length;
+  }
+
+  function persistState(state,source){
+    localStorage.setItem(TRACKER_KEY,JSON.stringify(state));
+    localStorage.setItem(SOURCE_KEY,JSON.stringify(source));
+    renderCounts(state);
+    $('openTracker').disabled=false;
+  }
+
+  async function importManualFile(){
+    const file=$('manualFile').files?.[0];
+    if(!file){setStatus('Seleccioná primero el archivo seguimiento-proyectos.json.','error');return;}
+    try{
+      setStatus('Leyendo y validando el archivo local…');
+      const text=await file.text();
+      const raw=JSON.parse(text);
+      const state=normalize(raw);
+      persistState(state,{
+        fileName:file.name,
+        importedAt:new Date().toISOString(),
+        projects:state.projects.length,
+        mode:'manual-local-file'
+      });
+      $('sourceInfo').textContent=`Importado manualmente desde ${file.name} · ${state.projects.length} proyectos · ${state.documents.length} documentos · ${state.equipment.length} equipos · ${state.milestones.length} hitos.`;
+      setStatus(`Listo: ${state.projects.length} proyectos fueron cargados en este navegador. Tocá “Abrir seguimiento”.`,'ok');
+    }catch(err){
+      setStatus(err?.message||String(err),'error');
+    }
+  }
+
   async function googleFetch(url,token){
     const response=await fetch(url,{headers:{Authorization:`Bearer ${token}`}});
     if(!response.ok){
@@ -66,26 +101,17 @@
     return valid[0]||null;
   }
 
-  function renderCounts(state){
-    $('projectCount').textContent=state.projects.length;
-    $('documentCount').textContent=state.documents.length;
-    $('equipmentCount').textContent=state.equipment.length;
-    $('milestoneCount').textContent=state.milestones.length;
-  }
-
   function saveImported(best){
-    localStorage.setItem(TRACKER_KEY,JSON.stringify(best.state));
-    localStorage.setItem(SOURCE_KEY,JSON.stringify({
+    persistState(best.state,{
       fileId:best.file.id,
       fileName:best.file.name,
       modifiedTime:best.file.modifiedTime||null,
       webViewLink:best.file.webViewLink||null,
       importedAt:new Date().toISOString(),
-      projects:best.state.projects.length
-    }));
-    renderCounts(best.state);
+      projects:best.state.projects.length,
+      mode:'google-drive'
+    });
     $('sourceInfo').textContent=`Importado desde ${best.file.name} · ${best.state.projects.length} proyectos · ${best.state.documents.length} documentos. Última actualización del archivo: ${best.file.modifiedTime?new Date(best.file.modifiedTime).toLocaleString('es-AR'):'—'}.`;
-    $('openTracker').disabled=false;
   }
 
   function connectAndImport(){
@@ -108,7 +134,7 @@
           const best=await chooseBest(files,response.access_token);
           if(!best) throw new Error('Encontré archivos con ese nombre, pero ninguno contiene un seguimiento válido con proyectos.');
           saveImported(best);
-          setStatus(`Listo: ${best.state.projects.length} proyectos fueron cargados en THERMABOT. Ya podés abrir el seguimiento.`,`ok`);
+          setStatus(`Listo: ${best.state.projects.length} proyectos fueron cargados en THERMABOT. Ya podés abrir el seguimiento.`,'ok');
         }catch(err){setStatus(err.message||String(err),'error');}
       }
     });
@@ -118,6 +144,7 @@
   function init(){
     const saved=localStorage.getItem(CLIENT_KEY)||'';
     $('clientId').value=saved;
+    $('manualImport').onclick=importManualFile;
     $('saveClient').onclick=()=>{
       const v=($('clientId').value||'').trim();
       if(v){localStorage.setItem(CLIENT_KEY,v);setStatus('Client ID guardado en este navegador. Ahora tocá “Conectar e importar”.','ok');}
@@ -131,7 +158,7 @@
       if(current?.projects?.length){
         renderCounts(current);
         $('openTracker').disabled=false;
-        $('sourceInfo').textContent=`Este navegador ya tiene ${current.projects.length} proyectos cargados. Podés reimportar desde Drive para reemplazarlos por la copia preparada.`;
+        $('sourceInfo').textContent=`Este navegador ya tiene ${current.projects.length} proyectos cargados. Podés reemplazarlos importando nuevamente el archivo preparado o conectando Drive.`;
       }
     }catch{}
   }
