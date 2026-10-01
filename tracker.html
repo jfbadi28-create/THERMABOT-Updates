@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>THERMABOT — Seguimiento de proyectos HVAC</title>
+  <title>THERMABOT — Bioingeniería · Gestión Técnica HVAC</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="tracker.css" />
   <link rel="manifest" href="manifest.webmanifest" />
@@ -47,8 +47,7 @@
     <main class="workspace tracker-workspace">
       <header class="topbar tracker-topbar">
         <div>
-          <div class="eyebrow">BIOINGENIERÍA · GESTIÓN TÉCNICA HVAC</div>
-          <h1 id="trackerTitle">Seguimiento de proyectos</h1>
+          <h1 id="trackerTitle">BIOINGENIERÍA · GESTIÓN TÉCNICA HVAC</h1>
           <div id="trackerMeta" class="meta">Proyectos, equipos, hitos y documentación técnica.</div>
         </div>
         <div class="top-actions">
@@ -214,5 +213,15 @@
   </div>
 
   <script src="tracker.js"></script>
+  <script>
+    (()=>{
+      const title=document.getElementById('trackerTitle');
+      if(!title)return;
+      const fixed='BIOINGENIERÍA · GESTIÓN TÉCNICA HVAC';
+      const keep=()=>{if(title.textContent!==fixed)title.textContent=fixed;};
+      keep();
+      new MutationObserver(keep).observe(title,{childList:true,characterData:true,subtree:true});
+    })();
+  </script>
 </body>
 </html>
