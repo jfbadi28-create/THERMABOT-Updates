@@ -1,294 +1,34 @@
-// THERMABOT · Google Sheets como fuente maestra del seguimiento.
-// Cloudflare Pages Function. Usa Service Account almacenada en Secrets.
-// Secrets requeridos:
-//   GOOGLE_SERVICE_ACCOUNT_EMAIL
-//   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-//
-// Compartir la planilla maestra con la Service Account como Editor.
-
-const SPREADSHEET_ID = '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs';
-const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
-const FOLDER_ID = '1u6FTkPnQaVbA9f8FIACLTI0YsR6OPeaZ';
-const LEGACY_JSON_MIRROR_ID = '1BglmmoarrBiFdOPFybF0kBxg8HBsL6Oj';
-const BACKUP_JSON_ID = '1AGenMZhPPk-7iTWJ0stdcn66VWVUNgJd';
-const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
-const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
-const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
-const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
-
-const SCHEMAS = {
-  projects: {
-    sheet: 'Proyectos',
-    headers: ['id','establishment','name','sector','system','priority','stage','status','progress','owner','targetDate','lastMove','nextAction','blocker','specRevision','drawingRevision','supplier','expediente','notes','sourceDriveUrl','sourceBalanceId','createdAt','updatedAt'],
-  },
-  equipment: {
-    sheet: 'Equipos',
-    headers: ['id','projectId','name','model','capacity','location','status','supplier','tag','notes'],
-  },
-  milestones: {
-    sheet: 'Hitos',
-    headers: ['id','projectId','title','type','dueDate','status','owner','notes'],
-  },
-  documents: {
-    sheet: 'Documentos',
-    headers: ['id','projectId','type','title','revision','status','driveUrl','updatedAt'],
-  },
+const SHEET_ID='1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs';
+const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+const FOLDER_ID='1u6FTkPnQaVbA9f8FIACLTI0YsR6OPeaZ';
+const MIRROR_ID='1BglmmoarrBiFdOPFybF0kBxg8HBsL6Oj';
+const BACKUP_ID='1AGenMZhPPk-7iTWJ0stdcn66VWVUNgJd';
+const TOKEN_URL='https://oauth2.googleapis.com/token';
+const SCOPE='https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
+const SHEETS='https://sheets.googleapis.com/v4/spreadsheets';
+const UPLOAD='https://www.googleapis.com/upload/drive/v3/files';
+const SCHEMA={
+  projects:['Proyectos',['id','establishment','name','sector','system','priority','stage','status','progress','owner','targetDate','lastMove','nextAction','blocker','specRevision','drawingRevision','supplier','expediente','notes','sourceDriveUrl','sourceBalanceId','createdAt','updatedAt']],
+  equipment:['Equipos',['id','projectId','name','model','capacity','location','status','supplier','tag','notes']],
+  milestones:['Hitos',['id','projectId','title','type','dueDate','status','owner','notes']],
+  documents:['Documentos',['id','projectId','type','title','revision','status','driveUrl','updatedAt']],
 };
-
-let tokenCache = { accessToken: null, expiresAt: 0 };
-
-function json(data, status = 200, extraHeaders = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store, private',
-      'X-Content-Type-Options': 'nosniff',
-      ...extraHeaders,
-    },
-  });
-}
-
-function base64UrlBytes(bytes) {
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-function base64UrlText(text) { return base64UrlBytes(new TextEncoder().encode(text)); }
-function pemToArrayBuffer(pem) {
-  const normalized = String(pem || '').replace(/\\n/g, '\n').trim();
-  const b64 = normalized.replace('-----BEGIN PRIVATE KEY-----', '').replace('-----END PRIVATE KEY-----', '').replace(/\s+/g, '');
-  if (!b64) throw new Error('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY vacío o inválido.');
-  const raw = atob(b64);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-  return bytes.buffer;
-}
-async function signJwt(email, privateKeyPem) {
-  const now = Math.floor(Date.now() / 1000);
-  const unsigned = `${base64UrlText(JSON.stringify({ alg:'RS256', typ:'JWT' }))}.${base64UrlText(JSON.stringify({ iss:email, scope:GOOGLE_SCOPE, aud:TOKEN_ENDPOINT, iat:now, exp:now+3600 }))}`;
-  const key = await crypto.subtle.importKey('pkcs8', pemToArrayBuffer(privateKeyPem), { name:'RSASSA-PKCS1-v1_5', hash:'SHA-256' }, false, ['sign']);
-  const sig = await crypto.subtle.sign({ name:'RSASSA-PKCS1-v1_5' }, key, new TextEncoder().encode(unsigned));
-  return `${unsigned}.${base64UrlBytes(new Uint8Array(sig))}`;
-}
-async function getAccessToken(env) {
-  if (tokenCache.accessToken && Date.now() < tokenCache.expiresAt - 60_000) return tokenCache.accessToken;
-  const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-  if (!email || !privateKey) throw new Error('Faltan los Secrets GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.');
-  const assertion = await signJwt(email, privateKey);
-  const response = await fetch(TOKEN_ENDPOINT, {
-    method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
-    body:new URLSearchParams({ grant_type:'urn:ietf:params:oauth-grant-type:jwt-bearer', assertion }),
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || !payload.access_token) throw new Error(`Google OAuth service account: ${payload.error_description || payload.error || response.status}`);
-  tokenCache = { accessToken:payload.access_token, expiresAt:Date.now()+Number(payload.expires_in || 3600)*1000 };
-  return tokenCache.accessToken;
-}
-async function googleRequest(env, url, options = {}) {
-  const token = await getAccessToken(env);
-  const headers = new Headers(options.headers || {});
-  headers.set('Authorization', `Bearer ${token}`);
-  const response = await fetch(url, { ...options, headers });
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Google API ${response.status}: ${detail.slice(0,500)}`);
-  }
-  return response;
-}
-
-function normalizeState(raw) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Formato de seguimiento inválido.');
-  return {
-    ...raw,
-    schemaVersion: Number(raw.schemaVersion || 1),
-    updatedAt: raw.updatedAt || new Date().toISOString(),
-    projects: Array.isArray(raw.projects) ? raw.projects : [],
-    equipment: Array.isArray(raw.equipment) ? raw.equipment : [],
-    milestones: Array.isArray(raw.milestones) ? raw.milestones : [],
-    documents: Array.isArray(raw.documents) ? raw.documents : [],
-  };
-}
-function counts(state) {
-  return { projects:state.projects.length, equipment:state.equipment.length, milestones:state.milestones.length, documents:state.documents.length };
-}
-function totalRecords(c) { return c.projects + c.equipment + c.milestones + c.documents; }
-function rowsToObjects(values = []) {
-  if (!Array.isArray(values) || values.length === 0) return [];
-  const headers = values[0].map(v => String(v ?? '').trim());
-  return values.slice(1).filter(row => row.some(v => String(v ?? '').trim() !== '')).map(row => {
-    const obj = {};
-    headers.forEach((h,i) => { if (h) obj[h] = row[i] ?? ''; });
-    return obj;
-  });
-}
-function objectsToValues(headers, rows) {
-  return [headers, ...rows.map(row => headers.map(h => row?.[h] ?? ''))];
-}
-function configMap(values = []) {
-  const out = {};
-  for (const row of values.slice(1)) if (row?.[0]) out[String(row[0])] = row[1] ?? '';
-  return out;
-}
-
-async function getSheetValues(env, range) {
-  const url = `${SHEETS_BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?majorDimension=ROWS&valueRenderOption=UNFORMATTED_VALUE`;
-  const response = await googleRequest(env, url);
-  return (await response.json()).values || [];
-}
-async function readMasterObject(env) {
-  const [projectsV,equipmentV,milestonesV,documentsV,configV] = await Promise.all([
-    getSheetValues(env,'Proyectos!A1:W1000'),
-    getSheetValues(env,'Equipos!A1:J1000'),
-    getSheetValues(env,'Hitos!A1:H1000'),
-    getSheetValues(env,'Documentos!A1:H1000'),
-    getSheetValues(env,'Configuracion!A1:B100'),
-  ]);
-  const config = configMap(configV);
-  const projects = rowsToObjects(projectsV).map(p => ({ ...p, progress:Number(p.progress || 0) }));
-  const state = normalizeState({
-    schemaVersion:Number(config.schemaVersion || 1),
-    updatedAt:String(config.updatedAt || new Date().toISOString()),
-    importSource:String(config.importSource || 'Google Sheets'),
-    projects,
-    equipment:rowsToObjects(equipmentV),
-    milestones:rowsToObjects(milestonesV),
-    documents:rowsToObjects(documentsV),
-    trackerMetadata:{
-      generatedBy:String(config.generatedBy || 'THERMABOT project tracker'),
-      statusPolicy:String(config.statusPolicy || ''),
-      sourceOfTruth:'Google Sheets',
-      spreadsheetId:SPREADSHEET_ID,
-    },
-  });
-  return state;
-}
-
-async function clearManagedRanges(env) {
-  const body = { ranges:['Proyectos!A1:W1000','Equipos!A1:J1000','Hitos!A1:H1000','Documentos!A1:H1000','Configuracion!A1:B100'] };
-  await googleRequest(env, `${SHEETS_BASE}/${SPREADSHEET_ID}/values:batchClear`, {
-    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body),
-  });
-}
-async function writeMasterSheets(env, state) {
-  const c = counts(state);
-  const configValues = [
-    ['Clave','Valor'],
-    ['schemaVersion', state.schemaVersion || 1],
-    ['updatedAt', state.updatedAt],
-    ['importSource', state.importSource || 'THERMABOT / Google Sheets'],
-    ['sourceOfTruth','Google Sheets'],
-    ['folderId',FOLDER_ID],
-    ['spreadsheetId',SPREADSHEET_ID],
-    ['projects',c.projects],
-    ['equipment',c.equipment],
-    ['milestones',c.milestones],
-    ['documents',c.documents],
-    ['generatedBy', state.trackerMetadata?.generatedBy || 'THERMABOT project tracker'],
-    ['statusPolicy', state.trackerMetadata?.statusPolicy || ''],
-  ];
-  const data = [
-    { range:'Proyectos!A1', majorDimension:'ROWS', values:objectsToValues(SCHEMAS.projects.headers,state.projects) },
-    { range:'Equipos!A1', majorDimension:'ROWS', values:objectsToValues(SCHEMAS.equipment.headers,state.equipment) },
-    { range:'Hitos!A1', majorDimension:'ROWS', values:objectsToValues(SCHEMAS.milestones.headers,state.milestones) },
-    { range:'Documentos!A1', majorDimension:'ROWS', values:objectsToValues(SCHEMAS.documents.headers,state.documents) },
-    { range:'Configuracion!A1', majorDimension:'ROWS', values:configValues },
-  ];
-  await clearManagedRanges(env);
-  const response = await googleRequest(env, `${SHEETS_BASE}/${SPREADSHEET_ID}/values:batchUpdate`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ valueInputOption:'RAW', includeValuesInResponse:false, data }),
-  });
-  return response.json();
-}
-async function appendHistory(env, action, detail) {
-  const range = encodeURIComponent('Historial!A:D');
-  await googleRequest(env, `${SHEETS_BASE}/${SPREADSHEET_ID}/values/${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ values:[[new Date().toISOString(),'THERMABOT Web',action,detail]] }),
-  });
-}
-async function writeDriveJson(env, fileId, payload) {
-  const response = await googleRequest(env, `${DRIVE_UPLOAD}/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,modifiedTime,size`, {
-    method:'PATCH', headers:{'Content-Type':'application/json; charset=utf-8'}, body:JSON.stringify(payload,null,2),
-  });
-  return response.json();
-}
-
-async function status(env) {
-  const master = await readMasterObject(env);
-  return json({
-    ok:true,
-    mode:'google-sheets-master',
-    folderId:FOLDER_ID,
-    spreadsheetId:SPREADSHEET_ID,
-    spreadsheetUrl:SPREADSHEET_URL,
-    updatedAt:master.updatedAt,
-    counts:counts(master),
-  });
-}
-async function readMaster(env) {
-  const master = await readMasterObject(env);
-  return json(master,200,{
-    'X-THERMABOT-Mode':'google-sheets-master',
-    'X-THERMABOT-Spreadsheet':SPREADSHEET_ID,
-  });
-}
-async function saveMaster(request, env) {
-  let raw;
-  try { raw = await request.json(); }
-  catch { return json({ok:false,error:'JSON de entrada inválido.'},400); }
-  let incoming;
-  try { incoming = normalizeState(raw); }
-  catch (error) { return json({ok:false,error:error.message},400); }
-
-  const current = await readMasterObject(env);
-  const incomingCounts = counts(incoming);
-  const remoteCounts = counts(current);
-  const force = new URL(request.url).searchParams.get('force') === '1';
-  if (!force) {
-    if (totalRecords(incomingCounts) === 0 && totalRecords(remoteCounts) > 0) {
-      return json({ok:false,error:'Protección activa: se rechazó reemplazar la planilla maestra con una base local vacía.',remoteCounts,incomingCounts},409);
-    }
-    if (remoteCounts.projects >= 5 && incomingCounts.projects <= 1) {
-      return json({ok:false,error:'Protección activa: se rechazó una reducción accidental de la cartera a uno o cero proyectos.',remoteCounts,incomingCounts},409);
-    }
-  }
-
-  await writeDriveJson(env, BACKUP_JSON_ID, { ...current, _backupAt:new Date().toISOString(), _backupSource:'Google Sheets' });
-
-  incoming.updatedAt = new Date().toISOString();
-  incoming.trackerMetadata = {
-    ...(incoming.trackerMetadata || {}),
-    sourceOfTruth:'Google Sheets',
-    spreadsheetId:SPREADSHEET_ID,
-  };
-  const sheetsResult = await writeMasterSheets(env,incoming);
-  await appendHistory(env,'Sincronización web',`Guardados ${incomingCounts.projects} proyectos, ${incomingCounts.equipment} equipos, ${incomingCounts.milestones} hitos y ${incomingCounts.documents} documentos.`);
-  await writeDriveJson(env, LEGACY_JSON_MIRROR_ID, { ...incoming, _mirrorOfSpreadsheet:SPREADSHEET_ID });
-
-  return json({
-    ok:true,
-    mode:'google-sheets-master',
-    spreadsheetId:SPREADSHEET_ID,
-    spreadsheetUrl:SPREADSHEET_URL,
-    updatedAt:incoming.updatedAt,
-    counts:incomingCounts,
-    sheets:sheetsResult,
-  });
-}
-
-export async function onRequest(context) {
-  try {
-    const method = context.request.method.toUpperCase();
-    if (method === 'GET') {
-      const url = new URL(context.request.url);
-      return url.searchParams.get('status') === '1' ? status(context.env) : readMaster(context.env);
-    }
-    if (method === 'PUT' || method === 'POST') return saveMaster(context.request,context.env);
-    return json({ok:false,error:'Método no permitido.'},405,{Allow:'GET, PUT, POST'});
-  } catch (error) {
-    return json({ok:false,error:error?.message || String(error)},500);
-  }
-}
+let cache={token:null,exp:0};
+const j=(x,s=200,h={})=>new Response(JSON.stringify(x),{status:s,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store, private',...h}});
+function b64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'');}
+const b64t=s=>b64(new TextEncoder().encode(s));
+function pk(p){const x=String(p||'').replace(/\\n/g,'\n').replace('-----BEGIN PRIVATE KEY-----','').replace('-----END PRIVATE KEY-----','').replace(/\s+/g,'');if(!x)throw Error('Private key inválida.');const r=atob(x),u=new Uint8Array(r.length);for(let i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u.buffer;}
+async function token(env){if(cache.token&&Date.now()<cache.exp-60000)return cache.token;const email=env.GOOGLE_SERVICE_ACCOUNT_EMAIL,key=env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;if(!email||!key)throw Error('Faltan Secrets de Google Service Account.');const now=Math.floor(Date.now()/1000),u=`${b64t(JSON.stringify({alg:'RS256',typ:'JWT'}))}.${b64t(JSON.stringify({iss:email,scope:SCOPE,aud:TOKEN_URL,iat:now,exp:now+3600}))}`,k=await crypto.subtle.importKey('pkcs8',pk(key),{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']),sig=await crypto.subtle.sign({name:'RSASSA-PKCS1-v1_5'},k,new TextEncoder().encode(u)),assertion=`${u}.${b64(new Uint8Array(sig))}`;const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion})}),p=await r.json().catch(()=>({}));if(!r.ok||!p.access_token)throw Error(p.error_description||p.error||`OAuth ${r.status}`);cache={token:p.access_token,exp:Date.now()+Number(p.expires_in||3600)*1000};return cache.token;}
+async function g(env,url,o={}){const h=new Headers(o.headers||{});h.set('Authorization',`Bearer ${await token(env)}`);const r=await fetch(url,{...o,headers:h});if(!r.ok)throw Error(`Google API ${r.status}: ${(await r.text().catch(()=>'' )).slice(0,400)}`);return r;}
+function norm(x){if(!x||typeof x!=='object'||Array.isArray(x))throw Error('Formato inválido.');return{...x,schemaVersion:Number(x.schemaVersion||1),updatedAt:x.updatedAt||new Date().toISOString(),projects:Array.isArray(x.projects)?x.projects:[],equipment:Array.isArray(x.equipment)?x.equipment:[],milestones:Array.isArray(x.milestones)?x.milestones:[],documents:Array.isArray(x.documents)?x.documents:[]};}
+const cnt=s=>({projects:s.projects.length,equipment:s.equipment.length,milestones:s.milestones.length,documents:s.documents.length});
+const total=c=>c.projects+c.equipment+c.milestones+c.documents;
+function objs(v=[]){if(!v.length)return[];const h=v[0].map(x=>String(x??'').trim());return v.slice(1).filter(r=>r.some(x=>String(x??'').trim())).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]??'']).filter(([k])=>k)));}
+const vals=(h,rows)=>[h,...rows.map(r=>h.map(k=>r?.[k]??''))];
+function cfg(v=[]){const x={};for(const r of v.slice(1))if(r?.[0])x[String(r[0])]=r[1]??'';return x;}
+async function range(env,a){const r=await g(env,`${SHEETS}/${SHEET_ID}/values/${encodeURIComponent(a)}?majorDimension=ROWS&valueRenderOption=UNFORMATTED_VALUE`);return (await r.json()).values||[];}
+async function read(env){const [p,e,m,d,c]=await Promise.all([range(env,'Proyectos!A1:W1000'),range(env,'Equipos!A1:J1000'),range(env,'Hitos!A1:H1000'),range(env,'Documentos!A1:H1000'),range(env,'Configuracion!A1:B100')]),q=cfg(c);return norm({schemaVersion:Number(q.schemaVersion||1),updatedAt:String(q.updatedAt||new Date().toISOString()),importSource:String(q.importSource||'Google Sheets'),projects:objs(p).map(x=>({...x,progress:Number(x.progress||0)})),equipment:objs(e),milestones:objs(m),documents:objs(d),trackerMetadata:{generatedBy:String(q.generatedBy||'THERMABOT project tracker'),statusPolicy:String(q.statusPolicy||''),sourceOfTruth:'Google Sheets',spreadsheetId:SHEET_ID}});}
+async function driveJson(env,id,x){return (await g(env,`${UPLOAD}/${id}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(x,null,2)})).json();}
+async function write(env,s){const c=cnt(s),config=[['Clave','Valor'],['schemaVersion',s.schemaVersion||1],['updatedAt',s.updatedAt],['importSource',s.importSource||'THERMABOT / Google Sheets'],['sourceOfTruth','Google Sheets'],['folderId',FOLDER_ID],['spreadsheetId',SHEET_ID],['projects',c.projects],['equipment',c.equipment],['milestones',c.milestones],['documents',c.documents],['generatedBy',s.trackerMetadata?.generatedBy||'THERMABOT project tracker'],['statusPolicy',s.trackerMetadata?.statusPolicy||'']];await g(env,`${SHEETS}/${SHEET_ID}/values:batchClear`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ranges:['Proyectos!A1:W1000','Equipos!A1:J1000','Hitos!A1:H1000','Documentos!A1:H1000','Configuracion!A1:B100']})});const data=Object.entries(SCHEMA).map(([k,[sh,h]])=>({range:`${sh}!A1`,majorDimension:'ROWS',values:vals(h,s[k])}));data.push({range:'Configuracion!A1',majorDimension:'ROWS',values:config});await g(env,`${SHEETS}/${SHEET_ID}/values:batchUpdate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data})});await g(env,`${SHEETS}/${SHEET_ID}/values/${encodeURIComponent('Historial!A:D')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:[[new Date().toISOString(),'THERMABOT Web','Sincronización',`Guardados ${c.projects} proyectos, ${c.equipment} equipos, ${c.milestones} hitos y ${c.documents} documentos.`]]})});}
+async function save(req,env){let x;try{x=norm(await req.json());}catch(e){return j({ok:false,error:e.message},400);}const cur=await read(env),ic=cnt(x),rc=cnt(cur),force=new URL(req.url).searchParams.get('force')==='1';if(!force&&((total(ic)===0&&total(rc)>0)||(rc.projects>=5&&ic.projects<=1)))return j({ok:false,error:'Protección activa: se rechazó una reducción accidental de la cartera.',remoteCounts:rc,incomingCounts:ic},409);await driveJson(env,BACKUP_ID,{...cur,_backupAt:new Date().toISOString(),_backupSource:'Google Sheets'});x.updatedAt=new Date().toISOString();x.trackerMetadata={...(x.trackerMetadata||{}),sourceOfTruth:'Google Sheets',spreadsheetId:SHEET_ID};await write(env,x);await driveJson(env,MIRROR_ID,{...x,_mirrorOfSpreadsheet:SHEET_ID});return j({ok:true,mode:'google-sheets-master',spreadsheetId:SHEET_ID,spreadsheetUrl:SHEET_URL,updatedAt:x.updatedAt,counts:ic});}
+export async function onRequest(ctx){try{const m=ctx.request.method.toUpperCase();if(m==='GET'){const s=await read(ctx.env);if(new URL(ctx.request.url).searchParams.get('status')==='1')return j({ok:true,mode:'google-sheets-master',folderId:FOLDER_ID,spreadsheetId:SHEET_ID,spreadsheetUrl:SHEET_URL,updatedAt:s.updatedAt,counts:cnt(s)});return j(s,200,{'X-THERMABOT-Mode':'google-sheets-master'});}if(m==='PUT'||m==='POST')return save(ctx.request,ctx.env);return j({ok:false,error:'Método no permitido.'},405,{Allow:'GET, PUT, POST'});}catch(e){return j({ok:false,error:e?.message||String(e)},500);}}
