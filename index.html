@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#19211e" />
-</head>
+<style>html.embedded .rail{display:none}html.embedded #openProjectTracker{display:none}html.embedded .app-shell{grid-template-columns:minmax(0,1fr) 290px}html.embedded .workspace{padding:16px}html.embedded .embedded-project-controls{display:flex;gap:18px;flex-wrap:wrap;padding:10px;background:#ece5d8;border-radius:12px}html.embedded .embedded-project-controls .rail-section{margin:0}html.embedded .rail-select{color:#19211e}html.embedded .rail-outline,html.embedded .rail-chip,html.embedded .ambient-btn{color:#19211e}html.embedded .embedded-steps{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}html.embedded .embedded-steps button{padding:8px;background:#e9e2d5;border:0;border-radius:14px}</style><script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');else location.replace('tracker.html?view=agenda');</script></head>
 <body>
   <div id="app" class="app-shell">
     <aside class="rail">
@@ -276,5 +276,5 @@
 
   <script src="app-v023.js"></script>
   <script src="realtime-input.js"></script>
-</body>
+<script>window.addEventListener('DOMContentLoaded',()=>{if(!document.documentElement.classList.contains('embedded'))return;const main=document.querySelector('.workspace');const controls=document.createElement('div');controls.className='embedded-project-controls';document.querySelectorAll('.rail-section:not(.steps)').forEach(section=>controls.appendChild(section));main?.prepend(controls);const nav=document.querySelector('.steps');if(nav){const tabs=document.createElement('nav');tabs.className='embedded-steps';nav.querySelectorAll('button').forEach(original=>{const b=document.createElement('button');b.textContent=original.textContent;b.onclick=()=>original.click();tabs.appendChild(b);});document.querySelector('.workspace')?.prepend(tabs);}});</script></body>
 </html>
