@@ -458,7 +458,8 @@ function reportText(){
 async function init(){
  const loaded=await apiCall("cargar_proyectos");
  if(loaded?.ok && loaded.proyectos?.length)state.projects=loaded.proyectos;
- state.projectId=state.projects[0].id;state.ambientId=state.projects[0].ambientes[0].id;
+ const requested=new URLSearchParams(location.search).get('balanceId');
+ state.projectId=state.projects.find(p=>p.id===requested)?.id||state.projects[0].id;state.ambientId=proj().ambientes[0].id;
 
  TEMPLATES.forEach(([name],i)=>{const b=document.createElement("button");b.className="template-pill"+(i===0?" active":"");b.textContent=name;b.onclick=()=>{state.templateIndex=i;document.querySelectorAll(".template-pill").forEach((x,j)=>x.classList.toggle("active",j===i));};$("templatePills").appendChild(b);});
  $("templateQty").oninput=()=>{$("addTemplate").textContent=`Agregar ${$("templateQty").value}`;};
