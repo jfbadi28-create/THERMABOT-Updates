@@ -10,6 +10,8 @@ function setup(){
 (async()=>{
  let {ctx,t,calls}=setup();
  assert(t.sameState({projects:[],updatedAt:'a'},{projects:[],updatedAt:'b'}));
+ assert(t.sameState({projects:[{id:'p',name:'A',progress:5}]},{projects:[{progress:'5',name:'A',id:'p'}]}));
+ assert(!t.sameState({documents:[{id:'d',notes:'one'}]},{documents:[{id:'d',notes:'two'}]}));
  t.state.mode='server';t.state.connected=true;
  const local={projects:[{id:'local'}],equipment:[],milestones:[],documents:[]};ctx.localStorage.setItem('thermabot.tracker.v1',JSON.stringify(local));
  t.hookLocalStorage();ctx.localStorage.setItem('thermabot.tracker.v1',JSON.stringify(local));
