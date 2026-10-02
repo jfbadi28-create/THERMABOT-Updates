@@ -16,7 +16,7 @@
     projects:{sheet:'Proyectos',range:'A1:W1000',headers:['id','establishment','name','sector','system','priority','stage','status','progress','owner','targetDate','lastMove','nextAction','blocker','specRevision','drawingRevision','supplier','expediente','notes','sourceDriveUrl','sourceBalanceId','createdAt','updatedAt']},
     equipment:{sheet:'Equipos',range:'A1:J1000',headers:['id','projectId','name','model','capacity','location','status','supplier','tag','notes']},
     milestones:{sheet:'Hitos',range:'A1:H1000',headers:['id','projectId','title','type','dueDate','status','owner','notes']},
-    documents:{sheet:'Documentos',range:'A1:H1000',headers:['id','projectId','type','title','revision','status','driveUrl','updatedAt']},
+    documents:{sheet:'Documentos',range:'A1:I1000',headers:['id','projectId','type','title','revision','status','driveUrl','updatedAt','notes']},
   };
 
   function safeStoredBase(){ try { return JSON.parse(localStorage.getItem(BASE_KEY)||'null'); } catch { return null; } }
@@ -32,6 +32,7 @@
     token:null,
     backendError:null,
     remoteSnapshot:safeStoredBase(),
+    verified:false,
     conflict:false,
     retryMs:2000,
   };
@@ -46,7 +47,8 @@
   }
   const localState = () => normalize(safeParse(localStorage.getItem(STORAGE_KEY)));
   const stateCounts = value => { const v=normalize(value); return {projects:v.projects.length,equipment:v.equipment.length,milestones:v.milestones.length,documents:v.documents.length}; };
-  const sameState = (a,b) => ['projects','equipment','milestones','documents'].every(k => JSON.stringify(normalize(a)[k]) === JSON.stringify(normalize(b)[k]));
+  const recordValues=(k,rows)=>rows.map(r=>SCHEMAS[k].headers.map(h=>h==='progress'?Number(r[h]||0):String(r[h]??'')));
+  const sameState = (a,b) => Object.keys(SCHEMAS).every(k => JSON.stringify(recordValues(k,normalize(a)[k])) === JSON.stringify(recordValues(k,normalize(b)[k])));
   const hasPending = () => localStorage.getItem(DIRTY_KEY) === '1';
 
   function setMessage(message,type=''){
@@ -66,7 +68,7 @@
 
   function updateUi(){
     const pending=hasPending();
-    const status=state.conflict?'Necesita revisión · cambios conservados':state.syncing?'Guardando / verificando…':pending?'Pendiente de guardar en Drive':state.connected?'Guardado en Drive':'Copia local · Drive desconectado';
+    const status=state.conflict?'Necesita revisión · cambios conservados':state.syncing?'Guardando / verificando…':pending?'Pendiente de guardar en Drive':state.connected&&state.verified?'Guardado en Drive':'Copia local · Drive desconectado';
     if($('trackerSaveStatus')) $('trackerSaveStatus').textContent=status;
 
     const quick=$('driveQuickBtn');
@@ -228,7 +230,7 @@
     return directWrite(local,{force});
   }
 
-  async function pull({reload=true,announce=true}={}){
+  async function pull({reload=true,announce=true,discardPending=false}={}){
     if(!state.connected||state.syncing) return false;
     state.syncing=true; updateUi();
     try{
@@ -238,12 +240,13 @@
       if(!state.remoteSnapshot && !sameState(remote,local) && Object.values(stateCounts(local)).some(n=>n>0)) localStorage.setItem(DIRTY_KEY,'1');
       if(!hasPending()) { state.remoteSnapshot=remote; localStorage.setItem(BASE_KEY,JSON.stringify(remote)); }
       else if(!state.remoteSnapshot || !sameState(remote,state.remoteSnapshot)) state.conflict=true;
-      state.lastSync=new Date();
+      state.verified=true; state.lastSync=new Date();
       if(sameState(remote,local)) { localStorage.removeItem(DIRTY_KEY); state.conflict=false; state.remoteSnapshot=remote; localStorage.setItem(BASE_KEY,JSON.stringify(remote)); }
       if(!sameState(remote,local)){
-        if(hasPending()) { setMessage('Hay cambios locales pendientes. No se reemplazaron con la nube. Usá Guardar ahora después de revisar la planilla.', 'error'); return false; }
+        if(hasPending() && !discardPending) { setMessage('Hay cambios locales pendientes. No se reemplazaron con la nube. Usá Guardar ahora después de revisar la planilla.', 'error'); return false; }
         localStorage.setItem('thermabot.tracker.previous.v1', JSON.stringify(local));
         setLocal(remote);
+        localStorage.removeItem(DIRTY_KEY); state.conflict=false; state.remoteSnapshot=remote; localStorage.setItem(BASE_KEY,JSON.stringify(remote));
         setMessage(`Google Sheets cargado: ${stateCounts(remote).projects} proyectos.`,'ok');
         if(reload) setTimeout(()=>location.reload(),150);
         return true;
@@ -359,7 +362,7 @@
     if($('saveDriveClientBtn')) $('saveDriveClientBtn').onclick=saveClientId;
     if($('connectDriveBtn')) $('connectDriveBtn').onclick=connectManually;
     if($('pushDriveBtn')) $('pushDriveBtn').onclick=()=>push({announce:true}).catch(e=>setMessage(e.message,'error'));
-    if($('pullDriveBtn')) $('pullDriveBtn').onclick=()=>{ if(confirm('¿Cargar la cartera maestra desde Google Sheets?')) pull({reload:true,announce:true}).catch(e=>setMessage(e.message,'error')); };
+    if($('pullDriveBtn')) $('pullDriveBtn').onclick=()=>{ if(confirm('¿Usar la copia de Drive y reemplazar los cambios locales? Se conservará una copia local de recuperación.')) pull({reload:true,announce:true,discardPending:true}).catch(e=>setMessage(e.message,'error')); };
     if(driveNav) driveNav.addEventListener('click',()=>setTimeout(updateUi,30));
   }
 
