@@ -2,6 +2,7 @@
   'use strict';
 
   const STORAGE_KEY = 'thermabot.tracker.v1';
+  const DIRTY_KEY = 'thermabot.tracker.pending.v1';
   const CLIENT_KEY = 'thermabot.drive.client_id';
   const API_URL = './api/tracker-sync';
   const SPREADSHEET_ID = '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs';
@@ -28,6 +29,7 @@
     lastSync:null,
     token:null,
     backendError:null,
+    remoteSnapshot:null,
   };
 
   const $ = id => document.getElementById(id);
@@ -40,7 +42,8 @@
   }
   const localState = () => normalize(safeParse(localStorage.getItem(STORAGE_KEY)));
   const stateCounts = value => { const v=normalize(value); return {projects:v.projects.length,equipment:v.equipment.length,milestones:v.milestones.length,documents:v.documents.length}; };
-  const sameState = (a,b) => JSON.stringify(normalize(a))===JSON.stringify(normalize(b));
+  const sameState = (a,b) => ['projects','equipment','milestones','documents'].every(k => JSON.stringify(normalize(a)[k]) === JSON.stringify(normalize(b)[k]));
+  const hasPending = () => localStorage.getItem(DIRTY_KEY) === '1';
 
   function setMessage(message,type=''){
     const el=$('driveMessage');
@@ -155,7 +158,7 @@
   function objectsToValues(headers,rows){ return [headers,...rows.map(r=>headers.map(h=>r?.[h]??''))]; }
 
   async function directRead(){
-    const ranges=[SCHEMAS.projects.range,SCHEMAS.equipment.range,SCHEMAS.milestones.range,SCHEMAS.documents.range,'Configuracion!A1:B100'];
+    const ranges=[...Object.values(SCHEMAS).map(s => `${s.sheet}!${s.range}`),'Configuracion!A1:B100'];
     const params=ranges.map(r=>`ranges=${encodeURIComponent(r)}`).join('&');
     const response=await sheetsFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchGet?${params}&majorDimension=ROWS&valueRenderOption=UNFORMATTED_VALUE`);
     const payload=await response.json();
@@ -173,15 +176,27 @@
     });
   }
 
+
+  async function atomicSheetWrite(data){
+    const response=await sheetsFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties`);
+    const metadata=await response.json();
+    const requests=data.map(item=>{
+      const title=item.range.split('!')[0];
+      const sheet=metadata.sheets.find(s=>s.properties.title===title)?.properties;
+      if(!sheet) throw new Error(`Falta la pestaña ${title}.`);
+      return {updateCells:{range:{sheetId:sheet.sheetId,startRowIndex:0,startColumnIndex:0,endColumnIndex:item.values[0].length},
+        rows:item.values.map(row=>({values:row.map(value=>({userEnteredValue:typeof value==='number'?{numberValue:value}:{stringValue:String(value??'')}}))})),
+        fields:'userEnteredValue'}};
+    });
+    await sheetsFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}:batchUpdate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests})});
+  }
+
   async function directWrite(local,{force=false}={}){
     const incoming=normalize(local);
     const current=await directRead();
     const ic=stateCounts(incoming), rc=stateCounts(current);
     if(!force && rc.projects>=5 && ic.projects<=1){ const e=new Error('Protección activa: se rechazó reducir la cartera a uno o cero proyectos.'); e.status=409; throw e; }
     incoming.updatedAt=new Date().toISOString();
-
-    const clearRanges=['Proyectos!A1:W1000','Equipos!A1:J1000','Hitos!A1:H1000','Documentos!A1:H1000','Configuracion!A1:B100'];
-    await sheetsFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchClear`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ranges:clearRanges})});
 
     const c=stateCounts(incoming);
     const config=[['Clave','Valor'],['schemaVersion',1],['updatedAt',incoming.updatedAt],['importSource',incoming.importSource||'THERMABOT / Google Sheets'],['sourceOfTruth','Google Sheets'],['spreadsheetId',SPREADSHEET_ID],['projects',c.projects],['equipment',c.equipment],['milestones',c.milestones],['documents',c.documents]];
@@ -192,7 +207,7 @@
       {range:'Documentos!A1',majorDimension:'ROWS',values:objectsToValues(SCHEMAS.documents.headers,incoming.documents)},
       {range:'Configuracion!A1',majorDimension:'ROWS',values:config},
     ];
-    await sheetsFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchUpdate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data})});
+    await atomicSheetWrite(data);
 
     const hr=encodeURIComponent('Historial!A:D');
     await sheetsFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${hr}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:[[new Date().toISOString(),'THERMABOT Web','Sincronización',`Guardados ${c.projects} proyectos, ${c.equipment} equipos, ${c.milestones} hitos y ${c.documents} documentos.`]]})});
@@ -212,8 +227,11 @@
       if(announce) setMessage('Leyendo la cartera maestra desde Google Sheets…');
       const remote=await readRemote();
       const local=localState();
+      state.remoteSnapshot=remote;
       state.lastSync=new Date();
       if(!sameState(remote,local)){
+        if(hasPending()) { setMessage('Hay cambios locales pendientes. No se reemplazaron con la nube. Usá Guardar ahora después de revisar la planilla.', 'error'); return false; }
+        localStorage.setItem('thermabot.tracker.previous.v1', JSON.stringify(local));
         setLocal(remote);
         setMessage(`Google Sheets cargado: ${stateCounts(remote).projects} proyectos.`,'ok');
         if(reload) setTimeout(()=>location.reload(),150);
@@ -230,14 +248,18 @@
     try{
       const local=localState();
       if(announce) setMessage('Guardando cambios en Google Sheets…');
+      const remote=await readRemote();
+      if(!state.remoteSnapshot || !sameState(remote,state.remoteSnapshot)) { const e=new Error('La nube cambió o falta una versión verificada. Revisá ambas copias antes de guardar.'); e.status=409; throw e; }
       const result=await writeRemote(local);
+      state.remoteSnapshot=local;
+      if(sameState(local,localState())) localStorage.removeItem(DIRTY_KEY);
       state.lastSync=new Date();
       setMessage(`Guardado en Sheets: ${result?.counts?.projects??local.projects.length} proyectos.`,'ok');
       return true;
     }catch(error){
-      if(error.status===409){ setMessage(`${error.message} Se restaurará Google Sheets.`,'error'); setTimeout(()=>pull({reload:true,announce:false}).catch(()=>{}),400); return false; }
+      if(error.status===409){ setMessage(`${error.message} Tus cambios locales se conservaron.`, 'error'); return false; }
       throw error;
-    }finally{ state.syncing=false; updateUi(); }
+    }finally{ state.syncing=false; updateUi(); if(hasPending() && state.connected) setMessage('Hay cambios locales pendientes de guardar en Sheets.', 'error'); }
   }
 
   function schedulePush(){
@@ -252,17 +274,20 @@
     const original=Storage.prototype.setItem;
     Storage.prototype.setItem=function(key,value){
       const result=original.call(this,key,value);
-      if(this===localStorage&&key===STORAGE_KEY&&!state.suppressHook) schedulePush();
+      if(this===localStorage&&key===STORAGE_KEY&&!state.suppressHook) { original.call(localStorage,DIRTY_KEY,'1'); schedulePush(); }
       return result;
     };
   }
 
   async function poll(){
-    if(!state.connected||state.syncing||document.hidden) return;
+    if(!state.connected||state.syncing||hasPending()||document.hidden) return;
     try{
       const remote=await readRemote();
       const local=localState();
+      state.remoteSnapshot=remote;
       if(!sameState(remote,local)){
+        if(hasPending() || state.syncing) return;
+        localStorage.setItem('thermabot.tracker.previous.v1', JSON.stringify(local));
         setLocal(remote);
         setMessage(`Cambio detectado en Google Sheets: ${stateCounts(remote).projects} proyectos.`,'ok');
         setTimeout(()=>location.reload(),150);
