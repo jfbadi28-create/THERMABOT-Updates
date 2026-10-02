@@ -1,5 +1,1 @@
-{
-  "version": "0.4.1",
-  "channel": "stable",
-  "notes": "Aplicación unificada en seguimiento: pendientes, cálculos, auditoría y respaldo con navegación común. Datos y motor de cálculo conservados."
-}
+{"version":"0.5.0","date":"2026-10-02","channel":"stable","description":"Centro de comando, workspace por proyecto, buscador global, finanzas, actividad y copias locales automáticas."}
