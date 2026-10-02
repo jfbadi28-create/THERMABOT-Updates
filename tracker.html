@@ -20,6 +20,7 @@
 
       <section class="rail-section">
         <div class="rail-label">HERRAMIENTAS</div>
+        <a class="rail-outline full rail-link" href="workspace.html">Mi trabajo · cálculos y auditoría</a>
         <a class="rail-outline full rail-link" href="index.html">Balance térmico</a>
         <a class="rail-outline full rail-link" href="pressure.html">Presurización</a>
       </section>
@@ -127,7 +128,7 @@
           <section class="card tracker-panel">
             <div class="eyebrow">CONEXIÓN</div>
             <h3>Drive del usuario</h3>
-            <p class="tracker-copy">THERMABOT usa siempre la carpeta fija <b>THERMABOT / Seguimiento</b> de tu Google Drive. Mantiene <b>seguimiento-proyectos.json</b> como archivo maestro y una copia anterior en <b>seguimiento-proyectos.backup.json</b>. La aplicación puede seguir funcionando localmente si Drive no está disponible.</p>
+            <p class="tracker-copy">El seguimiento se guarda en la planilla de tu carpeta <b>THERMABOT / Seguimiento</b>. Los cambios sin conexión quedan pendientes en este navegador. El estado confirma cuándo la copia de Drive fue verificada. Podés descargar una copia de recuperación en cualquier momento.</p>
             <label>Google OAuth Client ID
               <input id="driveClientId" type="text" autocomplete="off" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com" />
             </label>
@@ -148,6 +149,7 @@
               <div><span>Modo actual</span><strong id="driveModeState">Local</strong></div>
             </div>
             <div class="drive-actions">
+              <button id="downloadRecoveryBtn" class="pill">Descargar copia de recuperación</button>
               <button id="pushDriveBtn" class="pill" disabled>Guardar ahora</button>
               <button id="pullDriveBtn" class="pill" disabled>Cargar desde Drive</button>
               <a id="openDriveFolder" class="pill tracker-anchor disabled" href="#" target="_blank" rel="noopener">Abrir carpeta</a>

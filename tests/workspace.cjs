@@ -1,0 +1,9 @@
+const assert=require('node:assert/strict');const C=require('../workspace-core.js');
+const project={id:'b1',nombre:'Oficina',condiciones:{tempExterior:33,tempInterior:24,humedadExterior:59,humedadInterior:50,horaDiseno:15},ambientes:[{id:'a',nombre:'Local',largo:4,ancho:3,altura:2.7,deltaTImpulsion:10,personas:2,iluminacionW:100,equiposW:100,equiposLatenteW:0,aireExteriorPorPersona:30,aireExteriorACH:0,factorSeguridad:5,aireExteriorModo:'persona',muros:[{orientacion:'N',largo:4}],ventanas:[]}]};
+assert.equal(C.audit(project).findings.length,0);
+const bad=structuredClone(project);bad.ambientes[0].altura=0;bad.condiciones.humedadExterior=110;bad.ambientes[0].ventanas=[{orientacion:'O',ancho:2,alto:2,cantidad:1,factorSombra:2}];const report=C.audit(bad);
+assert(report.findings.filter(f=>f.severity==='CRÍTICO').length>=4);assert(report.pending.length>0);
+const t={projects:[{id:'p1',name:'Activo',status:'Activo',nextAction:'Revisar',targetDate:'2026-10-02'},{id:'p2',name:'Cerrado',status:'Finalizado'}],milestones:[{id:'m1',projectId:'p1',title:'Entrega',dueDate:'2026-10-01',status:'Pendiente'},{id:'m2',projectId:'p2',status:'Pendiente'},{id:'m3',projectId:'p1',status:'Cumplido'}]};
+const agenda=C.agenda(t,'2026-10-02');assert.equal(agenda.length,2);assert.equal(agenda[0].id,'m1');assert(agenda[0].overdue);assert(!agenda[1].overdue);
+assert.equal(C.mergeBalances([project],[project]).length,1);const other=structuredClone(project);other.ambientes[0].largo=5;const merge=C.mergeBalances([project],[other]);assert.equal(merge.length,2);assert.notEqual(merge[1].id,project.id);assert.equal(merge[0].ambientes[0].largo,4);assert.throws(()=>C.mergeBalances([project],[{id:'bad'}]));
+console.log('PASS: valid/invalid engineering inputs, audit scope, task deadlines/completion, archived projects and non-destructive recovery');

@@ -492,7 +492,10 @@
 
   function init(){
     const cached=getDriveIds(); drive.rootId=cached.rootId||null; drive.folderId=cached.folderId||null; drive.fileId=cached.fileId||null; drive.folderLink=cached.folderLink||null;
-    bindEvents(); renderAll(); setView('dashboard');
+    bindEvents();
+    const params=new URLSearchParams(location.search); const requested=params.get('projectId');
+    if(projectById(requested)) selectedProjectId=requested;
+    renderAll(); setView(['dashboard','projects','equipment','milestones','documents','drive'].includes(params.get('view'))?params.get('view'):'dashboard');
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
 
