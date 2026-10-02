@@ -3,6 +3,7 @@
 
   const STORAGE_KEY = 'thermabot.tracker.v1';
   const DIRTY_KEY = 'thermabot.tracker.pending.v1';
+  const BASE_KEY = 'thermabot.tracker.sync-base.v1';
   const CLIENT_KEY = 'thermabot.drive.client_id';
   const API_URL = './api/tracker-sync';
   const SPREADSHEET_ID = '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs';
@@ -18,6 +19,7 @@
     documents:{sheet:'Documentos',range:'A1:H1000',headers:['id','projectId','type','title','revision','status','driveUrl','updatedAt']},
   };
 
+  function safeStoredBase(){ try { return JSON.parse(localStorage.getItem(BASE_KEY)||'null'); } catch { return null; } }
   const state = {
     mode:null,
     connected:false,
@@ -29,7 +31,9 @@
     lastSync:null,
     token:null,
     backendError:null,
-    remoteSnapshot:null,
+    remoteSnapshot:safeStoredBase(),
+    conflict:false,
+    retryMs:2000,
   };
 
   const $ = id => document.getElementById(id);
@@ -61,8 +65,12 @@
   function getClientId(){ return (localStorage.getItem(CLIENT_KEY)||'').trim(); }
 
   function updateUi(){
+    const pending=hasPending();
+    const status=state.conflict?'Necesita revisión · cambios conservados':state.syncing?'Guardando / verificando…':pending?'Pendiente de guardar en Drive':state.connected?'Guardado en Drive':'Copia local · Drive desconectado';
+    if($('trackerSaveStatus')) $('trackerSaveStatus').textContent=status;
+
     const quick=$('driveQuickBtn');
-    if(quick){ quick.textContent=state.connected?'Google Sheets ✓':'Google Sheets'; quick.classList.toggle('dark',state.connected); }
+    if(quick){ quick.textContent=status; quick.classList.toggle('dark',state.connected); }
     if($('driveStateTitle')) $('driveStateTitle').textContent=state.connected?'Google Sheets · base maestra':'Google Sheets sin conexión';
     if($('driveFolderState')) $('driveFolderState').textContent='THERMABOT / Seguimiento';
     if($('driveFileState')) $('driveFileState').textContent='THERMABOT - Seguimiento de Proyectos';
@@ -227,8 +235,11 @@
       if(announce) setMessage('Leyendo la cartera maestra desde Google Sheets…');
       const remote=await readRemote();
       const local=localState();
-      state.remoteSnapshot=remote;
+      if(!state.remoteSnapshot && !sameState(remote,local) && Object.values(stateCounts(local)).some(n=>n>0)) localStorage.setItem(DIRTY_KEY,'1');
+      if(!hasPending()) { state.remoteSnapshot=remote; localStorage.setItem(BASE_KEY,JSON.stringify(remote)); }
+      else if(!state.remoteSnapshot || !sameState(remote,state.remoteSnapshot)) state.conflict=true;
       state.lastSync=new Date();
+      if(sameState(remote,local)) { localStorage.removeItem(DIRTY_KEY); state.conflict=false; state.remoteSnapshot=remote; localStorage.setItem(BASE_KEY,JSON.stringify(remote)); }
       if(!sameState(remote,local)){
         if(hasPending()) { setMessage('Hay cambios locales pendientes. No se reemplazaron con la nube. Usá Guardar ahora después de revisar la planilla.', 'error'); return false; }
         localStorage.setItem('thermabot.tracker.previous.v1', JSON.stringify(local));
@@ -251,21 +262,26 @@
       const remote=await readRemote();
       if(!state.remoteSnapshot || !sameState(remote,state.remoteSnapshot)) { const e=new Error('La nube cambió o falta una versión verificada. Revisá ambas copias antes de guardar.'); e.status=409; throw e; }
       const result=await writeRemote(local);
-      state.remoteSnapshot=local;
+      const verified=await readRemote();
+      if(!sameState(local,verified)) { const e=new Error('La copia de Drive no coincide con los cambios enviados.'); e.status=409; throw e; }
+      state.remoteSnapshot=verified;
+      localStorage.setItem(BASE_KEY,JSON.stringify(verified));
+      state.retryMs=2000; state.conflict=false;
       if(sameState(local,localState())) localStorage.removeItem(DIRTY_KEY);
       state.lastSync=new Date();
       setMessage(`Guardado en Sheets: ${result?.counts?.projects??local.projects.length} proyectos.`,'ok');
       return true;
     }catch(error){
-      if(error.status===409){ setMessage(`${error.message} Tus cambios locales se conservaron.`, 'error'); return false; }
+      if(error.status===409){ state.conflict=true; setMessage(`${error.message} Tus cambios locales se conservaron.`, 'error'); return false; }
+      state.retryMs=Math.min(state.retryMs*2,60000);
       throw error;
-    }finally{ state.syncing=false; updateUi(); if(hasPending() && state.connected) setMessage('Hay cambios locales pendientes de guardar en Sheets.', 'error'); }
+    }finally{ state.syncing=false; updateUi(); if(hasPending() && state.connected && !state.conflict) schedulePush(state.retryMs); }
   }
 
-  function schedulePush(){
-    if(!state.connected||state.syncing||state.suppressHook) return;
+  function schedulePush(delay=PUSH_DELAY_MS){
+    if(!state.connected||state.syncing||state.suppressHook||state.conflict) return;
     clearTimeout(state.pushTimer);
-    state.pushTimer=setTimeout(()=>push().catch(e=>setMessage(`No se pudo guardar en Sheets: ${e.message}`,'error')),PUSH_DELAY_MS);
+    state.pushTimer=setTimeout(()=>push().catch(e=>setMessage(`No se pudo guardar en Sheets: ${e.message}`,'error')),delay);
   }
 
   function hookLocalStorage(){
@@ -274,17 +290,18 @@
     const original=Storage.prototype.setItem;
     Storage.prototype.setItem=function(key,value){
       const result=original.call(this,key,value);
-      if(this===localStorage&&key===STORAGE_KEY&&!state.suppressHook) { original.call(localStorage,DIRTY_KEY,'1'); schedulePush(); }
+      if(this===localStorage&&key===STORAGE_KEY&&!state.suppressHook) { original.call(localStorage,DIRTY_KEY,'1'); updateUi(); schedulePush(); }
       return result;
     };
   }
 
   async function poll(){
-    if(!state.connected||state.syncing||hasPending()||document.hidden) return;
+    if(!state.connected||state.syncing||document.hidden) return;
+    if(hasPending()) { schedulePush(); return; }
     try{
       const remote=await readRemote();
       const local=localState();
-      state.remoteSnapshot=remote;
+      if(!hasPending()) { state.remoteSnapshot=remote; localStorage.setItem(BASE_KEY,JSON.stringify(remote)); }
       if(!sameState(remote,local)){
         if(hasPending() || state.syncing) return;
         localStorage.setItem('thermabot.tracker.previous.v1', JSON.stringify(local));
@@ -295,7 +312,7 @@
       }
       state.lastSync=new Date(); updateUi();
     }catch(error){
-      state.connected=false; updateUi(); setMessage(`Sincronización interrumpida: ${error.message}`,'error');
+      updateUi(); setMessage(`Sincronización interrumpida: ${error.message}`,'error');
     }
   }
 
@@ -322,14 +339,21 @@
       }
       state.syncing=false; updateUi();
       await pull({reload:true,announce:true});
-      state.connected=true; state.lastSync=new Date(); startPolling(); updateUi();
+      state.connected=true; state.lastSync=new Date(); startPolling(); updateUi(); if(hasPending()) schedulePush();
     }catch(error){
       state.syncing=false; state.connected=false; updateUi();
       setMessage(`No se pudo conectar Google Sheets: ${error.message}`,'error');
     }
   }
 
+  function downloadRecovery(){
+    const payload={exportedAt:new Date().toISOString(),current:localState(),previous:safeParse(localStorage.getItem('thermabot.tracker.previous.v1')),syncBase:safeStoredBase(),pending:hasPending()};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+    const link=document.createElement('a'); link.href=url; link.download='THERMABOT-recuperacion-'+new Date().toISOString().slice(0,10)+'.json'; link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
   function overrideControls(){
+    if($('downloadRecoveryBtn')) $('downloadRecoveryBtn').onclick=downloadRecovery;
     const driveNav=document.querySelector('[data-view="drive"]');
     if($('driveQuickBtn')) $('driveQuickBtn').onclick=()=>{ if(driveNav) driveNav.click(); setTimeout(updateUi,20); };
     if($('saveDriveClientBtn')) $('saveDriveClientBtn').onclick=saveClientId;
