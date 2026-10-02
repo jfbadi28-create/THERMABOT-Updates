@@ -23,6 +23,15 @@ function setup(){
  assert.equal(calls.filter(c=>c.opts.method==='POST').length,1);
  const payload=JSON.parse(calls[1].opts.body);assert.equal(payload.requests[0].updateCells.range.sheetId,1);assert(!calls.some(c=>c.url.includes('batchClear')));
  await t.directRead();const url=calls[2].url;for(const sheet of ['Proyectos','Equipos','Hitos','Documentos'])assert(url.includes(sheet+'!')||url.includes(sheet+'%21'));
- console.log('PASS: pending pull/poll protection, conflict preservation, qualified ranges, atomic Sheets write, timestamp-independent comparison');
+ ({ctx,t,calls}=setup()); t.state.mode='server'; t.state.connected=true; t.state.remoteSnapshot=local;
+ ctx.localStorage.setItem('thermabot.tracker.v1',JSON.stringify(local)); t.hookLocalStorage();
+ let cloud=local; let puts=0; let queued=0;
+ ctx.setTimeout=()=>{queued++};
+ ctx.fetch=async(url,opts={})=>{if(opts.method==='PUT'){puts++;cloud=JSON.parse(opts.body);ctx.localStorage.setItem('thermabot.tracker.v1',JSON.stringify({...local,projects:[{id:'changed-during-write'}]}));return {ok:true,json:async()=>({ok:true,counts:{projects:1}})}}return {ok:true,json:async()=>cloud}};
+ await t.push(); assert.equal(puts,1); assert.equal(ctx.localStorage.getItem('thermabot.tracker.pending.v1'),'1'); assert(queued>0); assert(ctx.localStorage.getItem('thermabot.tracker.sync-base.v1'));
+ await t.push(); assert.equal(ctx.localStorage.getItem('thermabot.tracker.pending.v1'),null); assert.equal(cloud.projects[0].id,'changed-during-write');
+ ctx.localStorage.setItem('thermabot.tracker.pending.v1','1');ctx.fetch=async()=>{throw Error('offline')};
+ await assert.rejects(t.push(),/offline/);assert.equal(ctx.localStorage.getItem('thermabot.tracker.pending.v1'),'1');assert(!t.state.syncing);
+ console.log('PASS: pending pull/poll protection, conflict preservation, qualified ranges, atomic Sheets write, timestamp-independent comparison, edits during writes, retry, readback verification and offline preservation');
 })().catch(e=>{console.error(e);process.exitCode=1});
 
