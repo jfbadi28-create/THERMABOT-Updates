@@ -6,6 +6,7 @@
   <title>THERMABOT — Bioingeniería · Gestión Técnica HVAC</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="tracker.css" />
+<link rel="stylesheet" href="unified.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#19211e" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -20,13 +21,17 @@
 
       <section class="rail-section">
         <div class="rail-label">HERRAMIENTAS</div>
-        <a class="rail-outline full rail-link" href="workspace.html">Mi trabajo · cálculos y auditoría</a>
-        <a class="rail-outline full rail-link" href="index.html">Balance térmico</a>
-        <a class="rail-outline full rail-link" href="pressure.html">Presurización</a>
+        
+        <button class="step" data-view="calculator"><span>Balance térmico</span></button>
+        <button class="step" data-view="pressure"><span>Presurización</span></button>
       </section>
 
       <nav class="rail-section steps tracker-nav">
-        <div class="rail-label">SEGUIMIENTO</div>
+        <div class="rail-label">MI TRABAJO</div>
+<button class="step" data-view="agenda"><span>Pendientes</span></button>
+<button class="step" data-view="balances"><span>Cálculos guardados</span></button>
+<button class="step" data-view="audits"><span>Auditoría</span></button>
+<button class="step" data-view="backup"><span>Respaldo de cálculos</span></button>
         <button class="step active" data-view="dashboard"><b>01</b><span>Dashboard</span></button>
         <button class="step" data-view="projects"><b>02</b><span>Proyectos</span></button>
         <button class="step" data-view="equipment"><b>03</b><span>Equipos</span></button>
@@ -158,6 +163,15 @@
           </section>
         </div>
       </section>
+<p id="message" role="status" aria-live="polite"></p>
+<div id="stats" hidden></div>
+
+<section id="view-agenda" class="tracker-view work-panel card tracker-panel"><h2>Qué necesita atención</h2><label>Filtrar por proyecto<select id="agendaProject"></select></label><div id="agendaList"></div></section>
+<section id="view-workProjects" class="tracker-view work-panel card tracker-panel"><h2>Proyectos y antecedentes</h2><label>Buscar<input id="workProjectSearch" placeholder="Proyecto, establecimiento o sector"></label><label>Mostrar<select id="projectStatus"><option value="active">En curso</option><option value="finished">Terminados</option><option value="all">Todos</option></select></label><div id="projectList"></div></section>
+<section id="view-balances" class="tracker-view work-panel card tracker-panel"><div class="heading"><h2>Balances guardados</h2><a class="button" href="tracker.html?view=calculator">Crear o editar balance</a></div><p>Conservan ambientes, condiciones y cerramientos. El informe se genera desde el cálculo.</p><div id="balanceList"></div></section>
+<section id="view-audits" class="tracker-view work-panel card tracker-panel"><h2>Revisión de ingeniería</h2><p>Revisa las entradas del balance y registra observaciones. Cada resultado indica qué se comprobó y qué falta verificar con documentación.</p><label>Balance<select id="auditBalance"></select></label><button id="runAudit">Revisar balance</button><div id="auditList"></div></section>
+<section id="view-backup" class="tracker-view work-panel card tracker-panel"><h2>Cálculos y auditorías en Drive</h2><p>La planilla sigue dedicada al seguimiento. Este respaldo guarda los balances completos, sus vínculos a proyectos y las revisiones en un archivo separado. Cada envío crea una versión nueva.</p><label>Identificador de conexión Google<input id="clientId" autocomplete="off" placeholder="Configuración de conexión existente"></label><label>Carpeta de Drive<input id="folderId" value="13zN34L55GABySIRUlofPKwoxvqfh7DJC"></label><div class="actions"><button id="connect">Conectar Drive para cálculos</button><button id="saveDrive" disabled>Guardar una versión en Drive</button><button id="refreshDrive" disabled>Ver versiones de Drive</button><button id="export">Descargar copia completa</button><label class="button">Recuperar archivo<input id="import" type="file" accept=".json,application/json" hidden></label></div><p id="driveState" role="status">Copia local. Todavía no se verificó un respaldo en Drive.</p><div id="driveVersions"></div></section>
+<section id="view-calculator" class="tracker-view"><iframe class="module-frame" title="Balance thermique" src="index.html?embedded=1"></iframe></section><section id="view-pressure" class="tracker-view"><iframe class="module-frame" title="Presurización" src="pressure.html?embedded=1"></iframe></section>
     </main>
 
     <aside class="summary tracker-summary">
@@ -215,6 +229,8 @@
   </div>
 
   <script src="tracker.js"></script>
+<script src="workspace-core.js"></script>
+<script src="workspace.js"></script>
   <script src="tracker-drive-autosync.js"></script>
   <script>
     (()=>{
