@@ -294,7 +294,11 @@ async function apiCall(name,...args){
   }
   if(name==="guardar_proyectos"){
     try{
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(args[0]||[]));
+      const incoming=args[0]||[],active=incoming.find(p=>p.id===state.projectId);
+      const latest=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+      if(active){const ix=latest.findIndex(p=>p.id===active.id);const merged={...active};if(ix>=0&&latest[ix].pressureNetwork)merged.pressureNetwork=latest[ix].pressureNetwork;
+        if(ix>=0)latest[ix]=merged;else latest.push(merged);}
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(latest));
       return {ok:true,ruta:"almacenamiento local del navegador"};
     }catch(e){return {ok:false,error:String(e)};}
   }
@@ -302,7 +306,7 @@ async function apiCall(name,...args){
     try{
       const p=args[0]||{};
       const resultado=TB_ENGINE_LOCAL.calcular_ambiente(p.ambiente||{},p.condiciones||{},p.cerramientos||[]);
-      return {ok:true,resultado};
+      return {ok:true,result:resultado,resultado};
     }catch(e){return {ok:false,error:String(e)};}
   }
   if(name==="guardar_informe"){
@@ -321,9 +325,10 @@ async function apiCall(name,...args){
   }
   return {ok:false,error:`API local no implementada: ${name}`};
 }
-async function save(){
+async function save(explicit=false){
  $("saveStatus").textContent="Guardando…";
  const r=await apiCall("guardar_proyectos",state.projects);
+ if(r?.ok&&parent!==window)parent.postMessage({type:'thermabot:saved',balanceId:state.projectId,explicit},location.origin);
  $("saveStatus").textContent=r?.ok===false?"Error al guardar":`Guardado ${new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})}`;
 }
 let calcTimer=null;
@@ -455,10 +460,19 @@ function reportText(){
  return `THERMABOT\nProyecto: ${p.nombre}\nAmbiente: ${a.nombre}\nCiudad: ${p.condiciones.ciudad}\n\nCarga total: ${r?fmt(r.total_kw,2):"—"} kW\nSensible: ${r?fmt(r.sensible_total_kw,2):"—"} kW\nLatente: ${r?fmt(r.latente_total_kw,2):"—"} kW\nCaudal impulsión: ${r?fmt(r.caudal_impulsion_m3h,0):"—"} m3/h\n`;
 }
 
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==parent)return;
+ if(event.data?.type==='thermabot:save')save(true);
+ if(event.data?.type==='thermabot:create'){
+   const p=defaultProject(event.data.name||'Nuevo cálculo');state.projects.unshift(p);state.projectId=p.id;state.ambientId=p.ambientes[0].id;fillForm();changed();
+ }
+});
 async function init(){
  const loaded=await apiCall("cargar_proyectos");
  if(loaded?.ok && loaded.proyectos?.length)state.projects=loaded.proyectos;
  const requested=new URLSearchParams(location.search).get('balanceId');
+ const createName=new URLSearchParams(location.search).get('newBalance');
+ if(createName){const p=defaultProject(createName);state.projects.unshift(p);}
  state.projectId=state.projects.find(p=>p.id===requested)?.id||state.projects[0].id;state.ambientId=proj().ambientes[0].id;
 
  TEMPLATES.forEach(([name],i)=>{const b=document.createElement("button");b.className="template-pill"+(i===0?" active":"");b.textContent=name;b.onclick=()=>{state.templateIndex=i;document.querySelectorAll(".template-pill").forEach((x,j)=>x.classList.toggle("active",j===i));};$("templatePills").appendChild(b);});
@@ -486,6 +500,8 @@ async function init(){
  $("modalClose").onclick=()=>$("modal").classList.add("hidden");$("modal").onclick=e=>{if(e.target===$("modal"))$("modal").classList.add("hidden");};
 
  formEvents();fillForm();renderChrome();await calculate();
+ if(createName)await save(true);
+ if(parent!==window)parent.postMessage({type:'thermabot:ready',balanceId:state.projectId},location.origin);
 }
 
 async function arranqueSeguro(){
