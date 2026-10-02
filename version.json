@@ -1,5 +1,5 @@
 {
-  "version": "0.3.3-sheets-master",
-  "channel": "stable-candidate",
-  "notes": "Seguimiento HVAC con Google Sheets como fuente maestra: 37 proyectos migrados a una planilla nativa en Drive, lectura al abrir, escritura automática desde la web, caché local de emergencia, historial y respaldo JSON técnico. El backend permanente usa Cloudflare + Service Account; existe fallback OAuth de navegador. Sin cambios en fórmulas ni motor HVAC."
+  "version": "0.4.0",
+  "channel": "stable",
+  "notes": "Mesa de trabajo con pendientes, proyectos y balances vinculados. Auditoría de coherencia con evidencia y respaldo versionado de cálculos. Seguimiento con guardado verificado y conservación de pendientes. Drive requiere autorización de Google."
 }
