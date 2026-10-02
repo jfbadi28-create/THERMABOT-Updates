@@ -26,6 +26,9 @@ jobs:
         run: |
           set -euo pipefail
           required=(
+            suite.js
+            suite-core.js
+            suite.css
             workspace.html
             workspace.css
             workspace.js
@@ -68,8 +71,11 @@ jobs:
           node --check sw.js
           node --check workspace.js
           node --check workspace-core.js
+          node --check suite.js
+          node --check suite-core.js
           node tests/tracker-reliability.cjs
           node tests/workspace.cjs
+          node tests/suite.cjs
           node --input-type=module --check < functions/_middleware.js
           node --input-type=module --check < functions/api/tracker-sync.js
 

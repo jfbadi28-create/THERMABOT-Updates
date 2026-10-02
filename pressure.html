@@ -6,7 +6,12 @@
   <title>THERMABOT — Red multizona hospitalaria</title>
   <link rel="stylesheet" href="pressure.css" />
   <meta name="theme-color" content="#19211e" />
-<style>html.embedded .rail{display:none}html.embedded .app-shell{grid-template-columns:minmax(0,1fr) 290px}html.embedded .workspace{padding:16px}html.embedded .embedded-steps{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}html.embedded .embedded-steps button{padding:8px;background:#e9e2d5;border:0;border-radius:14px}</style><script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');else location.replace('tracker.html?view=pressure');</script></head>
+<style>html.embedded .rail{display:none}html.embedded .app-shell{grid-template-columns:minmax(0,1fr) 290px}html.embedded .workspace{padding:16px}html.embedded .embedded-steps{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}html.embedded .embedded-steps button{padding:8px;background:#e9e2d5;border:0;border-radius:14px}</style><script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');else location.replace('tracker.html?view=pressure');</script><style>
+html.embedded{--canvas:#f4f6f5;--card:#fff;--ink:#192d28;--mute:#6b7b76;--line:#dfe7e3;--accent:#e9aa40;--white:#fff}
+html[data-theme=dark]{--canvas:#101d19;--card:#1a2d26;--ink:#e7f0eb;--mute:#a1b4aa;--line:#35483e;--white:#1c3028;color-scheme:dark}
+html[data-theme=dark] body{background:var(--canvas);color:var(--ink)}html[data-theme=dark] .card,html[data-theme=dark] .summary,html[data-theme=dark] .modal-box{background:var(--card);color:var(--ink);border-color:var(--line)}html[data-theme=dark] label{color:var(--mute)}html[data-theme=dark] input,html[data-theme=dark] select,html[data-theme=dark] textarea{color:var(--ink);background:var(--card)}html[data-theme=dark] .formula{background:var(--canvas);color:var(--mute)}html.embedded .card{background:var(--card)}
+@media print{.rail,.tb-head,.embedded-project-controls,.embedded-steps,.step-footer,button,a.btn{display:none!important}.app-shell{display:block!important}.workspace,.page{padding:0!important}.summary{position:static!important;height:auto!important;display:block!important}.step-panel{display:block!important;break-inside:avoid}.table-wrap{overflow:visible!important}body{background:white!important;color:#172d24!important}}
+</style><script>window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==parent)return;if(e.data?.type==='thermabot:theme')document.documentElement.dataset.theme=e.data.theme==='dark'?'dark':'light';});</script></head>
 <body>
   <header class="tb-head">
     <div>
@@ -14,7 +19,7 @@
       <div class="sub">RED MULTIZONA · PRESIONES Y CAUDALES</div>
     </div>
     <div class="head-actions">
-      <a class="btn ghost" href="./">← Balance térmico</a>
+      <a class="btn ghost" style="display:none" href="./">← Balance térmico</a>
       <button id="saveBtn" class="btn ghost">Guardar red</button>
       <button id="solveBtn" class="btn primary">Resolver red</button>
     </div>

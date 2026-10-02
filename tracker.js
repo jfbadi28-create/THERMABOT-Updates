@@ -66,6 +66,7 @@
 
   let data = loadLocal();
   let view = 'dashboard';
+  let navigationReady=false;
   let selectedProjectId = data.projects[0]?.id || null;
   let filters = {establishment:'',sector:'',system:'',stage:''};
   let driveSaveTimer = null;
@@ -88,26 +89,34 @@
     driveSaveTimer = setTimeout(()=>pushDrive(false).catch(err=>setDriveMessage(err.message,'error')),1400);
   }
 
-  function setView(next){
+  function setView(next,{replace=false}={}){
+    if(next==='agenda')next='dashboard';
+    if(['milestones','documents'].includes(next)){
+      document.body.dataset.projectTab=next==='milestones'?'Hitos':'Documentos';
+      window.dispatchEvent(new CustomEvent('thermabot:projecttab',{detail:document.body.dataset.projectTab}));
+      next='project';
+    }
     view = next;
     document.body.dataset.module=next;
-    if(next==='calculator'){
+    if(next==='calculator'||next==='pressure'){
       const requested=new URLSearchParams(location.search).get('balanceId');
       let linked=selectedProject()?.sourceBalanceId;
       try{const links=JSON.parse(localStorage.getItem('thermabot.workspace.v1')||'{}').links||{};linked=Object.keys(links).find(id=>links[id]===selectedProjectId)||linked;}catch{}
-      const frame=document.querySelector('#view-calculator iframe');
+      const frame=document.querySelector('#view-'+next+' iframe');
       const balanceId=requested||linked;
-      const target='index.html?embedded=1'+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
+      const target=(next==='calculator'?'index.html':'pressure.html')+'?embedded=1'+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
       if(frame && frame.getAttribute('src')!==target)frame.src=target;
     }
-    history.replaceState(null,'','tracker.html?view='+encodeURIComponent(next)+(selectedProjectId?'&projectId='+encodeURIComponent(selectedProjectId):''));
+    const destination='tracker.html?view='+encodeURIComponent(next)+(selectedProjectId?'&projectId='+encodeURIComponent(selectedProjectId):'');
+    if(location.pathname.split('/').pop()+location.search!==destination)history[replace||!navigationReady?'replaceState':'pushState'](null,'',destination);
     window.dispatchEvent(new Event('thermabot:view'));
     document.querySelectorAll('[data-view="'+next+'"]').forEach(b=>b.classList.add('active'));
     document.querySelectorAll('.tracker-view').forEach(el=>el.classList.toggle('active-view',el.id===`view-${view}`));
     document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===view));
-    const titles = {dashboard:'Seguimiento de proyectos',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
+    const titles = {project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',pressure:'Presurización',balances:'Cálculos guardados',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
     $('trackerTitle').textContent=titles[view]||'Seguimiento de proyectos';
     if(view==='drive') renderDrive();
+    window.dispatchEvent(new Event('thermabot:navigate'));
   }
 
   function filteredProjects(){
@@ -177,6 +186,7 @@
     const list=data.projects.filter(p=>!q||[p.establishment,p.name,p.sector,p.system,p.stage,p.status,p.expediente].join(' ').toLowerCase().includes(q));
     $('projectsBody').innerHTML=list.length?list.map(p=>`<tr data-id="${p.id}" class="${p.id===selectedProjectId?'selected':''}"><td>${esc(p.establishment||'—')}</td><td><strong>${esc(p.name)}</strong></td><td>${esc(p.sector||'—')}</td><td>${esc(p.system||'—')}</td><td>${priorityBadge(p.priority)}</td><td>${esc(p.stage||'—')}</td><td>${statusBadge(p.status)}</td><td>${progressCell(p.progress)}</td><td>${dateLabel(p.targetDate)}</td></tr>`).join(''):emptyRow(9,'No hay proyectos.');
     bindProjectRows();
+    window.dispatchEvent(new Event('thermabot:portfolio'));
   }
 
   function renderEquipment(){
@@ -223,6 +233,7 @@
 
   function renderAll(){
     renderDashboard(); renderProjects(); renderEquipment(); renderMilestones(); renderDocuments(); renderSummary(); renderDrive();
+    window.dispatchEvent(new Event('thermabot:render'));
     $('trackerMeta').textContent=`${data.projects.length} proyectos · ${data.equipment.length} equipos · ${data.milestones.length} hitos · ${data.documents.length} documentos`;
   }
 
@@ -233,6 +244,7 @@
   function selectProject(id){
     selectedProjectId=id;
     renderAll();
+    setView('project');
   }
 
   function modal(title,html){
@@ -288,7 +300,7 @@
   }
 
   function openEquipmentModal(id=null){
-    const e=id?data.equipment.find(x=>x.id===id):{};
+    const e=id?data.equipment.find(x=>x.id===id):{projectId:selectedProjectId};
     modal(id?'Editar equipo':'Nuevo equipo',`<form id="equipmentForm" class="modal-grid"><input type="hidden" name="id" value="${esc(e?.id||'')}"/><label>Proyecto<select name="projectId">${projectSelectOptions(e?.projectId)}</select></label><label>Equipo<input name="name" required value="${esc(e?.name||'')}" placeholder="UTA 01 / Chiller / VRF…"/></label><label>Modelo<input name="model" value="${esc(e?.model||'')}"/></label><label>Capacidad / dato clave<input name="capacity" value="${esc(e?.capacity||'')}" placeholder="37 TR / 10.700 m³/h"/></label><label>Ubicación<input name="location" value="${esc(e?.location||'')}"/></label><label>Estado<select name="status">${optionList(EQUIPMENT_STATUSES,e?.status||'A definir')}</select></label><label>Proveedor<input name="supplier" value="${esc(e?.supplier||'')}"/></label><label>Identificación / serie<input name="tag" value="${esc(e?.tag||'')}"/></label><label class="span-2">Observaciones<textarea name="notes" rows="3">${esc(e?.notes||'')}</textarea></label><div class="modal-actions span-2"><button type="button" class="pill" data-close-modal>Cancelar</button><button type="submit" class="pill dark">Guardar equipo</button></div></form>`);
     document.querySelector('[data-close-modal]').onclick=closeModal;
     $('equipmentForm').onsubmit=e2=>{e2.preventDefault();const o=Object.fromEntries(new FormData(e2.currentTarget).entries());if(o.id){const ix=data.equipment.findIndex(x=>x.id===o.id);data.equipment[ix]={...data.equipment[ix],...o};}else{o.id=uid('eq');data.equipment.push(o);}saveLocal();closeModal();renderAll();};
@@ -509,9 +521,26 @@
     bindEvents();
     const params=new URLSearchParams(location.search); const requested=params.get('projectId');
     if(projectById(requested)) selectedProjectId=requested;
-    renderAll(); setView(['dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','pressure'].includes(params.get('view'))?params.get('view'):'dashboard');
+    renderAll(); setView(['dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','pressure','project','activity','marketing','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
+    navigationReady=true;
+    window.addEventListener('popstate',()=>{const params=new URLSearchParams(location.search);if(projectById(params.get('projectId')))selectedProjectId=params.get('projectId');renderAll();setView(params.get('view')||'dashboard',{replace:true});});
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
+
+
+  window.TBTracker={
+    snapshot:()=>JSON.parse(JSON.stringify(data)),
+    selectedId:()=>selectedProjectId,
+    view:()=>view,
+    select:selectProject,
+    navigate:setView,
+    editProject:openProjectModal,
+    editEquipment:openEquipmentModal,
+    editMilestone:openMilestoneModal,
+    editDocument:openDocumentModal,
+    mutate:fn=>{fn(data);saveLocal();renderAll();},
+    refresh:()=>{data=loadLocal();if(!projectById(selectedProjectId))selectedProjectId=data.projects[0]?.id||null;renderAll();}
+  };
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();

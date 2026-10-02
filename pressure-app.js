@@ -16,7 +16,10 @@
     try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch(e){return [];}
   }
   function writeProjects(){
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(projects));
+    const latest=readProjects();
+    const saved=latest.find(p=>p.id===currentProject?.id);
+    if(saved){saved.pressureNetwork=JSON.parse(JSON.stringify(network));localStorage.setItem(STORAGE_KEY,JSON.stringify(latest));}
+    if(parent!==window&&saved)parent.postMessage({type:'thermabot:saved',balanceId:saved.id,explicit:false},location.origin);
   }
   function saveNetwork(){
     if(!currentProject||!network)return;
@@ -178,6 +181,8 @@
     $('nodeResults').innerHTML='<tr><td colspan="9" class="empty">Sin resultados.</td></tr>';
     $('connectionResults').innerHTML='<tr><td colspan="7" class="empty">Sin resultados.</td></tr>';
     $('warnings').innerHTML='<div class="empty">Resolvé la red para ejecutar la auditoría.</div>';
+    clearTimeout(clearResults.timer);
+    if(network?.nodes?.length&&network?.connections?.length)clearResults.timer=setTimeout(solve,350);
   }
 
   function modelInput(){
@@ -319,18 +324,24 @@
     if(!window.THERMABOT_PRESSURE_ENGINE){alert('No se cargó el motor de presiones.');return;}
     runSelfTest();
     projects=readProjects();
-    currentProject=projects[0]||null;
+    currentProject=projects.find(p=>p.id===new URLSearchParams(location.search).get('balanceId'))||projects[0]||null;
     network=currentProject?mergeWithProject(currentProject.pressureNetwork||buildDefaultNetwork(currentProject),currentProject):{version:1,referenceNodeId:null,referencePressurePa:0,nodes:[],connections:[]};
     renderAll();
 
     $('projectSelect').onchange=loadSelectedProject;
     $('loadProjectBtn').onclick=loadSelectedProject;
-    $('saveBtn').onclick=()=>{saveNetwork();$('saveBtn').textContent='Guardado ✓';setTimeout(()=>$('saveBtn').textContent='Guardar red',1200);};
+    $('saveBtn').onclick=()=>{saveNetwork();if(parent!==window&&currentProject)parent.postMessage({type:'thermabot:saved',balanceId:currentProject.id,explicit:true},location.origin);$('saveBtn').textContent='Guardado ✓';setTimeout(()=>$('saveBtn').textContent='Guardar red',1200);};
     $('solveBtn').onclick=solve;$('solveMainBtn').onclick=solve;$('designBtn').onclick=design;$('applyDesignBtn').onclick=applyDesign;
     $('addNodeBtn').onclick=addNode;$('addConnectionBtn').onclick=addConnection;$('exampleBtn').onclick=loadExample;
     $('referenceNode').onchange=()=>{network.referenceNodeId=$('referenceNode').value;saveNetwork();clearResults();};
+    if(parent!==window)parent.postMessage({type:'thermabot:ready',balanceId:currentProject?.id},location.origin);
     $('referencePressure').onchange=()=>{network.referencePressurePa=n($('referencePressure').value);saveNetwork();clearResults();};
   }
 
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.source!==parent)return;
+    if(event.data?.type==='thermabot:save'){if(!currentProject){alert('Creá y guardá primero un balance con ambientes para asignar la red.');return;}saveNetwork();parent.postMessage({type:'thermabot:saved',balanceId:currentProject.id,explicit:true},location.origin);}
+    if(event.data?.type==='thermabot:print'){solve();window.print();}
+  });
   window.addEventListener('DOMContentLoaded',init);
 })();
