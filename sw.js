@@ -1,5 +1,9 @@
-const CACHE = "thermabot-v0.3.3-sheets-master";
+const CACHE = "thermabot-v0.4-workspace";
 const ASSETS = [
+  "./workspace.html",
+  "./workspace.css",
+  "./workspace-core.js",
+  "./workspace.js",
   "./",
   "./index.html",
   "./styles.css",
