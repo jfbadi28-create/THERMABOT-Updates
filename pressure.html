@@ -6,7 +6,7 @@
   <title>THERMABOT — Red multizona hospitalaria</title>
   <link rel="stylesheet" href="pressure.css" />
   <meta name="theme-color" content="#19211e" />
-</head>
+<style>html.embedded .rail{display:none}html.embedded .app-shell{grid-template-columns:minmax(0,1fr) 290px}html.embedded .workspace{padding:16px}html.embedded .embedded-steps{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}html.embedded .embedded-steps button{padding:8px;background:#e9e2d5;border:0;border-radius:14px}</style><script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');else location.replace('tracker.html?view=pressure');</script></head>
 <body>
   <header class="tb-head">
     <div>
@@ -122,5 +122,5 @@
   <script src="engine.js"></script>
   <script src="pressure-network.js"></script>
   <script src="pressure-app.js"></script>
-</body>
+<script>window.addEventListener('DOMContentLoaded',()=>{if(!document.documentElement.classList.contains('embedded'))return;const nav=document.querySelector('.steps');if(nav){const tabs=document.createElement('nav');tabs.className='embedded-steps';nav.querySelectorAll('button').forEach(original=>{const b=document.createElement('button');b.textContent=original.textContent;b.onclick=()=>original.click();tabs.appendChild(b);});document.querySelector('.workspace')?.prepend(tabs);}});</script></body>
 </html>

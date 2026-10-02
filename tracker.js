@@ -78,6 +78,7 @@
   function saveLocal({touch=true, sync=true}={}){
     if(touch) data.updatedAt = nowIso();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    window.dispatchEvent(new Event('thermabot:data'));
     $('trackerSaveStatus').textContent = `Guardado local · ${new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}`;
     if(sync && drive.connected) scheduleDriveSave();
   }
@@ -89,6 +90,19 @@
 
   function setView(next){
     view = next;
+    document.body.dataset.module=next;
+    if(next==='calculator'){
+      const requested=new URLSearchParams(location.search).get('balanceId');
+      let linked=selectedProject()?.sourceBalanceId;
+      try{const links=JSON.parse(localStorage.getItem('thermabot.workspace.v1')||'{}').links||{};linked=Object.keys(links).find(id=>links[id]===selectedProjectId)||linked;}catch{}
+      const frame=document.querySelector('#view-calculator iframe');
+      const balanceId=requested||linked;
+      const target='index.html?embedded=1'+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
+      if(frame && frame.getAttribute('src')!==target)frame.src=target;
+    }
+    history.replaceState(null,'','tracker.html?view='+encodeURIComponent(next)+(selectedProjectId?'&projectId='+encodeURIComponent(selectedProjectId):''));
+    window.dispatchEvent(new Event('thermabot:view'));
+    document.querySelectorAll('[data-view="'+next+'"]').forEach(b=>b.classList.add('active'));
     document.querySelectorAll('.tracker-view').forEach(el=>el.classList.toggle('active-view',el.id===`view-${view}`));
     document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===view));
     const titles = {dashboard:'Seguimiento de proyectos',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
@@ -495,7 +509,7 @@
     bindEvents();
     const params=new URLSearchParams(location.search); const requested=params.get('projectId');
     if(projectById(requested)) selectedProjectId=requested;
-    renderAll(); setView(['dashboard','projects','equipment','milestones','documents','drive'].includes(params.get('view'))?params.get('view'):'dashboard');
+    renderAll(); setView(['dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','pressure'].includes(params.get('view'))?params.get('view'):'dashboard');
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
 
