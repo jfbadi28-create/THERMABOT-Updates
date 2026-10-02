@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.4.1",
   "channel": "stable",
-  "notes": "Mesa de trabajo con pendientes, proyectos y balances vinculados. Auditoría de coherencia con evidencia y respaldo versionado de cálculos. Seguimiento con guardado verificado y conservación de pendientes. Drive requiere autorización de Google."
+  "notes": "Aplicación unificada en seguimiento: pendientes, cálculos, auditoría y respaldo con navegación común. Datos y motor de cálculo conservados."
 }
