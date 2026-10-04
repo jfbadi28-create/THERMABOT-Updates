@@ -45,7 +45,7 @@
   function prepare(project,input,{actor,at,id,documents=[],expectedVersion}={}){
     if(expectedVersion!==undefined&&(project.updatedAt||'')!==expectedVersion)throw Error('El proyecto cambió mientras lo editabas. Cerrá esta ventana y revisá la actualización.');
     const patch={};
-    for(const field of ['status','stage','nextAction','nextDueDate','waitingFor','blocker'])patch[field]=String(input[field]??project[field]??'').trim();
+    for(const field of ['status','stage','nextAction','nextDueDate','waitingFor','blocker'])patch[field]=String(input[field]??project[field]??(field==='nextDueDate'?project.targetDate:'')??'').trim();
     if(!['Activo','En revisión','Urgente','Esperando tercero','Bloqueado','Finalizado','Suspendido'].includes(patch.status))throw Error('Seleccioná un estado válido.');
     if(!validDate(patch.nextDueDate))throw Error('La fecha de seguimiento no es válida.');
     if(patch.status==='Esperando tercero'&&!patch.waitingFor)throw Error('Indicá de quién o de qué estás esperando respuesta.');

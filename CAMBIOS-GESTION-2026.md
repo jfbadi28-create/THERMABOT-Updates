@@ -1,3 +1,11 @@
+## 0.9.1 · Acceso directo a editar proyectos
+
+- Botón Editar visible en cada fila; el nombre abre la ficha completa. El resto de la fila conserva la vista rápida.
+- Editar ficha disponible también en la vista rápida del proyecto.
+- Formulario con etapa, próxima acción, fecha de seguimiento y motivos de espera o bloqueo. Los campos necesarios se muestran según el estado.
+- Conserva fechas de seguimiento heredadas y el inicio de las esperas; registra las modificaciones en el historial existente.
+- Los proyectos nuevos conservan la etapa, próxima acción y fecha ingresadas.
+
 ## 0.9.0 · Informes ejecutivos en Word
 
 - Generar informe Word desde Proyectos, con período, alcance, destinatario y firmante recordados.
