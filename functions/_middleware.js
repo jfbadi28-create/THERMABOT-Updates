@@ -69,7 +69,8 @@ export async function onRequest(context) {
   headers.set("Cache-Control", "private, no-store");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "no-referrer");
-  headers.set("X-Frame-Options", "DENY");
+  headers.set("X-Frame-Options", "SAMEORIGIN");
+  headers.set("Content-Security-Policy", "frame-ancestors 'self'");
 
   return new Response(response.body, {
     status: response.status,
@@ -77,3 +78,4 @@ export async function onRequest(context) {
     headers
   });
 }
+

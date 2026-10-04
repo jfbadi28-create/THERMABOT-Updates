@@ -126,6 +126,7 @@ html[data-theme=dark] body{background:var(--canvas);color:var(--ink)}html[data-t
 
   <script src="engine.js"></script>
   <script src="pressure-network.js"></script>
-  <script src="pressure-app.js"></script>
+  <script src="cloud-sync.js"></script><script src="pressure-app.js"></script>
 <script>window.addEventListener('DOMContentLoaded',()=>{if(!document.documentElement.classList.contains('embedded'))return;const nav=document.querySelector('.steps');if(nav){const tabs=document.createElement('nav');tabs.className='embedded-steps';nav.querySelectorAll('button').forEach(original=>{const b=document.createElement('button');b.textContent=original.textContent;b.onclick=()=>original.click();tabs.appendChild(b);});document.querySelector('.workspace')?.prepend(tabs);}});</script></body>
 </html>
+

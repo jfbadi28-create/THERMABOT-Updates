@@ -13,7 +13,7 @@ function agenda(tracker,today){
  return items.sort((a,b)=>Number(b.overdue)-Number(a.overdue)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999'));
 }
 function audit(p){
- validateBalance(p);const findings=[];
+ validateBalance(p);if(p.method==='quadri-v3')return {balanceId:p.id,balanceName:p.nombre,generatedAt:new Date().toISOString(),ruleVersion:'quadri-review-v1',scope:'Datos y trazabilidad del balance Quadri',findings:[{severity:'IMPORTANTE',subject:'Revisión de ingeniería',problem:'El informe conserva entradas y trazas Quadri; se requiere revisión de cargas y datos de biblioteca.',risk:'Entradas propuestas o no revisadas pueden modificar el dimensionamiento.',action:'Abrir el balance y revisar los cuatro bloques de carga por ambiente antes de emitir.'}],pending:['Cotejo con un caso real independiente','Condiciones climáticas del proyecto','Capacidad de fabricante a condiciones reales']};const findings=[];
  const add=(severity,subject,problem,risk,action)=>findings.push({severity,subject,problem,risk,action});
  const finite=x=>x!==''&&x!==null&&x!==undefined&&Number.isFinite(Number(x));
  const c=p.condiciones;

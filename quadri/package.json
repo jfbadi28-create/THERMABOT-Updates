@@ -1,0 +1,14 @@
+{
+  "name": "thermabot-quadri-trial",
+  "version": "3.0.0-quadri-preview.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/*.test.ts",
+    "build": "node build.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "description": "Prueba Quadri de verano/invierno con interfaz THERMABOT"
+}

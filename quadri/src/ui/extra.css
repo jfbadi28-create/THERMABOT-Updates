@@ -1,0 +1,60 @@
+html,body{margin:0;min-height:100%;background:#10131b;font-family:Inter,"Segoe UI",sans-serif}body{padding:0}
+#tb-design-lab .tbp{min-height:100dvh;border-radius:0;border:0}
+#tb-design-lab .p-button:disabled{opacity:.45;cursor:default}
+#tb-design-lab .p-click-result{border:0;background:transparent;padding:0;text-align:left;color:inherit;cursor:pointer;font:inherit}
+#tb-design-lab .p-result-value button{font:inherit;color:inherit}
+#tb-design-lab .p-live{color:var(--p-green);display:flex;align-items:center;gap:6px}
+#tb-design-lab .p-wizard-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+#tb-design-lab .p-wizard-nav button{border:1px solid var(--p-line);background:var(--p-panel);border-radius:8px;padding:8px;color:var(--p-muted);font-size:11px}
+#tb-design-lab .p-wizard-nav button.active{background:var(--p-accent-soft);border-color:var(--p-accent);color:var(--p-accent-text)}
+#tb-design-lab .p-wizard-nav small{display:inline-grid;place-items:center;min-width:17px;margin-right:5px}
+#tb-design-lab .p-field small{font-size:11px}
+#tb-design-lab .p-field textarea{background:var(--p-bg);border:1px solid var(--p-line);border-radius:8px;color:var(--p-text);min-height:125px;resize:vertical;font:12px monospace;padding:10px;max-width:100%}
+#tb-design-lab .p-field input[type=range]{padding:0;accent-color:var(--p-accent)}
+#tb-design-lab .p-result-details .p-click-result{font-size:12px}
+#tb-design-lab .p-warnings{border:1px solid color-mix(in srgb,var(--p-orange) 35%,var(--p-line));background:color-mix(in srgb,var(--p-orange) 6%,var(--p-panel));border-radius:9px;padding:10px 12px;font-size:12px;color:var(--p-orange);margin-bottom:18px}
+#tb-design-lab .p-warnings summary{cursor:pointer;font-weight:500}
+#tb-design-lab .p-warnings ul{padding-left:18px;margin:10px 0 0;display:grid;gap:6px}
+#tb-design-lab .p-error{border-color:var(--p-red);color:var(--p-red);background:color-mix(in srgb,var(--p-red) 8%,var(--p-panel))}
+#tb-design-lab details.p-advanced{border-top:1px solid var(--p-line);margin-top:18px;padding-top:13px}
+#tb-design-lab details.p-advanced>summary{color:var(--p-muted);font-size:12px;cursor:pointer}
+#tb-design-lab .p-advanced .p-form-grid{margin-top:15px}
+#tb-design-lab .p-step-footer{display:flex;justify-content:space-between;gap:8px;margin-top:18px}
+#tb-design-lab .p-toast{position:fixed;left:auto;right:24px;bottom:24px;transform:none;max-width:400px;z-index:50;background:var(--p-panel);border:1px solid var(--p-orange);color:var(--p-orange);box-shadow:0 8px 24px #0004}
+#tb-design-lab .p-toast.success{border-color:var(--p-green);color:var(--p-green)}
+#tb-design-lab .p-panel+.p-panel{margin-top:16px}
+#tb-design-lab .p-chart{position:relative;width:100%;min-width:0}
+#tb-design-lab .p-chart svg{display:block;width:100%;overflow:visible}
+#tb-design-lab .p-chart text{fill:var(--p-muted);font:11px Inter,"Segoe UI",sans-serif}
+#tb-design-lab .p-chart .axis-label{font-size:11px}
+#tb-design-lab .p-chart-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--p-muted);margin-bottom:12px}
+#tb-design-lab .p-chart-legend span{display:flex;gap:6px;align-items:center}
+#tb-design-lab .p-chart-legend i{width:9px;height:9px;border-radius:50%}
+#tb-design-lab .p-hour-readout{font-size:12px;color:var(--p-muted);display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;min-height:20px}
+#tb-design-lab .p-hour-readout button{font-size:12px}
+#tb-design-lab .p-chart-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+#tb-design-lab .p-donut{width:130px;height:130px;border-radius:50%;position:relative;margin:16px auto;background:var(--p-soft)}
+#tb-design-lab .p-donut::after{content:'';position:absolute;inset:24px;border-radius:50%;background:var(--p-panel)}
+#tb-design-lab .p-component{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:8px;width:100%;align-items:center;font-size:11px;background:transparent;border:0;padding:6px 0;color:var(--p-text);text-align:left}
+#tb-design-lab .p-component i{height:7px;border-radius:50%}
+#tb-design-lab .p-history{font-size:11px;color:var(--p-muted);margin-top:9px}
+#tb-design-lab .p-layer{position:fixed;inset:0;background:#04091488;backdrop-filter:blur(3px);z-index:30;display:flex;justify-content:flex-end;align-items:stretch}
+#tb-design-lab .p-drawer{background:var(--p-panel);border-left:1px solid var(--p-line);width:min(520px,100%);padding:24px;overflow:auto;animation:tb-drawer-in 220ms cubic-bezier(.22,1,.36,1)}
+@keyframes tb-drawer-in{from{transform:translateX(35px);opacity:.5}to{transform:translateX(0);opacity:1}}
+#tb-design-lab .p-formula{font-family:Consolas,monospace;background:var(--p-bg);border-radius:9px;padding:15px;color:var(--p-accent-text);overflow-wrap:anywhere;margin:18px 0;font-size:13px;white-space:pre-wrap}
+#tb-design-lab .p-var{padding:12px 0;border-top:1px solid var(--p-line);font-size:12px;overflow-wrap:anywhere}
+#tb-design-lab .p-var-head{display:flex;justify-content:space-between;gap:10px}
+#tb-design-lab .p-var small{display:block;font-size:11px;color:var(--p-muted);margin-top:5px}
+#tb-design-lab .p-var code{color:var(--p-text);font-size:11px;overflow-wrap:anywhere;white-space:pre-wrap}
+#tb-design-lab .p-library-item{display:block;width:100%;text-align:left;border:1px solid var(--p-line);border-radius:10px;background:var(--p-bg);padding:12px;margin:9px 0;color:var(--p-text);font-size:12px}
+#tb-design-lab .p-library-item small{display:block;color:var(--p-muted);font-size:11px;margin-top:6px}
+#tb-design-lab .p-hour-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0}
+#tb-design-lab .p-select-footer{border:1px solid var(--p-line);background:var(--p-panel);color:var(--p-muted);border-radius:7px;padding:4px 8px;font:inherit}
+#tb-design-lab .p-ripple-clip{position:absolute;pointer-events:none;overflow:hidden;z-index:12}
+#tb-design-lab .p-ripple-wave{position:absolute;border-radius:50%;background:currentColor;animation:tb-ripple 560ms ease-out forwards;pointer-events:none}
+#tb-design-lab .p-skeleton::after{border-radius:inherit}
+#tb-design-lab .p-psych-point{cursor:pointer}
+#tb-design-lab .p-label-wrap{overflow-wrap:anywhere}
+@media(max-width:1000px){#tb-design-lab .p-chart-pair{grid-template-columns:1fr}}
+@media(max-width:700px){#tb-design-lab .p-layer .p-drawer{padding:18px}#tb-design-lab .p-chart-pair{grid-template-columns:1fr}#tb-design-lab .p-hour-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#tb-design-lab .p-drawer{animation:none}#tb-design-lab *{animation:none!important;transition:none!important}}
