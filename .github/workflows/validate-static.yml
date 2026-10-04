@@ -74,6 +74,10 @@ jobs:
           node --check cloud-sync.js
           node --check suite.js
           node --check suite-core.js
+          node --check engineering-core.js
+          node --check project-flow-core.js
+          node --check project-flow.js
+          node --test --test-isolation=none tests/engineering.cjs tests/project-flow.cjs
           node tests/tracker-reliability.cjs
           node tests/workspace.cjs
           node tests/suite.cjs
@@ -95,10 +99,11 @@ jobs:
           grep -q 'realtime-input.js' index.html
           grep -q 'styles.css' index.html
           grep -q 'manifest.webmanifest' index.html
-          grep -q 'engine.js' pressure.html
-          grep -q 'pressure-network.js' pressure.html
-          grep -q 'pressure-app.js' pressure.html
-          grep -q 'pressure.css' pressure.html
+          # Presurización was retired: its old URL must redirect to Inicio.
+          grep -q 'tracker.html?view=dashboard' pressure.html
+          grep -q 'project-flow-core.js' tracker.html
+          grep -q 'project-flow.js' tracker.html
+          grep -q 'management.css' tracker.html
           grep -q 'tracker.js' tracker.html
           grep -q 'tracker.css' tracker.html
           grep -q 'styles.css' tracker.html
