@@ -1,3 +1,14 @@
+## 0.9.0 · Informes ejecutivos en Word
+
+- Generar informe Word desde Proyectos, con período, alcance, destinatario y firmante recordados.
+- Las ocho secciones de la plantilla institucional se completan desde los registros, con tablas ampliables y todas las novedades del período.
+- Se agregan avance técnico, sección del informe, decisión requerida, estado de ingeniería, pendiente técnico y año objetivo. Cambios trazados en el historial.
+- Vista previa de indicadores y datos faltantes, con acceso a Completar ficha. No se inventan valores; los cierres sin fecha no se atribuyen al período.
+- Estado actual a la fecha de emisión; novedades y cierres filtrados por período.
+- Se conserva el membrete y se mejoran celdas, encabezados repetidos y paginación del cierre.
+- Descarga editable en formato .docx, generada en el navegador con biblioteca local. No se sube automáticamente el archivo Word a Drive.
+- Validación de la descarga, corrección de faltantes y conservación del paquete Word; informes corto y largo revisados.
+
 ## 0.8.0 · Capacidad instalada y productividad
 
 - Cartera con seis indicadores compactos y gráfico de cuatro semanas, adaptable a móvil y ambos temas.

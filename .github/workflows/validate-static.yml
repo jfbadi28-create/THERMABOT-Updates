@@ -49,6 +49,11 @@ jobs:
             sw.js
             manifest.webmanifest
             version.json
+            report-core.js
+            report-docx.js
+            reports.js
+            reports/template-hvac.docx
+            vendor/jszip.min.js
             icon-192.png
             icon-512.png
             functions/_middleware.js
@@ -77,7 +82,10 @@ jobs:
           node --check engineering-core.js
           node --check project-flow-core.js
           node --check project-flow.js
-          node --test --test-isolation=none tests/engineering.cjs tests/project-flow.cjs
+          node --check report-core.js
+          node --check report-docx.js
+          node --check reports.js
+          node --test --test-isolation=none tests/engineering.cjs tests/project-flow.cjs tests/reports.cjs
           node tests/tracker-reliability.cjs
           node tests/workspace.cjs
           node tests/suite.cjs

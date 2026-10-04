@@ -1,10 +1,21 @@
 /* Project updates and their history share one atomic tracker record. HVAC math is untouched. */
 (function(root){
   'use strict';
-  const fields=['status','stage','nextAction','nextDueDate','waitingFor','waitingSince','blocker','lastMove','completedOn','installedTR','installedOn'];
+  const fields=['status','stage','nextAction','nextDueDate','waitingFor','waitingSince','blocker','lastMove','completedOn','installedTR','installedOn','progress','reportGroup','decisionRequired','decisionRequest','engineeringState','technicalPending','targetYear'];
   const labels={status:'Estado',stage:'Etapa',nextAction:'Próxima acción',nextDueDate:'Fecha de seguimiento',waitingFor:'Esperando a',waitingSince:'Esperando desde',blocker:'Bloqueo',lastMove:'Último movimiento'};
   function validDate(value){if(!value)return true;const d=new Date(value+'T12:00:00Z');return /^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===value;}
   Object.assign(labels,{completedOn:'Fecha de finalización',installedTR:'TR instaladas',installedOn:'Fecha de instalación'});
+  Object.assign(labels,{progress:'Avance técnico (%)',reportGroup:'Sección del informe',decisionRequired:'Requiere decisión de Dirección',decisionRequest:'Decisión requerida',engineeringState:'Estado de ingeniería',technicalPending:'Pendiente técnico',targetYear:'Año objetivo'});
+  function reporting(project,input){
+    const patch={};for(const field of ['reportGroup','decisionRequest','engineeringState','technicalPending','targetYear']){patch[field]=String(input[field]??project[field]??'').trim();if(patch[field].length>1500)throw Error('El campo '+labels[field]+' excede 1500 caracteres.');}
+    if(!['','Automático','Obra','Aprobación','Desarrollo'].includes(patch.reportGroup))throw Error('Seleccioná una sección válida del informe.');
+    if(patch.targetYear&&(!/^\d{4}$/.test(patch.targetYear)||Number(patch.targetYear)<1900||Number(patch.targetYear)>2200))throw Error('Ingresá un año objetivo entre 1900 y 2200.');
+    const v=input.progress===undefined?project.progress:input.progress;patch.progress=v==null||String(v).trim()===''?null:Number(v);
+    if(patch.progress!==null&&(!Number.isFinite(patch.progress)||patch.progress<0||patch.progress>100))throw Error('El avance debe estar entre 0 y 100 %.');
+    patch.decisionRequired=input.decisionRequired===undefined?!!project.decisionRequired:[true,'true','1','on'].includes(input.decisionRequired);
+    if(patch.decisionRequired&&!patch.decisionRequest)throw Error('Indicá qué decisión o intervención se requiere.');
+    return patch;
+  }
   function output(project,input){
     const raw=input.installedTR===undefined?project.installedTR:input.installedTR;
     const installedTR=raw==null||String(raw).trim()===''?null:Number(raw);
@@ -44,12 +55,13 @@
     const note=String(input.note||'').trim();if(note.length>3000)throw Error('La novedad debe tener hasta 3000 caracteres.');
     patch.lastMove=note||project.lastMove||'';
     Object.assign(patch,output(project,input));
+    Object.assign(patch,reporting(project,input));
     let document=null;
     if(input.documentId){const d=documents.find(d=>d.id===input.documentId&&d.projectId===project.id);if(!d)throw Error('El documento debe pertenecer a este proyecto.');document={id:d.id,title:d.title,revision:d.revision||'',driveUrl:d.driveUrl||''};}
-    const changes=fields.filter(k=>String(project[k]??'')!==String(patch[k]??'')).map(field=>({field,label:labels[field],before:project[field]??'',after:patch[field]??''}));
+    const changes=fields.filter(k=>k==='decisionRequired'?!!project[k]!==!!patch[k]:String(project[k]??'')!==String(patch[k]??'')).map(field=>({field,label:labels[field],before:project[field]??'',after:patch[field]??''}));
     if(!note&&!changes.length&&!document)throw Error('Escribí una novedad o cambiá un dato antes de guardar.');
     const event={id,at,actor:String(actor||'Operador').trim(),note,changes,document};
     return {...project,...patch,updatedAt:at,followUpLog:[...(Array.isArray(project.followUpLog)?project.followUpLog:[]),event]};
   }
-  const api={prepare,validDate,labels,output,weekly};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TBProjectFlowCore=api;
+  const api={prepare,validDate,labels,output,weekly,reporting};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TBProjectFlowCore=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
