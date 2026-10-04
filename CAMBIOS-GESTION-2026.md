@@ -1,3 +1,18 @@
+# THERMABOT · Proyectos unificados · 0.7.0
+
+Inicio y Proyectos se fusionan en Proyectos, nueva pantalla principal. El menú queda en Proyectos, Tareas, Cálculos y Configuración.
+
+- Indicadores de proyectos activos, pendientes, vencidos y esperando respuesta, con acciones al pulsarlos.
+- Cartera con buscador, filtros y última novedad.
+- Selección de fila abre un panel lateral con Resumen, Historial y Documentos, sin abandonar la lista.
+- Registro de avances y acceso al espacio completo del proyecto mediante los formularios y guardado existentes.
+- Cola de pendientes prioritarios debajo de la cartera. El contador Pendientes abre Tareas filtradas sin cumplidas.
+- Panel cerrable para ampliar la tabla; distribución adaptable a móvil.
+- Se corrige el espacio superior vacío heredado de la pantalla anterior.
+- Los enlaces antiguos de Inicio siguen funcionando y llevan a Proyectos.
+
+Los datos existentes, el historial, la conexión privada y los motores de cálculo se conservan. El borrador separado mantiene datos ficticios. La prueba con demo=1 no guarda en Drive.
+
 # THERMABOT · Gestión simplificada · 0.6.0
 
 ## Cambios aplicados

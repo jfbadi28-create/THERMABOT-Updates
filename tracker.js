@@ -92,6 +92,7 @@
   function setView(next,{replace=false}={}){
     if(['marketing'].includes(next))next='dashboard';
     if(next==='agenda')next='dashboard';
+    if(next==='dashboard')next='projects';
     if(['milestones','documents'].includes(next)){
       document.body.dataset.projectTab=next==='milestones'?'Hitos':'Documentos';
       window.dispatchEvent(new CustomEvent('thermabot:projecttab',{detail:document.body.dataset.projectTab}));
