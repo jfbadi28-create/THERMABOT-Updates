@@ -1,3 +1,13 @@
+## 0.8.0 · Capacidad instalada y productividad
+
+- Cartera con seis indicadores compactos y gráfico de cuatro semanas, adaptable a móvil y ambos temas.
+- Terminados filtra los proyectos Finalizados. TR instaladas abre el desglose por proyecto.
+- Carga de estado, fecha real de finalización, TR realmente instaladas y fecha de instalación en Actualizar proyecto y Editar ficha. Los cambios quedan en el historial.
+- Título Proyectos y subtítulo Gestión de informes editables con clic o Enter. Enter guarda, Escape cancela; al salir del campo se guarda. Preferencias incluidas en el respaldo existente.
+- Gráfico con fechas objetivo y cierres reales. Las semanas abren el detalle; incluye hitos de proyectos finalizados y excluye cierres sin fecha. Objetivos actuales, sin línea base histórica ni horas trabajadas; no es PPC.
+- Sin datos de capacidad se muestra un guion; el valor cero explícito se conserva. No se calcula la instalación a partir del balance térmico.
+- Conserva la conexión privada y el motor térmico. Validado en prueba local; el guardado en Drive se confirma únicamente por su estado verificado.
+
 # THERMABOT · Proyectos unificados · 0.7.0
 
 Inicio y Proyectos se fusionan en Proyectos, nueva pantalla principal. El menú queda en Proyectos, Tareas, Cálculos y Configuración.
