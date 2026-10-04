@@ -46,7 +46,7 @@
     Object.assign(patch,output(project,input));
     let document=null;
     if(input.documentId){const d=documents.find(d=>d.id===input.documentId&&d.projectId===project.id);if(!d)throw Error('El documento debe pertenecer a este proyecto.');document={id:d.id,title:d.title,revision:d.revision||'',driveUrl:d.driveUrl||''};}
-    const changes=fields.filter(k=>String(project[k]||'')!==String(patch[k]||'')).map(field=>({field,label:labels[field],before:project[field]??'',after:patch[field]??''}));
+    const changes=fields.filter(k=>String(project[k]??'')!==String(patch[k]??'')).map(field=>({field,label:labels[field],before:project[field]??'',after:patch[field]??''}));
     if(!note&&!changes.length&&!document)throw Error('Escribí una novedad o cambiá un dato antes de guardar.');
     const event={id,at,actor:String(actor||'Operador').trim(),note,changes,document};
     return {...project,...patch,updatedAt:at,followUpLog:[...(Array.isArray(project.followUpLog)?project.followUpLog:[]),event]};
