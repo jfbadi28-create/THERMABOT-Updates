@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Check required files
         shell: bash
@@ -71,13 +71,17 @@ jobs:
           node --check sw.js
           node --check workspace.js
           node --check workspace-core.js
+          node --check cloud-sync.js
           node --check suite.js
           node --check suite-core.js
           node tests/tracker-reliability.cjs
           node tests/workspace.cjs
           node tests/suite.cjs
+          node --test --test-isolation=none tests/workspace-sync.test.mjs
+          cd quadri && node --test --test-isolation=none tests/*.test.ts && cd ..
           node --input-type=module --check < functions/_middleware.js
           node --input-type=module --check < functions/api/tracker-sync.js
+          node --input-type=module --check < functions/api/workspace-sync.js
 
       - name: Validate JSON files
         run: |
@@ -96,11 +100,10 @@ jobs:
           grep -q 'pressure-app.js' pressure.html
           grep -q 'pressure.css' pressure.html
           grep -q 'tracker.js' tracker.html
-          grep -q 'tracker-drive-autosync.js' tracker.html
           grep -q 'tracker.css' tracker.html
           grep -q 'styles.css' tracker.html
-          grep -q 'tracker-drive-autosync.js' sw.js
-          grep -q '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs' tracker-drive-autosync.js
-          grep -q '1EhdGZwuo3t8k_Y32tVbYEtUTjjOBbo88eyK7OFXEXBs' functions/api/tracker-sync.js
           grep -q 'urn:ietf:params:oauth:grant-type:jwt-bearer' functions/api/tracker-sync.js
+          grep -q 'cloud-sync.js' tracker.html
+          grep -q 'quadri/index.html' suite.js
+          test -s quadri/index.html
           echo 'Static references OK'
