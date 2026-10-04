@@ -1,14 +1,29 @@
-(()=>{'use strict';
-const keys=['thermabot.tracker.v1','thermabot.suite.v1','thermabot.workspace.v1','thermabot.proyectos.v1','thermabot-building-v21-trial'],pendingKey='thermabot.cloud.pending.v1';
-const api=new URL('api/workspace-sync',document.currentScript.src).href;
-let remote=null,busy=false,timer,message='Drive: comprobando conexión…',dirty=localStorage.getItem(pendingKey)==='1';
-const original=Storage.prototype.setItem;let generation=0;function changed(){generation++;dirty=true;original.call(localStorage,pendingKey,'1');clearTimeout(timer);timer=setTimeout(save,2200);status('Cambios locales · Drive pendiente');}if(parent!==window&&parent.TBCloud){window.TBCloud=parent.TBCloud;window.TBCloudReady=parent.TBCloudReady;Storage.prototype.setItem=function(k,v){original.call(this,k,v);if(this===localStorage&&keys.includes(k))parent.TBCloud.changed();};return;}
-function status(text){message=text;let badge=document.getElementById('cloudSaveStatus');if(!badge){badge=document.createElement('button');badge.id='cloudSaveStatus';badge.type='button';badge.style.cssText='position:fixed;bottom:12px;right:18px;z-index:9000;padding:10px 14px;border-radius:12px;border:1px solid #4b8b79;background:#173e33;color:white;max-width:460px;text-align:left';badge.setAttribute('role','status');badge.onclick=()=>save();document.body.append(badge);}badge.textContent=text;window.dispatchEvent(new CustomEvent('thermabot:cloud-status',{detail:text}));}
-async function request(options={}){const r=await fetch(api,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000),...options});if(!r.headers.get("Content-Type")?.includes("application/json"))throw Error("Drive pendiente: no se pudo establecer la conexión.");const data=await r.json();if(!r.ok)throw Error(data.error||'Drive no disponible');return data;}
-function localValues(){return Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]).filter(([,v])=>v!==null));}
-async function save(){if(busy||!dirty)return;busy=true;const savingGeneration=generation;try{if(!remote)remote=await request();const values={...remote.values,...localValues()};status('Guardando en Drive…');const result=await request({method:'PUT',headers:{'Content-Type':'application/json','X-THERMABOT-Save':'1'},body:JSON.stringify({...remote,values})});remote={...remote,...result,values};dirty=generation!==savingGeneration;original.call(localStorage,pendingKey,dirty?'1':'0');status(dirty?'Nuevos cambios pendientes de guardar':'✓ Guardado y verificado en Drive');}catch(e){status('Copia local · '+e.message);}finally{busy=false;if(dirty&&generation!==savingGeneration)timer=setTimeout(save,2200);}}
-Storage.prototype.setItem=function(k,v){original.call(this,k,v);if(this===localStorage&&keys.includes(k)){changed();}};
-window.TBCloud={status:()=>message,save,changed};
-window.TBCloudReady=(async()=>{try{remote=await request();if(dirty&&remote.revision==='initial'&&remote.values['thermabot.tracker.v1']){const incoming=JSON.parse(remote.values['thermabot.tracker.v1']),local=JSON.parse(localStorage.getItem('thermabot.tracker.v1')||'{}');for(const collection of ['projects','equipment','milestones','documents']){const ids=new Set((incoming[collection]||[]).map(x=>x.id));incoming[collection]=[...(incoming[collection]||[]),...(local[collection]||[]).filter(x=>!ids.has(x.id))];}original.call(localStorage,'thermabot.tracker.v1',JSON.stringify(incoming));}if(!dirty)for(const[k,v]of Object.entries(remote.values))if(keys.includes(k)&&typeof v==='string')original.call(localStorage,k,v);status(dirty?'Cambios locales pendientes de guardar en Drive':'✓ Base cargada desde Drive');}catch(e){status('Copia local · '+e.message);}if(dirty&&remote)timer=setTimeout(save,1000);return true;})();
-setInterval(async()=>{if(busy||dirty||!remote)return;try{const latest=await request();if(latest.revision!==remote.revision){status('Hay cambios de otro dispositivo · recargá para recibirlos');}}catch{status('Copia local · no se pudo comprobar Drive');}},60000);
-})();
+(()=>{'use strict';
+if(parent===window&&window.TBDesignPreview){window.TBCloud={status:()=> 'Prueba local · nube desactivada',changed:()=>{},save:async()=>{}};window.TBCloudReady=Promise.resolve(true);return;}
+
+const keys=['thermabot.tracker.v1','thermabot.suite.v1','thermabot.workspace.v1','thermabot.proyectos.v1','thermabot-building-v21-trial'],pendingKey='thermabot.cloud.pending.v1';
+
+const api=new URL('api/workspace-sync',document.currentScript.src).href;
+
+let remote=null,busy=false,timer,message='Drive: comprobando conexión…',dirty=localStorage.getItem(pendingKey)==='1';
+
+const original=Storage.prototype.setItem;let generation=0;function changed(){generation++;dirty=true;original.call(localStorage,pendingKey,'1');clearTimeout(timer);timer=setTimeout(save,2200);status('Cambios locales · Drive pendiente');}if(parent!==window&&parent.TBCloud){window.TBCloud=parent.TBCloud;window.TBCloudReady=parent.TBCloudReady;Storage.prototype.setItem=function(k,v){original.call(this,k,v);if(this===localStorage&&keys.includes(k))parent.TBCloud.changed();};return;}
+
+function status(text){message=text;let badge=document.getElementById('cloudSaveStatus');if(!badge){badge=document.createElement('button');badge.id='cloudSaveStatus';badge.type='button';badge.style.cssText='position:fixed;bottom:12px;right:18px;z-index:9000;padding:10px 14px;border-radius:12px;border:1px solid #4b8b79;background:#173e33;color:white;max-width:460px;text-align:left';badge.setAttribute('role','status');badge.onclick=()=>save();document.body.append(badge);}badge.textContent=text;window.dispatchEvent(new CustomEvent('thermabot:cloud-status',{detail:text}));}
+
+async function request(options={}){const r=await fetch(api,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000),...options});if(!r.headers.get("Content-Type")?.includes("application/json"))throw Error("Drive pendiente: no se pudo establecer la conexión.");const data=await r.json();if(!r.ok)throw Error(data.error||'Drive no disponible');return data;}
+
+function localValues(){return Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]).filter(([,v])=>v!==null));}
+
+async function save(){if(busy||!dirty)return;busy=true;const savingGeneration=generation;try{if(!remote)remote=await request();const values={...remote.values,...localValues()};status('Guardando en Drive…');const result=await request({method:'PUT',headers:{'Content-Type':'application/json','X-THERMABOT-Save':'1'},body:JSON.stringify({...remote,values})});remote={...remote,...result,values};dirty=generation!==savingGeneration;original.call(localStorage,pendingKey,dirty?'1':'0');status(dirty?'Nuevos cambios pendientes de guardar':'✓ Guardado y verificado en Drive');}catch(e){status('Copia local · '+e.message);}finally{busy=false;if(dirty&&generation!==savingGeneration)timer=setTimeout(save,2200);}}
+
+Storage.prototype.setItem=function(k,v){original.call(this,k,v);if(this===localStorage&&keys.includes(k)){changed();}};
+
+window.TBCloud={status:()=>message,save,changed};
+
+window.TBCloudReady=(async()=>{try{remote=await request();if(dirty&&remote.revision==='initial'&&remote.values['thermabot.tracker.v1']){const incoming=JSON.parse(remote.values['thermabot.tracker.v1']),local=JSON.parse(localStorage.getItem('thermabot.tracker.v1')||'{}');for(const collection of ['projects','equipment','milestones','documents']){const ids=new Set((incoming[collection]||[]).map(x=>x.id));incoming[collection]=[...(incoming[collection]||[]),...(local[collection]||[]).filter(x=>!ids.has(x.id))];}original.call(localStorage,'thermabot.tracker.v1',JSON.stringify(incoming));}if(!dirty)for(const[k,v]of Object.entries(remote.values))if(keys.includes(k)&&typeof v==='string')original.call(localStorage,k,v);status(dirty?'Cambios locales pendientes de guardar en Drive':'✓ Base cargada desde Drive');}catch(e){status('Copia local · '+e.message);}if(dirty&&remote)timer=setTimeout(save,1000);return true;})();
+
+setInterval(async()=>{if(busy||dirty||!remote)return;try{const latest=await request();if(latest.revision!==remote.revision){status('Hay cambios de otro dispositivo · recargá para recibirlos');}}catch{status('Copia local · no se pudo comprobar Drive');}},60000);
+
+})();
+

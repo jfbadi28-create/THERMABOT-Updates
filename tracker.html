@@ -6,11 +6,13 @@
   <title>THERMABOT — Bioingeniería · Gestión Técnica HVAC</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="tracker.css" />
-<link rel="stylesheet" href="unified.css" />
+
 <link rel="stylesheet" href="suite.css" />
+<link rel="stylesheet" href="workbench.css" /><link rel="stylesheet" href="management.css" />
+
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#19211e" />
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>if(!window.TBDesignPreview){const googleSignIn=document.createElement('script');googleSignIn.src='https://accounts.google.com/gsi/client';googleSignIn.async=true;googleSignIn.defer=true;document.head.append(googleSignIn);}</script>
 </head>
 <body>
   <div class="app-shell tracker-shell">
@@ -21,22 +23,13 @@
       </div>
 
       <nav class="rail-section steps tracker-nav" aria-label="Navegación principal">
-        <div class="rail-label">ESPACIO DE TRABAJO</div>
+        
         <button class="step" data-view="dashboard" title="Inicio"><b>◈</b><span>Inicio</span></button>
         <button class="step" data-view="projects" title="Proyectos"><b>▤</b><span>Proyectos</span></button>
-        <button class="step" data-view="balances" title="Cálculos guardados"><b>∑</b><span>Cálculos guardados</span></button>
-        <button class="step" data-view="equipment" title="Catálogo de equipos"><b>▣</b><span>Catálogo de equipos</span></button>
-        <button class="step" data-view="activity" title="Actividad"><b>◷</b><span>Actividad</span></button>
-        <button class="step" data-view="marketing" title="Resultados"><b>↗</b><span>Resultados y marketing</span></button>
-        <button class="step" data-view="settings" title="Configuración"><b>⚙</b><span>Configuración</span></button>
+        <button class="step" data-view="tasks" title="Tareas"><b>✓</b><span>Tareas</span></button>
+        <button class="step" data-view="balances" title="Cálculos"><b>∑</b><span>Cálculos</span></button>
       </nav>
-      <section class="rail-section rail-tools">
-        <div class="rail-label">HERRAMIENTAS HVAC</div>
-        <button class="step" data-view="calculator" title="Balance térmico"><b>☀</b><span>Balance térmico</span></button>
-        <button class="step" data-view="pressure" title="Presurización"><b>⇄</b><span>Presurización</span></button>
-        <button class="step" data-view="audits" title="Revisión de ingeniería"><b>✓</b><span>Revisión de ingeniería</span></button>
-      </section>
-      <div class="rail-footer"><button id="collapseRail" class="rail-toggle" aria-expanded="true">‹ Contraer menú</button></div>
+      <div class="rail-footer"><button class="step" data-view="settings" title="Configuración"><b>⚙</b><span>Configuración</span></button><button id="collapseRail" class="rail-toggle" aria-expanded="true">‹ Contraer menú</button></div>
       <div id="trackerSaveStatus" class="save-status">Seguimiento · iniciando…</div>
     </aside>
 
@@ -44,10 +37,10 @@
       <header class="topbar tracker-topbar">
         <div>
           <h1 id="trackerTitle">Centro de comando</h1>
-          <div id="trackerMeta" class="meta">Proyectos, equipos, hitos y documentación técnica.</div>
+          <div id="trackerMeta" class="meta">Proyectos, pendientes y seguimiento.</div>
         </div>
         <div class="top-actions">
-          <button id="globalSearchBtn" class="pill" title="Buscar en toda la plataforma">Buscar · Ctrl K</button><button id="themeBtn" class="pill" title="Cambiar tema">◐</button>
+          <button id="globalSearchBtn" class="pill" title="Buscar en toda la plataforma">Buscar proyectos, tareas… · Ctrl K</button><button id="themeBtn" class="pill" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
           <button id="importBalancesBtn" class="pill">Importar balances</button>
           <button id="driveQuickBtn" class="pill accent-outline">Drive desconectado</button>
           <button id="newProjectBtn" class="pill dark">+ Proyecto</button>
@@ -91,7 +84,7 @@
           <div class="panel-head"><div><div class="eyebrow">ATENCIÓN</div><h2>Esperando terceros y bloqueos</h2></div></div>
           <div id="attentionList" class="attention-list"></div>
         </section>
-        </div><div id="commandCenter" class="suite"></div>
+        </div><div id="commandCenter" class="suite"><div class="initial-skeleton" aria-label="Cargando proyectos"><span></span><span></span><span></span><span></span><i></i></div></div>
       </section>
 
       <section id="view-projects" class="tracker-view">
@@ -159,16 +152,17 @@
 <p id="message" role="status" aria-live="polite"></p>
 <div id="stats" hidden></div>
 
+<section id="view-tasks" class="tracker-view"><div id="taskWorkspace" class="suite"></div></section>
 <section id="view-agenda" class="tracker-view work-panel card tracker-panel"><h2>Qué necesita atención</h2><label>Filtrar por proyecto<select id="agendaProject"></select></label><div id="agendaList"></div></section>
 <section id="view-workProjects" class="tracker-view work-panel card tracker-panel"><h2>Proyectos y antecedentes</h2><label>Buscar<input id="workProjectSearch" placeholder="Proyecto, establecimiento o sector"></label><label>Mostrar<select id="projectStatus"><option value="active">En curso</option><option value="finished">Terminados</option><option value="all">Todos</option></select></label><div id="projectList"></div></section>
-<section id="view-balances" class="tracker-view work-panel card tracker-panel"><div class="heading"><h2>Balances guardados</h2><a class="button" href="tracker.html?view=calculator">Crear o editar balance</a></div><p>Conservan ambientes, condiciones y cerramientos. El informe se genera desde el cálculo.</p><div id="balanceList"></div></section>
+<section id="view-balances" class="tracker-view work-panel card tracker-panel"><div class="heading"><h2>Cálculos</h2><a class="button" href="tracker.html?view=calculator">+ Balance térmico</a></div><p>Conservan ambientes, condiciones y cerramientos. El informe se genera desde el cálculo.</p><div class="calculation-tools"><button class="calculation-tool" id="openThermalTool"><span class="tool-icon">∑</span><span><b>Balance térmico</b><small>Verano e invierno · método Quadri</small></span><span>→</span></button></div><div class="suite-head"><h3>Cálculos guardados</h3><button id="openEngineeringReview">Revisión de entradas</button></div><div id="balanceList"></div></section>
 <section id="view-audits" class="tracker-view work-panel card tracker-panel"><h2>Revisión de ingeniería</h2><p>Revisa las entradas del balance y registra observaciones. Cada resultado indica qué se comprobó y qué falta verificar con documentación.</p><label>Balance<select id="auditBalance"></select></label><button id="runAudit">Revisar balance</button><div id="auditList"></div></section>
 <section id="view-backup" class="tracker-view work-panel card tracker-panel"><h2>Cálculos y auditorías en Drive</h2><p>La planilla sigue dedicada al seguimiento. Este respaldo guarda los balances completos, sus vínculos a proyectos y las revisiones en un archivo separado. Cada envío crea una versión nueva.</p><label>Identificador de conexión Google<input id="clientId" autocomplete="off" placeholder="Configuración de conexión existente"></label><label>Carpeta de Drive<input id="folderId" placeholder="Carpeta privada configurada en el servidor"></label><div class="actions"><button id="connect">Conectar Drive para cálculos</button><button id="saveDrive" disabled>Guardar una versión en Drive</button><button id="refreshDrive" disabled>Ver versiones de Drive</button><button id="export">Descargar copia completa</button><label class="button">Recuperar archivo<input id="import" type="file" accept=".json,application/json" hidden></label></div><p id="driveState" role="status">Copia local. Todavía no se verificó un respaldo en Drive.</p><div id="driveVersions"></div></section>
 <section id="view-project" class="tracker-view"><div id="projectWorkspace" class="suite"></div></section>
 <section id="view-activity" class="tracker-view"><div id="activityFeed" class="suite"></div></section>
-<section id="view-marketing" class="tracker-view"><div id="marketingCenter" class="suite"></div></section>
+
 <section id="view-settings" class="tracker-view"><div id="suiteSettings" class="suite"></div></section>
-<section id="view-calculator" class="tracker-view"><div id="calculatorContext" class="suite module-context"></div><iframe class="module-frame" title="Balance térmico" src="quadri/index.html?embedded=1"></iframe></section><section id="view-pressure" class="tracker-view"><div id="pressureContext" class="suite module-context"></div><iframe class="module-frame" title="Presurización" src="pressure.html?embedded=1"></iframe></section>
+<section id="view-calculator" class="tracker-view"><div id="calculatorContext" class="suite module-context"></div><iframe class="module-frame" title="Balance térmico" src="quadri/index.html?embedded=1"></iframe></section>
     </main>
 
     <aside class="summary tracker-summary">
@@ -230,7 +224,7 @@
 <script type="application/x-thermabot" data-cloud-src="workspace-core.js"></script>
 <script type="application/x-thermabot" data-cloud-src="workspace.js"></script>
 
-<script type="application/x-thermabot" data-cloud-src="engine.js"></script><script type="application/x-thermabot" data-cloud-src="suite-core.js"></script><script type="application/x-thermabot" data-cloud-src="suite.js"></script>
+<script type="application/x-thermabot" data-cloud-src="engine.js"></script><script type="application/x-thermabot" data-cloud-src="suite-core.js"></script><script type="application/x-thermabot" data-cloud-src="engineering-core.js"></script><script type="application/x-thermabot" data-cloud-src="project-flow-core.js"></script><script type="application/x-thermabot" data-cloud-src="project-flow.js"></script><script type="application/x-thermabot" data-cloud-src="suite.js"></script>
 <script>TBCloudReady.then(async()=>{for(const tag of document.querySelectorAll("script[data-cloud-src]")){await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=tag.dataset.cloudSrc;s.onload=resolve;s.onerror=reject;document.body.append(s);});}window.addEventListener("thermabot:cloud-status",()=>{const btn=document.getElementById("driveQuickBtn");if(btn)btn.textContent=TBCloud.status();});});</script></body>
 </html>
 

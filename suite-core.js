@@ -10,13 +10,14 @@
       ...tracker.equipment.map(e=>({kind:'Equipo',id:e.id,projectId:e.projectId,title:e.name,detail:[project(e.projectId),e.model,e.tag].filter(Boolean).join(' · ')})),
       ...tracker.documents.map(d=>({kind:'Documento',id:d.id,projectId:d.projectId,title:d.title,detail:[project(d.projectId),d.type,d.revision].join(' · ')})),
       ...tracker.milestones.map(m=>({kind:'Hito',id:m.id,projectId:m.projectId,title:m.title,detail:project(m.projectId)})),
+      ...tracker.projects.filter(p=>active(p)&&p.nextAction).map(p=>({kind:'Tarea',id:'next:'+p.id,projectId:p.id,title:p.nextAction,detail:[p.name,p.owner].filter(Boolean).join(' · ')})),
       ...balances.map(b=>({kind:'Cálculo',id:b.id,title:b.nombre,detail:b.condiciones?.ciudad||''}))];
     return rows.filter(r=>!q||fold(r.title+' '+r.detail+' '+r.kind).includes(q)).slice(0,40);
   }
   function tasks(tracker,today,workflow={}){
     const projects=tracker.projects.filter(active),ids=new Set(projects.map(p=>p.id));
     return [...tracker.milestones.filter(m=>ids.has(m.projectId)).map(m=>({...m,kind:'milestone',project:projects.find(p=>p.id===m.projectId)?.name})),
-      ...projects.filter(p=>p.nextAction).map(p=>({id:'next:'+p.id,projectId:p.id,title:p.nextAction,project:p.name,status:workflow[p.id]?.nextTaskStatus||'Pendiente',dueDate:p.targetDate,owner:p.owner,kind:'next'}))]
+      ...projects.filter(p=>p.nextAction).map(p=>({id:'next:'+p.id,projectId:p.id,title:p.nextAction,project:p.name,status:workflow[p.id]?.nextTaskStatus||'Pendiente',dueDate:p.nextDueDate===undefined?p.targetDate:p.nextDueDate,owner:p.owner,kind:'next'}))]
       .map(t=>({...t,overdue:!!t.dueDate&&t.dueDate<today&&t.status!=='Cumplido'}))
       .sort((a,b)=>Number(b.overdue)-Number(a.overdue)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999'));
   }

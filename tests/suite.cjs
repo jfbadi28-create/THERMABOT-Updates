@@ -3,6 +3,8 @@ const C=require('../suite-core.js');
 const tracker={projects:[{id:'p1',name:'Climatización',establishment:'Hospital',stage:'Cotización',status:'Activo',nextAction:'Revisar plano',targetDate:'2026-09-01',notes:'Interno',blocker:'Privado'},{id:'p2',name:'Terminado',status:'Finalizado'}],equipment:[{id:'e1',name:'UTA 01',projectId:'p1',model:'Modelo A'}],milestones:[{id:'m1',projectId:'p1',title:'Instalar UTA',status:'Cumplido',dueDate:'2026-09-01'},{id:'m2',projectId:'p2',title:'Archivado',status:'Pendiente'}],documents:[{id:'d1',projectId:'p1',title:'Plano R01',driveUrl:'https://drive.google.com/file/d/abc123/view'}]};
 assert.equal(C.search(tracker,[],'climatizacion')[0].id,'p1');
 assert.equal(C.search(tracker,[],'modelo a')[0].id,'e1');
+assert.equal(C.search(tracker,[],'revisar plano')[0].kind,'Tarea');
+assert.equal(C.search(tracker,[],'revisar plano')[0].projectId,'p1');
 const tasks=C.tasks(tracker,'2026-10-02');assert.equal(tasks.length,2);assert.equal(tasks[0].id,'next:p1');assert.equal(tasks[0].overdue,true);assert.equal(tasks[1].overdue,false);
 assert.equal(C.tasks(tracker,'2026-10-02',{p1:{nextTaskStatus:'En curso'}})[0].status,'En curso');assert.equal(tracker.projects[0].status,'Activo');
 assert.equal(C.projectLane({status:'Urgente'}),'Bloqueado');assert.equal(C.projectLane({status:'En revisión'}),'Activo');

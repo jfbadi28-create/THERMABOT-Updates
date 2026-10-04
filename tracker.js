@@ -14,7 +14,7 @@
   const STATUSES = ['Activo','Esperando tercero','Bloqueado','En revisión','Urgente','Finalizado','Suspendido'];
   const PRIORITIES = ['Urgente','Alta','Media','Baja'];
   const EQUIPMENT_STATUSES = ['A definir','Cotización','Pedido','En instalación','En servicio','Mantenimiento','Fuera de servicio'];
-  const MILESTONE_STATUSES = ['Pendiente','En curso','Cumplido','Vencido'];
+  const MILESTONE_STATUSES = ['Pendiente','En curso','Esperando respuesta','Cumplido','Vencido'];
   const MILESTONE_TYPES = ['Ingeniería','Pliego','Compra','Licitación','Obra','Puesta en marcha','Validación','Administrativo','Otro'];
   const DOCUMENT_TYPES = ['Pliego','Plano','Memoria','Informe','Cotización','Acta','Certificación','Protocolo','Manual','Otro'];
   const DOCUMENT_STATUSES = ['Borrador','En revisión','Vigente','Reemplazado','Aprobado'];
@@ -90,6 +90,7 @@
   }
 
   function setView(next,{replace=false}={}){
+    if(['marketing'].includes(next))next='dashboard';
     if(next==='agenda')next='dashboard';
     if(['milestones','documents'].includes(next)){
       document.body.dataset.projectTab=next==='milestones'?'Hitos':'Documentos';
@@ -112,8 +113,8 @@
     window.dispatchEvent(new Event('thermabot:view'));
     document.querySelectorAll('[data-view="'+next+'"]').forEach(b=>b.classList.add('active'));
     document.querySelectorAll('.tracker-view').forEach(el=>el.classList.toggle('active-view',el.id===`view-${view}`));
-    document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===view));
-    const titles = {project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',pressure:'Presurización',balances:'Cálculos guardados',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
+    document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',(el.dataset.view===view||el.dataset.view==='balances'&&['calculator','audits'].includes(view)));if((el.dataset.view===view||el.dataset.view==='balances'&&['calculator','audits'].includes(view)))el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
+    const titles = {tasks:'Tareas',project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',pressure:'Presurización',balances:'Cálculos',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
     $('trackerTitle').textContent=titles[view]||'Seguimiento de proyectos';
     if(view==='drive') renderDrive();
     window.dispatchEvent(new Event('thermabot:navigate'));
@@ -234,7 +235,7 @@
   function renderAll(){
     renderDashboard(); renderProjects(); renderEquipment(); renderMilestones(); renderDocuments(); renderSummary(); renderDrive();
     window.dispatchEvent(new Event('thermabot:render'));
-    $('trackerMeta').textContent=`${data.projects.length} proyectos · ${data.equipment.length} equipos · ${data.milestones.length} hitos · ${data.documents.length} documentos`;
+    $('trackerMeta').textContent=`${data.projects.length} proyectos · ${data.milestones.filter(m=>m.status!=='Cumplido').length} hitos abiertos · ${data.documents.length} documentos`;
   }
 
   function bindProjectRows(){
@@ -521,7 +522,7 @@
     bindEvents();
     const params=new URLSearchParams(location.search); const requested=params.get('projectId');
     if(projectById(requested)) selectedProjectId=requested;
-    renderAll(); setView(['dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','pressure','project','activity','marketing','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
+    renderAll(); setView(['tasks','dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','project','activity','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
     navigationReady=true;
     window.addEventListener('popstate',()=>{const params=new URLSearchParams(location.search);if(projectById(params.get('projectId')))selectedProjectId=params.get('projectId');renderAll();setView(params.get('view')||'dashboard',{replace:true});});
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
@@ -538,7 +539,7 @@
     editEquipment:openEquipmentModal,
     editMilestone:openMilestoneModal,
     editDocument:openDocumentModal,
-    mutate:fn=>{fn(data);saveLocal();renderAll();},
+    mutate:fn=>{const old=data;data=JSON.parse(JSON.stringify(data));try{fn(data);saveLocal();}catch(error){data=old;throw error;}renderAll();},
     refresh:()=>{data=loadLocal();if(!projectById(selectedProjectId))selectedProjectId=data.projects[0]?.id||null;renderAll();}
   };
 

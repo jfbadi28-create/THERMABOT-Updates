@@ -14,7 +14,7 @@ for(const name of [...names,'app']){
  if(/\b(?:import|export)\s/.test(js.replace(/\/\/[^\n]*/g,'')))throw new Error('Import/export sin empaquetar en '+name);
  bundle+='modules['+JSON.stringify(name)+']=(()=>{\n'+js+'\nreturn {'+exported.join(',')+'};})();\n';
 }
-const css=await readFile(join(root,'src/ui/styles.css'),'utf8');
+const css=(await readFile(join(root,'src/ui/styles.css'),'utf8'))+'\n'+(await readFile(join(root,'src/ui/workbench.css'),'utf8')); 
 const shell=await readFile(join(root,'src/index.html'),'utf8');
 const icons=await readFile(join(root,'vendor/lucide.min.js'),'utf8');
 const pdf=await readFile(join(root,'vendor/pdf-lib.min.js'),'utf8');
@@ -22,3 +22,4 @@ const html=shell.replace('<!-- STYLES -->',()=>'<style>'+css+'</style>').replace
 await writeFile(join(root,'index.html'),html);
 await writeFile(join(root,'dist-app.js'),bundle);
 console.log('Prueba construida: '+join(root,'index.html')+' · '+Buffer.byteLength(html)+' bytes');
+
