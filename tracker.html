@@ -9,6 +9,7 @@
 
 <link rel="stylesheet" href="suite.css" />
 <link rel="stylesheet" href="workbench.css" /><link rel="stylesheet" href="management.css" />
+
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#19211e" />
   <script>if(!window.TBDesignPreview){const googleSignIn=document.createElement('script');googleSignIn.src='https://accounts.google.com/gsi/client';googleSignIn.async=true;googleSignIn.defer=true;document.head.append(googleSignIn);}</script>
@@ -41,7 +42,7 @@
         <div class="top-actions">
           <button id="globalSearchBtn" class="pill" title="Buscar en toda la plataforma">Buscar proyectos, tareas… · Ctrl K</button><button id="themeBtn" class="pill" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
           <button id="importBalancesBtn" class="pill">Importar balances</button>
-          <button id="driveQuickBtn" class="pill accent-outline">Drive desconectado</button>
+          <button id="driveQuickBtn" class="pill accent-outline">Comprobando Drive…</button>
           <button id="newProjectBtn" class="pill dark">+ Proyecto</button>
         </div>
       </header>
@@ -117,31 +118,28 @@
         <div class="tracker-two-col drive-grid">
           <section class="card tracker-panel">
             <div class="eyebrow">CONEXIÓN</div>
-            <h3>Drive del usuario</h3>
-            <p class="tracker-copy">El seguimiento se guarda en la planilla de tu carpeta <b>THERMABOT / Seguimiento</b>. Los cambios sin conexión quedan pendientes en este navegador. El estado confirma cuándo la copia de Drive fue verificada. Podés descargar una copia de recuperación en cualquier momento.</p>
-            <label>Google OAuth Client ID
-              <input id="driveClientId" type="text" autocomplete="off" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com" />
-            </label>
+            <h3>Guardado automático en Drive</h3>
+            <p class="tracker-copy">Proyectos, historiales y cálculos se guardan mediante tu conexión privada en <b>Base de datos y balances</b>. Los cambios pendientes se conservan en este navegador hasta que Drive confirme el guardado.</p>
+            <p class="tracker-copy">La base se conserva en <b>THERMABOT-base.json</b>, junto a una copia anterior. La planilla de seguimiento se usa como antecedente; no muestra las actualizaciones de esta base.</p>
             <div class="drive-actions">
-              <button id="saveDriveClientBtn" class="pill">Guardar Client ID</button>
-              <button id="connectDriveBtn" class="pill dark">Conectar Google Drive</button>
+              <button id="connectDriveBtn" class="pill dark">Comprobar conexión</button>
             </div>
-            <div class="formula">Después de autorizar Google una vez, THERMABOT intentará reconectarse y sincronizar automáticamente cada vez que abras el seguimiento. No se guardan contraseñas ni tokens en GitHub.</div>
+            <div class="formula">El indicador distingue cambios pendientes, guardado en curso y confirmación de Drive. No necesitás volver a cargar datos de conexión.</div>
           </section>
 
           <section class="card tracker-panel">
             <div class="eyebrow">ESTADO</div>
-            <h3 id="driveStateTitle">Drive desconectado</h3>
+            <h3 id="driveStateTitle" role="status" aria-live="polite">Comprobando Drive…</h3>
             <div class="drive-state-grid">
               <div><span>Carpeta</span><strong id="driveFolderState">—</strong></div>
               <div><span>Archivo maestro</span><strong id="driveFileState">—</strong></div>
-              <div><span>Última sincronización</span><strong id="driveSyncState">—</strong></div>
+              <div><span>Última escritura confirmada</span><strong id="driveSyncState">—</strong></div>
               <div><span>Modo actual</span><strong id="driveModeState">Local</strong></div>
             </div>
             <div class="drive-actions">
               <button id="downloadRecoveryBtn" class="pill">Descargar copia de recuperación</button>
               <button id="pushDriveBtn" class="pill" disabled>Guardar ahora</button>
-              <button id="pullDriveBtn" class="pill" disabled>Cargar desde Drive</button>
+              <button id="pullDriveBtn" class="pill" disabled>Verificar base en Drive</button>
               <a id="openDriveFolder" class="pill tracker-anchor disabled" href="#" target="_blank" rel="noopener">Abrir carpeta</a>
             </div>
             <div id="driveMessage" class="drive-message">El seguimiento está guardado localmente en este navegador.</div>

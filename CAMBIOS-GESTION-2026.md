@@ -1,3 +1,11 @@
+## 0.9.2 · Estado real de guardado en Drive
+
+- Google Drive muestra la conexión privada existente y la base JSON; se elimina el formulario antiguo de OAuth y la referencia al guardado en la planilla.
+- Barra superior, menú, configuración y pantalla Drive comparten el mismo estado: pendiente, guardando, confirmado, conflicto o error. La fecha corresponde a la última escritura informada por Drive.
+- Comprobar conexión funciona también sin cambios pendientes. No reemplaza los datos del navegador ni borra borradores.
+- El estado vuelve a confirmarse al recuperar la conexión; una edición durante el guardado sigue pendiente. La prueba local permanece aislada de Drive.
+- Descargar copia de recuperación usa la copia completa existente, con proyectos, historial y cálculos.
+
 ## 0.9.1 · Acceso directo a editar proyectos
 
 - Botón Editar visible en cada fila; el nombre abre la ficha completa. El resto de la fila conserva la vista rápida.

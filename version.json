@@ -1,6 +1,6 @@
 {
-  "version": "0.9.1",
+  "version": "0.9.2",
   "date": "2026-10-04",
   "channel": "stable",
-  "description": "Edición directa de proyectos desde la cartera y formulario con estado, seguimiento y motivos de espera o bloqueo."
+  "description": "Estado unificado de Drive, última escritura confirmada y verificación de conexión sin reemplazar cambios locales."
 }

@@ -484,6 +484,23 @@
   }
 
   function renderDrive(){
+    if(window.TBCloud){
+      const cloud=window.TBCloud.state?.()||{message:window.TBCloud.status(),phase:'checking'},preview=cloud.phase==='preview';
+      const text=cloud.message||'Comprobando Drive…',quick=$('driveQuickBtn');
+      if(quick.textContent!==text)quick.textContent=text;
+      quick.dataset.cloudPhase=cloud.phase;quick.classList.toggle('dark',!!cloud.verified);
+      $('trackerSaveStatus').textContent=text;
+      $('driveStateTitle').textContent=text;$('driveStateTitle').dataset.cloudPhase=cloud.phase;
+      $('driveFolderState').textContent=preview?'Prueba local':'Base de datos y balances';
+      $('driveFileState').textContent=preview?'Sin conexión a la nube':'THERMABOT-base.json';
+      const at=cloud.updatedAt&&new Date(cloud.updatedAt);
+      $('driveSyncState').textContent=at&&Number.isFinite(at.getTime())?at.toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'Sin confirmar';
+      $('driveModeState').textContent=preview?'Sólo navegador':cloud.pending?'Cambios locales pendientes':cloud.verified?'Drive + copia local':cloud.phase==='error'?'Copia local · conexión no confirmada':cloud.phase==='remote-change'?'Cambios de otro dispositivo':'Copia local · verificando Drive';
+      for(const id of ['pushDriveBtn','pullDriveBtn','connectDriveBtn'])$(id).disabled=!!cloud.busy||preview;
+      const link=$('openDriveFolder');link.href=preview?'#':'https://drive.google.com/drive/folders/1NslvxxEpY5PmTpbSCBBM6IDhjsvRC686';link.classList.toggle('disabled',preview);
+      $('driveMessage').textContent=preview?'Esta versión de prueba guarda únicamente en este navegador.':cloud.pending?'Tus últimas modificaciones siguen pendientes. La fecha indica la última escritura confirmada, no estos cambios.':text;
+      $('driveMessage').classList.toggle('ok',!!cloud.verified);return;
+    }
     const clientId=localStorage.getItem(DRIVE_CLIENT_KEY)||'';
     if($('driveClientId') && document.activeElement!==$('driveClientId')) $('driveClientId').value=clientId;
     $('driveQuickBtn').textContent=drive.connected?'Drive conectado':'Drive desconectado';
@@ -511,16 +528,17 @@
     [['filterEstablishment','establishment'],['filterSector','sector'],['filterSystem','system'],['filterStage','stage']].forEach(([id,key])=>$(id).onchange=()=>{filters[key]=$(id).value;renderDashboard();});
     $('clearFiltersBtn').onclick=()=>{filters={establishment:'',sector:'',system:'',stage:''};renderDashboard();};
     bindQuickEditor();
-    $('driveQuickBtn').onclick=()=>{setView('drive');if(localStorage.getItem(DRIVE_CLIENT_KEY))connectDrive();};
-    $('saveDriveClientBtn').onclick=()=>{const v=$('driveClientId').value.trim();if(v)localStorage.setItem(DRIVE_CLIENT_KEY,v);else localStorage.removeItem(DRIVE_CLIENT_KEY);setDriveMessage(v?'Client ID guardado en este navegador. Ya podés conectar Drive.':'Client ID eliminado.',v?'ok':'');renderDrive();};
-    $('connectDriveBtn').onclick=connectDrive;
-    $('pushDriveBtn').onclick=()=>pushDrive(true).catch(err=>setDriveMessage(err.message,'error'));
-    $('pullDriveBtn').onclick=()=>{if(confirm('¿Reemplazar los datos locales con la copia de Google Drive?'))pullDrive(true).catch(err=>setDriveMessage(err.message,'error'));};
+    $('driveQuickBtn').onclick=()=>{setView('drive');if(!window.TBCloud&&localStorage.getItem(DRIVE_CLIENT_KEY))connectDrive();};
+    if($('saveDriveClientBtn'))$('saveDriveClientBtn').onclick=()=>{const v=$('driveClientId').value.trim();if(v)localStorage.setItem(DRIVE_CLIENT_KEY,v);else localStorage.removeItem(DRIVE_CLIENT_KEY);setDriveMessage(v?'Client ID guardado en este navegador. Ya podés conectar Drive.':'Client ID eliminado.',v?'ok':'');renderDrive();};
+    $('connectDriveBtn').onclick=()=>window.TBCloud?window.TBCloud.check():connectDrive();
+    $('pushDriveBtn').onclick=()=>window.TBCloud?window.TBCloud.save():pushDrive(true).catch(err=>setDriveMessage(err.message,'error'));
+    $('pullDriveBtn').onclick=()=>{if(window.TBCloud)return window.TBCloud.check();if(confirm('¿Reemplazar los datos locales con la copia de Google Drive?'))pullDrive(true).catch(err=>setDriveMessage(err.message,'error'));};
   }
 
   function init(){
     const cached=getDriveIds(); drive.rootId=cached.rootId||null; drive.folderId=cached.folderId||null; drive.fileId=cached.fileId||null; drive.folderLink=cached.folderLink||null;
     bindEvents();
+    window.addEventListener('thermabot:cloud-state',renderDrive);
     const params=new URLSearchParams(location.search); const requested=params.get('projectId');
     if(projectById(requested)) selectedProjectId=requested;
     renderAll(); setView(['tasks','dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','project','activity','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
