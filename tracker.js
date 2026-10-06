@@ -531,6 +531,18 @@
     bindQuickEditor();
     $('driveQuickBtn').onclick=()=>{setView('drive');if(!window.TBCloud&&localStorage.getItem(DRIVE_CLIENT_KEY))connectDrive();};
     if($('saveDriveClientBtn'))$('saveDriveClientBtn').onclick=()=>{const v=$('driveClientId').value.trim();if(v)localStorage.setItem(DRIVE_CLIENT_KEY,v);else localStorage.removeItem(DRIVE_CLIENT_KEY);setDriveMessage(v?'Client ID guardado en este navegador. Ya podés conectar Drive.':'Client ID eliminado.',v?'ok':'');renderDrive();};
+    $('restorePreviousBtn').onclick=()=>{
+      const raw=localStorage.getItem('thermabot.tracker.previous.v1');
+      if(!raw){setDriveMessage('No hay una copia anterior disponible en este navegador.','error');return;}
+      let previous;try{previous=normalizeState(JSON.parse(raw));}catch{setDriveMessage('La copia anterior no se puede leer.','error');return;}
+      const tr=previous.projects.filter(p=>p.installedTR!==null&&p.installedTR!==undefined&&p.installedTR!=='').length;
+      if(!confirm('Se encontró una copia anterior con '+previous.projects.length+' proyectos'+(tr?' y '+tr+' proyectos con TR registradas':'')+'. ¿Restaurarla? La base actual se conservará como copia anterior.'))return;
+      const current=localStorage.getItem(STORAGE_KEY);
+      if(current)localStorage.setItem('thermabot.tracker.previous.v1',current);
+      data=previous;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+      selectedProjectId=data.projects[0]?.id||null;renderAll();
+      setDriveMessage('Datos anteriores recuperados. Revisalos antes de guardar en Drive.','ok');
+    };
     $('connectDriveBtn').onclick=()=>window.TBCloud?window.TBCloud.check():connectDrive();
     $('pushDriveBtn').onclick=()=>window.TBCloud?window.TBCloud.save():pushDrive(true).catch(err=>setDriveMessage(err.message,'error'));
     $('pullDriveBtn').onclick=()=>{if(window.TBCloud)return window.TBCloud.check();if(confirm('¿Reemplazar los datos locales con la copia de Google Drive?'))pullDrive(true).catch(err=>setDriveMessage(err.message,'error'));};
