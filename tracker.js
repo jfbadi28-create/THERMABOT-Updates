@@ -490,6 +490,11 @@
       const text=cloud.message||'Comprobando Drive…',quick=$('driveQuickBtn');
       if(quick.textContent!==text)quick.textContent=text;
       quick.dataset.cloudPhase=cloud.phase;quick.classList.toggle('dark',!!cloud.verified);
+      const health=$('cloudHealthIndicator');if(health){
+        const mode=cloud.verified?'saved':cloud.phase==='saving'?'saving':cloud.pending?'pending':cloud.phase==='error'?'error':cloud.phase==='remote-change'?'warning':'checking';
+        const labels={saved:'Guardado',saving:'Guardando…',pending:'Pendiente',error:'Sin conexión',warning:'Revisar',checking:'Verificando'};
+        health.className='cloud-health '+mode;health.querySelector('span').textContent=labels[mode];health.title=text;
+      }
       $('trackerSaveStatus').textContent=text;
       $('driveStateTitle').textContent=text;$('driveStateTitle').dataset.cloudPhase=cloud.phase;
       $('driveFolderState').textContent=preview?'Prueba local':'Base de datos y balances';
@@ -506,6 +511,7 @@
     if($('driveClientId') && document.activeElement!==$('driveClientId')) $('driveClientId').value=clientId;
     $('driveQuickBtn').textContent=drive.connected?'Drive conectado':'Drive desconectado';
     $('driveQuickBtn').classList.toggle('dark',drive.connected);
+    const health=$('cloudHealthIndicator');if(health){const ok=drive.connected;health.className='cloud-health '+(ok?'saved':'error');health.querySelector('span').textContent=ok?'Guardado':'Sin conexión';health.title=ok?'Drive conectado':'Drive desconectado';}
     $('driveStateTitle').textContent=drive.connected?'Google Drive conectado':'Drive desconectado';
     $('driveFolderState').textContent=drive.folderId?`${ROOT_FOLDER_NAME} / ${TRACKER_FOLDER_NAME}`:'—';
     $('driveFileState').textContent=drive.fileId?TRACKER_FILE_NAME:'—';
