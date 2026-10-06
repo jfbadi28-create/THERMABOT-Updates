@@ -16,7 +16,7 @@ window.TBProjectFlow=function(ctx){
   let tab='Resumen',filter='Activos',query='',previewId=null,previewTab='Resumen',previewClosed=false;
   function attention(p){const t=pending(p);if(!TBSuiteCore.active(p))return tag('Archivado','neutral');if(p.status==='Bloqueado')return tag('Bloqueado','risk');if(t.overdue)return tag(t.overdue+' vencidas','risk');if(p.status==='Esperando tercero')return tag('Esperando respuesta','wait');return tag(t.total?t.total+' pendientes':'Sin pendientes','neutral');}
 
-  function table(rows){return '<div class="technical-table management-table"><table><thead><tr><th>Proyecto / establecimiento</th><th>Estado / etapa</th><th>Próxima acción</th><th>Seguimiento</th><th>Último movimiento</th></tr></thead><tbody>'+rows.map(p=>'<tr data-preview-row="'+esc(p.id)+'" class="'+(p.id===previewId?'selected-project-row':'')+'"><td><div class="project-row-title"><button class="text-action" data-preview-project="'+esc(p.id)+'" title="Abrir proyecto">'+esc(p.name)+'</button><button class="project-row-edit" data-edit-project="'+esc(p.id)+'" aria-label="Editar proyecto '+esc(p.name)+'">Editar</button></div><small>'+esc([p.establishment,p.sector].filter(Boolean).join(' · '))+'</small></td><td>'+tag(statusLabel(p.status),p.status==='Bloqueado'?'risk':p.status==='Esperando tercero'?'wait':'neutral')+'<small>'+esc(p.stage||'Sin etapa')+'</small></td><td class="next-action-cell">'+esc(p.nextAction||'Definir próximo paso')+'</td><td>'+esc(day(nextDay(p)))+'<small>'+attention(p)+'</small></td><td class="last-move-cell">'+esc((p.followUpLog||[]).at(-1)?.note||p.lastMove||'Sin novedad registrada')+'<small>'+esc(stamp(p.updatedAt))+'</small></td></tr>').join('')+'</tbody></table>'+(!rows.length?'<div class="suite-empty">No hay proyectos en esta selección.</div>':'')+'<div class="table-foot">'+rows.length+' proyectos · clic en el nombre para abrir · Editar para modificar la ficha</div></div>';}
+  function table(rows){return '<div class="technical-table management-table quick-edit-table"><table><thead><tr><th>Proyecto / establecimiento</th><th>Estado</th><th>Etapa</th><th>Avance</th><th>TR</th><th>Fecha objetivo</th><th>Próxima acción</th><th></th></tr></thead><tbody>'+rows.map(p=>'<tr data-preview-row="'+esc(p.id)+'" class="'+(p.id===previewId?'selected-project-row':'')+'"><td><div class="project-row-title"><button class="text-action" data-preview-project="'+esc(p.id)+'" title="Abrir proyecto">'+esc(p.name)+'</button></div><small>'+esc([p.establishment,p.sector].filter(Boolean).join(' · '))+'</small></td><td><select class="quick-cell" data-quick-field="status" data-project-id="'+esc(p.id)+'">'+statuses(p.status)+'</select></td><td><select class="quick-cell" data-quick-field="stage" data-project-id="'+esc(p.id)+'">'+stages(p.stage||'Idea')+'</select></td><td><div class="quick-progress"><input class="quick-cell" data-quick-field="progress" data-project-id="'+esc(p.id)+'" type="number" min="0" max="100" step="5" value="'+esc(p.progress??0)+'"><span>%</span></div></td><td><input class="quick-cell quick-tr" data-quick-field="installedTR" data-project-id="'+esc(p.id)+'" type="number" min="0" step="0.1" placeholder="—" value="'+esc(p.installedTR??'')+'"></td><td><input class="quick-cell" data-quick-field="targetDate" data-project-id="'+esc(p.id)+'" type="date" value="'+esc(p.targetDate||'')+'"></td><td><input class="quick-cell quick-action" data-quick-field="nextAction" data-project-id="'+esc(p.id)+'" maxlength="500" value="'+esc(p.nextAction||'')+'" placeholder="Definir próximo paso"></td><td><span class="quick-save-state" data-save-state="'+esc(p.id)+'"></span><button class="project-row-edit" data-edit-project="'+esc(p.id)+'" aria-label="Editar ficha completa">•••</button></td></tr>').join('')+'</tbody></table>'+(!rows.length?'<div class="suite-empty">No hay proyectos en esta selección.</div>':'')+'<div class="table-foot">'+rows.length+' proyectos · editá directamente y se guarda automáticamente · ••• abre la ficha completa</div></div>';}
   function portfolio(){
     const data=tracker(),m=ctx.metrics(),rows=data.projects.filter(p=>{const match=[p.name,p.establishment,p.sector,p.nextAction,p.waitingFor].join(' ').toLowerCase().includes(query.toLowerCase());return match&&(filter==='Todos'||filter==='Activos'&&TBSuiteCore.active(p)||filter==='Esperando respuesta'&&p.status==='Esperando tercero'||filter==='Con vencimientos'&&pending(p).overdue||filter==='Finalizados'&&p.status==='Finalizado');});
     if(!rows.some(p=>p.id===previewId))previewId=previewClosed?null:rows[0]?.id||null;
@@ -31,7 +31,31 @@ window.TBProjectFlow=function(ctx){
     const topReport=$('topWordReportBtn');if(topReport){topReport.hidden=false;topReport.onclick=()=>ctx.report();}
     $('newProjectBtn').onclick=()=>edit();$('flowFilter').onchange=e=>{filter=e.target.value;previewClosed=false;refresh();};$('flowSearch').oninput=e=>{query=e.target.value;const pos=e.target.selectionStart;refresh();$('flowSearch').focus();$('flowSearch').setSelectionRange(pos,pos);};
     document.querySelectorAll('[data-project-filter]').forEach(b=>b.onclick=()=>{if(b.dataset.projectFilter==='Tareas'){ctx.openPending();return;}if(b.dataset.projectFilter==='TR'){capacity();return;}filter=filter===b.dataset.projectFilter?'Todos':b.dataset.projectFilter;previewClosed=false;refresh();});
-    document.querySelectorAll('[data-preview-row]').forEach(row=>row.onclick=e=>{if(e.target.closest('button'))return;previewId=row.dataset.previewRow;previewClosed=false;previewTab='Resumen';refresh();});
+    const saveQuick=(el)=>{
+      const id=el.dataset.projectId,field=el.dataset.quickField;
+      const current=tracker().projects.find(x=>x.id===id);if(!current)return;
+      let value=el.value;
+      if(field==='progress'){value=Math.max(0,Math.min(100,Number(value)||0));el.value=value;}
+      if(field==='installedTR'){value=value===''?null:Number(value);if(value!==null&&(!Number.isFinite(value)||value<0)){toast('Ingresá una TR válida.');el.value=current.installedTR??'';return;}}
+      const before=current[field]??'';
+      if(String(before??'')===String(value??''))return;
+      const now=new Date().toISOString();
+      API.mutate(data=>{
+        const project=data.projects.find(x=>x.id===id);if(!project)throw Error('El proyecto ya no está disponible.');
+        project[field]=value;project.updatedAt=now;
+        const labels={status:'Estado',stage:'Etapa',progress:'Avance',installedTR:'TR instaladas',targetDate:'Fecha objetivo',nextAction:'Próxima acción'};
+        project.followUpLog=Array.isArray(project.followUpLog)?project.followUpLog:[];
+        project.followUpLog.push({id:crypto.randomUUID(),at:now,actor:actor(),note:'Edición rápida: '+labels[field],changes:[{field,label:labels[field],before:String(before??''),after:String(value??'')}]});
+      });
+      const state=document.querySelector('[data-save-state="'+CSS.escape(id)+'"]');if(state){state.textContent='✓';state.classList.add('saved');setTimeout(()=>{state.textContent='';state.classList.remove('saved');},1600);}
+    };
+    document.querySelectorAll('[data-quick-field]').forEach(el=>{
+      el.onclick=e=>e.stopPropagation();
+      if(el.dataset.quickField==='nextAction')el.onchange=()=>saveQuick(el);
+      else el.onchange=()=>saveQuick(el);
+      el.onkeydown=e=>{if(e.key==='Enter'&&el.tagName==='INPUT'){e.preventDefault();el.blur();}};
+    });
+    document.querySelectorAll('[data-preview-row]').forEach(row=>row.onclick=e=>{if(e.target.closest('button,input,select,textarea,label'))return;previewId=row.dataset.previewRow;previewClosed=false;previewTab='Resumen';refresh();});
     document.querySelectorAll('[data-preview-project]').forEach(b=>b.onclick=()=>{previewId=b.dataset.previewProject;previewClosed=false;previewTab='Resumen';ctx.openProject(previewId);});
     document.querySelectorAll('[data-preview-tab]').forEach(b=>b.onclick=()=>{previewTab=b.dataset.previewTab;refresh();});
     $('closeProjectPreview')?.addEventListener('click',()=>{previewId=null;previewClosed=true;refresh();});
