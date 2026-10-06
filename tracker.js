@@ -117,6 +117,7 @@
     document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',(el.dataset.view===view||el.dataset.view==='balances'&&['calculator','audits'].includes(view)));if((el.dataset.view===view||el.dataset.view==='balances'&&['calculator','audits'].includes(view)))el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
     const titles = {tasks:'Tareas',project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',pressure:'Presurización',balances:'Cálculos',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
     $('trackerTitle').textContent=titles[view]||'Seguimiento de proyectos';
+    const topWord=$('topWordReportBtn');if(topWord)topWord.hidden=view!=='projects';
     if(view==='drive') renderDrive();
     window.dispatchEvent(new Event('thermabot:navigate'));
   }
