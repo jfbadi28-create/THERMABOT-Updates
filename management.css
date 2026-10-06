@@ -80,3 +80,7 @@ body[data-theme=dark] .inline-error{color:#ff899c}
 @media(max-width:1050px){.v2-insights-grid{grid-template-columns:1fr}.v2-project-layout.with-panel{grid-template-columns:1fr}.v2-project-panel{position:static!important}.v2-project-toolbar{grid-template-columns:1fr 1fr}.v2-project-toolbar .grow{grid-column:1/-1}}
 @media(max-width:720px){.v2-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.v2-productivity-body{grid-template-columns:1fr}.v2-productivity-summary{min-height:120px}.v2-task-row{grid-template-columns:18px minmax(0,1fr) auto}.v2-task-date{grid-column:2/4}.v2-project-toolbar{grid-template-columns:1fr}.v2-project-toolbar .grow{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.v2-hbar{transition:none}}
+
+/* Vista única V2 y estado Drive */
+.portfolio-mode-toggle{display:none!important}
+@media(min-width:641px){.tracker-topbar #cloudHealthIndicator,.tracker-topbar #driveQuickBtn{display:inline-flex!important}}
