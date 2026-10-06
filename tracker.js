@@ -106,7 +106,7 @@
       try{const links=JSON.parse(localStorage.getItem('thermabot.workspace.v1')||'{}').links||{};linked=Object.keys(links).find(id=>links[id]===selectedProjectId)||linked;}catch{}
       const frame=document.querySelector('#view-'+next+' iframe');
       const balanceId=requested||linked;
-      const legacy=balanceId&&JSON.parse(localStorage.getItem('thermabot.proyectos.v1')||'[]').some(b=>b.id===balanceId&&b.method!=='quadri-v3');const target=(next==='calculator'?(legacy?'index.html':'quadri/index.html'):'pressure.html')+'?embedded=1&projectId='+encodeURIComponent(selectedProjectId||'')+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
+      const target=(next==='calculator'?'quadri/index.html':'pressure.html')+'?embedded=1&projectId='+encodeURIComponent(selectedProjectId||'')+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
       if(frame && frame.getAttribute('src')!==target)frame.src=target;
     }
     const destination='tracker.html?view='+encodeURIComponent(next)+(selectedProjectId?'&projectId='+encodeURIComponent(selectedProjectId):'');
