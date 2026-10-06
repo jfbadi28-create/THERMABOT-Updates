@@ -28,6 +28,24 @@ async function request(options={}){
   const data=await r.json();if(!r.ok)throw Error(data.error||'Drive no disponible');return data;
 }
 function localValues(){return Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]).filter(([,v])=>v!==null));}
+function trackerScore(raw){
+  try{
+    const t=typeof raw==='string'?JSON.parse(raw):raw||{},projects=Array.isArray(t.projects)?t.projects:[];
+    const ignore=new Set(['id','createdAt','updatedAt']);
+    let score=projects.length*100;
+    for(const p of projects)for(const [k,v]of Object.entries(p||{})){
+      if(ignore.has(k)||v===null||v===undefined||v==='')continue;
+      score+=1;
+      if(k==='installedTR')score+=20;
+      if(k==='installedOn'||k==='completedOn')score+=5;
+    }
+    return score;
+  }catch{return 0;}
+}
+function localTrackerIsRicher(remoteRaw,localRaw){
+  if(!localRaw||!remoteRaw)return false;
+  return trackerScore(localRaw)>trackerScore(remoteRaw);
+}
 async function save(){
   if(busy)return;if(!dirty)return check();
   busy=true;const savingGeneration=generation;
@@ -61,8 +79,17 @@ window.TBCloudReady=(async()=>{
       for(const collection of ['projects','equipment','milestones','documents']){const ids=new Set((incoming[collection]||[]).map(x=>x.id));incoming[collection]=[...(incoming[collection]||[]),...(local[collection]||[]).filter(x=>!ids.has(x.id))];}
       original.call(localStorage,'thermabot.tracker.v1',JSON.stringify(incoming));
     }
-    if(!dirty)for(const[k,v]of Object.entries(remote.values))if(keys.includes(k)&&typeof v==='string')original.call(localStorage,k,v);
-    status(dirty?'Cambios locales pendientes de guardar en Drive':'✓ Base cargada desde Drive',dirty?'pending':'saved');
+    let protectedLocal=false;
+    if(!dirty){
+      const remoteTracker=remote.values['thermabot.tracker.v1'],localTracker=localStorage.getItem('thermabot.tracker.v1');
+      protectedLocal=localTrackerIsRicher(remoteTracker,localTracker);
+      if(protectedLocal){
+        original.call(localStorage,'thermabot.tracker.previous.v1',localTracker);
+        dirty=true;generation++;original.call(localStorage,pendingKey,'1');
+      }
+      for(const[k,v]of Object.entries(remote.values))if(keys.includes(k)&&typeof v==='string'&&!(protectedLocal&&k==='thermabot.tracker.v1'))original.call(localStorage,k,v);
+    }
+    status(protectedLocal?'Se conservó la base local más completa · Drive pendiente':dirty?'Cambios locales pendientes de guardar en Drive':'✓ Base cargada desde Drive',protectedLocal||dirty?'pending':'saved');
   }catch(e){status('Copia local · '+e.message,'error');}
   if(dirty&&remote)timer=setTimeout(save,1000);return true;
 })();
