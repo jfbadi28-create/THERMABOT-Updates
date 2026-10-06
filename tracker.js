@@ -107,7 +107,7 @@
       const frame=document.querySelector('#view-'+next+' iframe');
       const balanceId=requested||linked;
       const target=(next==='calculator'?'quadri/index.html':'pressure.html')+'?embedded=1&projectId='+encodeURIComponent(selectedProjectId||'')+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
-      if(frame && frame.getAttribute('src')!==target)frame.src=target;
+      if(frame && frame.getAttribute('src')!==target){frame.classList.remove('is-ready');frame.src=target;}if(frame&&!frame.dataset.loadReady){frame.dataset.loadReady='1';frame.addEventListener('load',()=>requestAnimationFrame(()=>frame.classList.add('is-ready')));}
     }
     const destination='tracker.html?view='+encodeURIComponent(next)+(selectedProjectId?'&projectId='+encodeURIComponent(selectedProjectId):'');
     if(location.pathname.split('/').pop()+location.search!==destination)history[replace||!navigationReady?'replaceState':'pushState'](null,'',destination);
