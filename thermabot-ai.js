@@ -36,7 +36,7 @@ async function send(text){
  add('user',text);$('#tbAiInput').value='';$('#tbAiSend').disabled=true;const loading=add('assistant','Analizando…','loading');
  const h=loadHistory();h.push({role:'user',content:text});
  try{
-  const r=await fetch('https://thermabot-ai-backend-p2iohyp38-jfbadi28-6145.vercel.app/api/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:h.slice(-8),context:context()})});
+  const r=await fetch('https://thermabot-ai-backend.vercel.app/api/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:h.slice(-8),context:context()})});
   const p=await r.json().catch(()=>({}));loading.remove();
   if(!r.ok)throw new Error(p.error||('Error '+r.status));
   add('assistant',p.reply||'No recibí una respuesta.');h.push({role:'assistant',content:p.reply||''});saveHistory(h);
