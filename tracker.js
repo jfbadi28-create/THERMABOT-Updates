@@ -532,14 +532,15 @@
     $('driveQuickBtn').onclick=()=>{setView('drive');if(!window.TBCloud&&localStorage.getItem(DRIVE_CLIENT_KEY))connectDrive();};
     if($('saveDriveClientBtn'))$('saveDriveClientBtn').onclick=()=>{const v=$('driveClientId').value.trim();if(v)localStorage.setItem(DRIVE_CLIENT_KEY,v);else localStorage.removeItem(DRIVE_CLIENT_KEY);setDriveMessage(v?'Client ID guardado en este navegador. Ya podés conectar Drive.':'Client ID eliminado.',v?'ok':'');renderDrive();};
     $('restorePreviousBtn').onclick=()=>{
-      const raw=localStorage.getItem('thermabot.tracker.previous.v1');
-      if(!raw){setDriveMessage('No hay una copia anterior disponible en este navegador.','error');return;}
-      let previous;try{previous=normalizeState(JSON.parse(raw));}catch{setDriveMessage('La copia anterior no se puede leer.','error');return;}
-      const tr=previous.projects.filter(p=>p.installedTR!==null&&p.installedTR!==undefined&&p.installedTR!=='').length;
-      if(!confirm('Se encontró una copia anterior con '+previous.projects.length+' proyectos'+(tr?' y '+tr+' proyectos con TR registradas':'')+'. ¿Restaurarla? La base actual se conservará como copia anterior.'))return;
-      const current=localStorage.getItem(STORAGE_KEY);
-      if(current)localStorage.setItem('thermabot.tracker.previous.v1',current);
-      data=previous;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+      const candidates=[];
+      const previousRaw=localStorage.getItem('thermabot.tracker.previous.v1');if(previousRaw)candidates.push({at:'Copia anterior',raw:previousRaw});
+      try{for(const x of JSON.parse(localStorage.getItem('thermabot.tracker.history.v1')||'[]'))if(x?.raw)candidates.push({at:x.at||'Historial',raw:x.raw});}catch{}
+      const parsed=candidates.map(x=>{try{const state=normalizeState(JSON.parse(x.raw));const tr=state.projects.filter(p=>p.installedTR!==null&&p.installedTR!==undefined&&p.installedTR!=='').length;const dates=state.projects.filter(p=>p.installedOn||p.completedOn).length;return {...x,state,tr,dates,score:tr*1000+dates*100+state.projects.length};}catch{return null;}}).filter(Boolean).sort((a,b)=>b.score-a.score);
+      const best=parsed[0];
+      if(!best){setDriveMessage('No hay copias anteriores disponibles en este navegador.','error');return;}
+      if(!confirm('Se encontró una copia de recuperación con '+best.state.projects.length+' proyectos, '+best.tr+' con TR registradas y '+best.dates+' con fechas de instalación/cierre. ¿Restaurarla? La base actual se conservará en el historial.'))return;
+      const current=localStorage.getItem(STORAGE_KEY);if(current){try{const history=JSON.parse(localStorage.getItem('thermabot.tracker.history.v1')||'[]');history.unshift({at:new Date().toISOString(),raw:current});localStorage.setItem('thermabot.tracker.history.v1',JSON.stringify(history.slice(0,5)));}catch{}}
+      data=best.state;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
       selectedProjectId=data.projects[0]?.id||null;renderAll();
       setDriveMessage('Datos anteriores recuperados. Revisalos antes de guardar en Drive.','ok');
     };
