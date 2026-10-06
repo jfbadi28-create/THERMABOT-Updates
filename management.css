@@ -46,3 +46,21 @@ body[data-theme=dark] .inline-error{color:#ff899c}
 .management-table .quick-edit-trigger{opacity:.35}
 .management-table tr:hover .quick-edit-trigger{opacity:1}
 .management-table .row-quick-actions .project-row-edit{margin-left:3px}
+
+/* Cartera enfocada en decisión */
+.focus-table table{min-width:850px}
+.focus-table th:nth-child(1){width:36%}.focus-table th:nth-child(2){width:14%}.focus-table th:nth-child(3){width:30%}.focus-table th:nth-child(4){width:14%}.focus-table th:nth-child(5){width:42px}
+.focus-table td{vertical-align:middle}
+.focus-table .project-row-title>.text-action{font-weight:700;font-size:12px;line-height:1.35}
+.focus-table .row-updated{display:block;margin-top:6px;opacity:.5;font-size:9px}
+.focus-table .situation-stack{display:grid;gap:5px;justify-items:start}
+.focus-table .next-action-cell strong{display:block;font-size:12px;line-height:1.45;font-weight:650}
+.focus-table .followup-cell{white-space:nowrap}.focus-table .followup-cell>strong{font-size:12px}.focus-table .followup-cell>small{display:block;margin-top:5px}
+.focus-table .due-risk{color:#e27777}
+.focus-table .attention-row td{background:color-mix(in srgb,#d8a33d 5%,var(--card))}
+.focus-table .overdue-row td{border-top-color:color-mix(in srgb,#e35d68 35%,var(--line))}
+.focus-table [data-preview-row]:hover td{background:color-mix(in srgb,var(--accent) 5%,var(--card))}
+.focus-table .row-quick-actions .project-row-edit{opacity:.55}.focus-table tr:hover .row-quick-actions .project-row-edit{opacity:1}
+.suite .unified-project-panel{z-index:4}
+.suite .unified-project-panel:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+@media(max-width:900px){.focus-table table{min-width:720px}.focus-table .row-updated{display:none}}
