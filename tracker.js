@@ -1,6 +1,12 @@
 (() => {
   'use strict';
 
+  if(location.hostname.endsWith('github.io')){
+    const target='https://thermabot-updates.pages.dev'+location.pathname.replace('/THERMABOT-Updates','')+location.search+location.hash;
+    location.replace(target);
+    return;
+  }
+
   const STORAGE_KEY = 'thermabot.tracker.v1';
   const DRIVE_CLIENT_KEY = 'thermabot.drive.client_id';
   const DRIVE_IDS_KEY = 'thermabot.drive.ids.v1';
