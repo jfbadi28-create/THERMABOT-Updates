@@ -39,3 +39,10 @@ body[data-theme=dark] .inline-error{color:#ff899c}
 .quick-save-state{display:inline-block;min-width:16px;margin-right:5px;color:var(--mute);font-size:11px;transition:.2s}
 .quick-save-state.saved{color:#4db783;font-weight:700}
 .quick-edit-table .project-row-edit{opacity:.45;padding:4px 6px}.quick-edit-table tr:hover .project-row-edit{opacity:1}
+
+/* Tabla profesional: edición rápida sólo bajo demanda */
+.quick-edit-table table{min-width:0}
+.management-table .row-quick-actions{white-space:nowrap;text-align:right;width:72px}
+.management-table .quick-edit-trigger{opacity:.35}
+.management-table tr:hover .quick-edit-trigger{opacity:1}
+.management-table .row-quick-actions .project-row-edit{margin-left:3px}
