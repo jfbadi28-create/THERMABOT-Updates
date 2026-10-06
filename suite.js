@@ -151,6 +151,7 @@
     const createLink=$('view-balances')?.querySelector('.heading a');if(createLink)createLink.onclick=e=>{e.preventDefault();setModule('calculator');};
     document.querySelectorAll('[data-open-project]').forEach(b=>b.onclick=()=>openProject(b.dataset.openProject,b.dataset.openTab||'Resumen'));
     document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=()=>FLOW.edit(b.dataset.editProject));
+    document.querySelectorAll('[data-quick-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();FLOW.quickEdit(b.dataset.quickEditProject);});
     document.querySelectorAll('[data-quick-project]').forEach(b=>b.onclick=()=>FLOW.quick(b.dataset.quickProject));
     document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setModule(b.dataset.tool,b.dataset.balance,b.dataset.toolProject,!!b.dataset.newBalance));
     document.querySelectorAll('[data-edit-eq]').forEach(b=>b.onclick=()=>API.editEquipment(b.dataset.editEq));
