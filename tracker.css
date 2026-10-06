@@ -55,3 +55,12 @@
 .project-picker-menu button{display:block;width:100%;padding:8px 10px!important;border:0!important;background:transparent!important;color:var(--ink)!important;border-radius:6px!important;text-align:left;font-size:11px!important}
 .project-picker-menu button:hover,.project-picker-menu button.active{background:var(--bg)!important;color:var(--accent-dark)!important}
 @media(max-width:700px){.project-picker-wrap{min-width:0;flex:1}}
+
+/* Transición de carga del módulo de cálculo */
+.module-stage{position:relative;min-height:72vh;background:var(--bg,#0f1c2c);overflow:hidden}
+.module-stage .module-frame{position:relative;z-index:2;width:100%;min-height:72vh;border:0;background:var(--bg,#0f1c2c);opacity:0;transition:opacity .22s ease}
+.module-stage .module-frame.is-ready{opacity:1}
+.module-loader{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg,#0f1c2c);color:var(--mute,#9aa7b4);font-size:11px}
+.module-loader span{width:24px;height:24px;border:2px solid rgba(255,255,255,.14);border-top-color:var(--accent,#d4a84f);border-radius:50%;animation:thermabot-spin .75s linear infinite}
+.module-frame.is-ready+.module-loader{display:none}
+@keyframes thermabot-spin{to{transform:rotate(360deg)}}
