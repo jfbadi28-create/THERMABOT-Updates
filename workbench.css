@@ -23,3 +23,12 @@ body[data-theme=dark] .suite-stat.risk strong,body[data-theme=dark] .suite .tag.
 body[data-theme=dark] .suite .tag.wait{color:#edbd71}
 .row-done td,.suite tbody td{transition:background .18s,color .18s}
 @media(max-width:640px){.rail .tracker-nav,.rail .rail-tools{scrollbar-width:none}.rail .tracker-nav::-webkit-scrollbar,.rail .rail-tools::-webkit-scrollbar{display:none}}
+
+.cloud-health{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mute);font-size:10px;font-weight:600;white-space:nowrap}
+.cloud-health i{width:8px;height:8px;border-radius:50%;background:#8b98aa}
+.cloud-health.saved{color:#5ebc8a}.cloud-health.saved i{background:#42b878}
+.cloud-health.pending,.cloud-health.saving{color:#d8a33d}.cloud-health.pending i,.cloud-health.saving i{background:#d8a33d}
+.cloud-health.error,.cloud-health.warning{color:#e27777}.cloud-health.error i,.cloud-health.warning i{background:#e35d68}
+.cloud-health.saving i{animation:cloud-pulse .9s ease-in-out infinite}
+@keyframes cloud-pulse{50%{opacity:.35;transform:scale(.8)}}
+@media(max-width:900px){.cloud-health span{display:none}.cloud-health{padding:0 8px}}
