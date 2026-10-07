@@ -56,7 +56,7 @@ export function rectangularizeRoom(source:ProjectInput,referenceSurfaceId:string
   }
   const isNew=!wall||createdReference&&index===0;
   if(!wall){wall=structuredClone(reference);wall.id=room.id+'-rect-'+index;}
-  if(isNew||wall.id.startsWith(room.id+'-rect-')){
+  if(isNew){
    for(const key of ['u','absorptance','exteriorH','emissivity','longwave','radiantFraction'] as const)wall[key]=inherit(reference[key],reference.name);
    delete wall.quadriMaterial;delete wall.quadriDelta;
   }
