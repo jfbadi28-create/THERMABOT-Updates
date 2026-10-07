@@ -28,7 +28,7 @@ state.input=enableQuadri(state.input);state.rooms=state.rooms.map(enableQuadri);
 function icons(){(window as any).lucide?.createIcons({attrs:{width:16,height:16}});}
 function log(message:string){state.activity.unshift({date:new Date().toISOString(),message});state.activity=state.activity.slice(0,200);}
 function toast(message:string,success=false){let el=app.querySelector('.p-toast') as HTMLElement;if(!el)return;el.textContent=message;el.classList.toggle('success',success);el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,5600);}
-function store(){try{checkpointRoom();validateTree(state);const text=JSON.stringify(state),old=localStorage.getItem(STORAGE_KEY);if(old){try{localStorage.setItem(STORAGE_KEY+'-anterior',old);}catch{}}
+function store(){try{checkpointRoom();const latest=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');for(const key of ['waterDrafts','waterCalculations'])if(latest[key]!==undefined)(state as any)[key]=latest[key];validateTree(state);const text=JSON.stringify(state),old=localStorage.getItem(STORAGE_KEY);if(old){try{localStorage.setItem(STORAGE_KEY+'-anterior',old);}catch{}}
  localStorage.setItem(STORAGE_KEY,text);storageFailure='';const status=app.querySelector('[data-storage]');if(status)status.textContent='Guardado en este navegador';return true;}catch(e){storageFailure='No se pudo guardar en este navegador: '+(e as Error).message+'. Exportá un respaldo JSON.';const status=app.querySelector('[data-storage]');if(status)status.textContent='Guardado pendiente';toast(storageFailure);return false;}}
 function scheduleStore(){checkpointRoom();clearTimeout(saveTimer);const status=app.querySelector('[data-storage]');if(status)status.textContent='Guardando borrador…';saveTimer=setTimeout(store,400);}
 function recalc(showToast=false){try{output=calculateRoom(state.input);state.input=output.input;checkpointRoom();calculationError='';}catch(e){output=null;calculationError=e instanceof EngineeringError?`${e.message}${e.path?' · '+e.path:''}`:e instanceof Error?e.message:'Entrada inválida';if(showToast)toast(calculationError);}}
@@ -129,6 +129,7 @@ function waterLoads(){
  return exportWaterLoads(calculateBuilding(summer),calculateBuilding(winter),waterBase,{revisado:checks.length===0,pendientes:checks});
 }
 function waterDrawer(){
+ if(embedded){parent.postMessage({type:'thermabot:open-water',projectId:state.input.projectId,balanceId:state.saved.find(r=>r.input.projectId===state.input.projectId)?.id||null},location.origin);return;}
  let loads:ReturnType<typeof exportWaterLoads>|null=null,error='';
  try{loads=waterLoads();}catch(e){error=(e as Error).message;}
  const saved=state.waterResults[state.input.projectId],signature=waterInputSignature(buildingInput());

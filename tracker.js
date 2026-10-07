@@ -106,13 +106,13 @@
     }
     view = next;
     document.body.dataset.module=next;
-    if(next==='calculator'||next==='pressure'){
+    if(next==='calculator'||next==='pressure'||next==='water'){
       const requested=new URLSearchParams(location.search).get('balanceId');
       let linked=selectedProject()?.sourceBalanceId;
       try{const links=JSON.parse(localStorage.getItem('thermabot.workspace.v1')||'{}').links||{};linked=Object.keys(links).find(id=>links[id]===selectedProjectId)||linked;}catch{}
       const frame=document.querySelector('#view-'+next+' iframe');
       const balanceId=requested||linked;
-      const target=(next==='calculator'?'quadri/index.html':'pressure.html')+'?embedded=1&projectId='+encodeURIComponent(selectedProjectId||'')+(balanceId?'&balanceId='+encodeURIComponent(balanceId):'');
+      const target=(next==='water'?'water/index.html':next==='calculator'?'quadri/index.html':'pressure.html')+'?embedded=1&projectId='+encodeURIComponent(selectedProjectId||'')+(next==='water'?(new URLSearchParams(location.search).get('waterId')?'&waterId='+encodeURIComponent(new URLSearchParams(location.search).get('waterId')):''):(balanceId?'&balanceId='+encodeURIComponent(balanceId):''));
       if(frame && frame.getAttribute('src')!==target){frame.classList.remove('is-ready');frame.src=target;}if(frame&&!frame.dataset.loadReady){frame.dataset.loadReady='1';frame.addEventListener('load',()=>requestAnimationFrame(()=>frame.classList.add('is-ready')));}
     }
     const destination='tracker.html?view='+encodeURIComponent(next)+(selectedProjectId?'&projectId='+encodeURIComponent(selectedProjectId):'');
@@ -120,8 +120,8 @@
     window.dispatchEvent(new Event('thermabot:view'));
     document.querySelectorAll('[data-view="'+next+'"]').forEach(b=>b.classList.add('active'));
     document.querySelectorAll('.tracker-view').forEach(el=>el.classList.toggle('active-view',el.id===`view-${view}`));
-    document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',(el.dataset.view===view||el.dataset.view==='balances'&&['calculator','audits'].includes(view)));if((el.dataset.view===view||el.dataset.view==='balances'&&['calculator','audits'].includes(view)))el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
-    const titles = {tasks:'Tareas',project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',pressure:'Presurización',balances:'Cálculos',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
+    document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',(el.dataset.view===view||el.dataset.view==='balances'&&['calculator','water','audits'].includes(view)));if((el.dataset.view===view||el.dataset.view==='balances'&&['calculator','water','audits'].includes(view)))el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
+    const titles = {tasks:'Tareas',project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',water:'Agua · dos caños',pressure:'Presurización',balances:'Cálculos',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
     $('trackerTitle').textContent=titles[view]||'Seguimiento de proyectos';
     const topWord=$('topWordReportBtn');if(topWord)topWord.hidden=view!=='projects';
     if(view==='drive') renderDrive();
@@ -567,7 +567,7 @@
     window.addEventListener('thermabot:cloud-state',renderDrive);
     const params=new URLSearchParams(location.search); const requested=params.get('projectId');
     if(projectById(requested)) selectedProjectId=requested;
-    renderAll(); setView(['tasks','dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','project','activity','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
+    renderAll(); setView(['tasks','dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','water','project','activity','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
     navigationReady=true;
     window.addEventListener('popstate',()=>{const params=new URLSearchParams(location.search);if(projectById(params.get('projectId')))selectedProjectId=params.get('projectId');renderAll();setView(params.get('view')||'dashboard',{replace:true});});
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});

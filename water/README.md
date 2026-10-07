@@ -20,9 +20,15 @@ carrier_water.py + configuración hidráulica documentada
 Importar resultado en el proyecto de THERMABOT
 ```
 
-La interfaz incluye **Agua · dos caños** en el workbench del balance. Permite exportar todos los ambientes, importar el resultado, consultar caudales, tramos, tanque, fan-coils, diagnóstico y los nueve pasos. Guardar edificio conserva también el resultado importado en la versión del cálculo.
+En **Cálculos**, **Agua · dos caños** es una herramienta independiente de Balance térmico. Se elige una versión completa guardada del balance; el motor Quadri existente resuelve ambas estaciones desde esas entradas, y el adaptador transfiere sus resultados con trazas. El motor de agua no repite ecuaciones térmicas.
 
-**Ejecución:** el motor Python se ejecuta en la computadora o en un servidor que admita Python. Cloudflare Pages no ejecuta este archivo Python: la versión web actual conecta por exportación/importación JSON. No hay un endpoint remoto ficticio ni una segunda implementación hidráulica en JavaScript.
+La carga se organiza en Cargas, Diseño, Fan-coils, Red, Tanque y Resultados. Se editan unidades métricas; las conversiones al contrato Carrier se realizan una sola vez. Las nueve etapas están visibles con sus fórmulas, estados y datos pendientes. No se incluyen catálogos comerciales inventados, longitudes supuestas, pérdidas ficticias ni propiedades de fluido genéricas.
+
+Guardar versión conserva el balance de origen, las cargas transferidas, configuración, resultado y fecha dentro de `waterCalculations` en la colección sincronizada existente `thermabot-building-v21-trial`. Los borradores se conservan por proyecto en `waterDrafts`; guardar un balance térmico preserva estas colecciones. La conexión Drive y su estado de verificación pertenecen al sincronizador existente: guardar localmente no confirma una copia remota. Las versiones preliminares se identifican como pendientes.
+
+Para reconstruir la herramienta web: `node water/build.mjs` desde la raíz. Para las pruebas web: `node --test --test-isolation=none water/tests/web.test.ts`. Con `WATER_PYTHON` apuntando al ejecutable Python, las pruebas contrastan además seis escenarios contra la CLI. La versión standalone del balance conserva la importación/exportación JSON para revisar resultados de la CLI.
+
+**Ejecución:** el motor Python se ejecuta en la computadora o en un servidor que admita Python. Cloudflare Pages no ejecuta este archivo Python. La herramienta integrada en Cálculos ejecuta `motor_web.ts` en el navegador, con los nueve pasos contrastados contra esta CLI. La CLI y su contrato permanecen disponibles para uso externo. No hay dependencias de terceros ni un servicio de pago para ejecutar el cálculo. En la web, las cargas y caudales se muestran aunque falten datos del catálogo o trazado; esos pasos pendientes bloquean sus resultados dependientes.
 
 ## Probar el módulo
 

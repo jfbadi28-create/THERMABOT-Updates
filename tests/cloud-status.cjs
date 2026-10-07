@@ -4,7 +4,7 @@ const TRACKER='thermabot.tracker.v1',PENDING='thermabot.cloud.pending.v1';
 function setup({preview=false,stored={}}={}){
   const mem=new Map(Object.entries(stored)),elements=new Map(),events=new Map(),scheduled=[];
   class Storage{getItem(k){return mem.has(k)?mem.get(k):null;}setItem(k,v){mem.set(k,String(v));}}
-  const el=id=>{if(!elements.has(id))elements.set(id,{id,textContent:'',dataset:{},style:{},classList:{values:new Map(),toggle(k,v){this.values.set(k,v);}},setAttribute(){},after(){}});return elements.get(id);};
+  const el=id=>{if(!elements.has(id))elements.set(id,{id,textContent:'',dataset:{},style:{},classList:{values:new Map(),toggle(k,v){this.values.set(k,v);}},querySelector(selector){return el(id+selector);},setAttribute(){},after(){}});return elements.get(id);};
   const window={TBDesignPreview:preview,addEventListener(k,fn){if(!events.has(k))events.set(k,[]);events.get(k).push(fn);},dispatchEvent(e){for(const fn of events.get(e.type)||[])fn(e);}};
   const initial={format:'thermabot-cloud-v1',revision:'r1',updatedAt:'2026-10-04T22:24:54.739Z',values:{[TRACKER]:JSON.stringify({projects:[{id:'p1',name:'Original'}]})}};
   let handler=async(_url,o={})=>{if(o.method==='PUT'){const value=JSON.parse(o.body);return{...value,revision:'r2',updatedAt:'2026-10-04T22:35:00Z'};}return initial;};
