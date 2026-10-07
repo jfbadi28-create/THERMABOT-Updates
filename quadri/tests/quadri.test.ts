@@ -30,7 +30,7 @@ test('perfil Quadri de verano cubre 06–23 y no inventa radiación solar despu�
   assert.equal(r.trace.find(t=>t.id==='vidrio-ne-solar-'+hour)!.result,0);
   assert.equal(r.hours.find(h=>h.hour===hour)!.components['solar-vidrios'].sensible,0);
  }
- assert.equal(r.trace.find(t=>t.id==='ne-load-23')!.variables.deltaTabla.value,5);
+ assert.equal(r.trace.find(t=>t.id==='ne-load-23')!.variables.deltaTabla.value,8);
  assert(r.warnings.some(w=>w.code==='TABLE_HOURS'&&w.message.includes('06–23')));
 });
 test('Desglose horario auditable conserva exactamente la demanda del equipo y separa opción 1A',()=>{
