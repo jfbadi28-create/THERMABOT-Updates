@@ -9,3 +9,29 @@ html.embedded #tb-design-lab .tbp,html.embedded #tb-design-lab .tbp.control{grid
 @media print{#tb-design-lab .tbp .p-workbench{display:block}#tb-design-lab .tbp .p-workbench-data{display:none}#tb-design-lab .tbp .p-workbench-output{position:static;display:block}#tb-design-lab .tbp .p-workbench-profile{display:none}}
 @media(prefers-reduced-motion:reduce){#tb-design-lab .tbp *{animation:none!important;transition:none!important}}
 
+
+
+/* Auditabilidad Fase 1 */
+#tb-design-lab .tbp .p-load-legend{margin:8px 0 10px;gap:10px 14px}
+#tb-design-lab .tbp .p-load-legend span{font-size:9px}
+#tb-design-lab .tbp .p-load-legend i{border-radius:2px}
+#tb-design-lab .tbp .p-stack-segment{cursor:pointer;transition:opacity .14s,filter .14s}
+#tb-design-lab .tbp .p-stack-segment:hover{filter:brightness(1.18);opacity:.92}
+#tb-design-lab .tbp .p-profile-hour-hit{cursor:crosshair}
+#tb-design-lab .tbp .p-profile-note{margin-top:8px}
+#tb-design-lab .tbp .p-profile-note code{font:9px Consolas,monospace;color:var(--p-accent-text)}
+#tb-design-lab .tbp .p-psych-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}
+#tb-design-lab .tbp .p-psych-summary button,#tb-design-lab .tbp .p-psych-summary>div{display:grid;gap:2px;text-align:left;border:1px solid var(--p-line);background:var(--p-bg);color:var(--p-text);border-radius:6px;padding:7px 8px;min-width:0}
+#tb-design-lab .tbp .p-psych-summary button:hover{border-color:var(--p-accent)}
+#tb-design-lab .tbp .p-psych-summary strong{font-size:9px}
+#tb-design-lab .tbp .p-psych-summary span{font-size:8.5px;color:var(--p-muted);overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-audit-card{border:1px solid color-mix(in srgb,var(--p-accent) 45%,var(--p-line));background:color-mix(in srgb,var(--p-accent) 5%,var(--p-panel));border-radius:10px;padding:14px;margin:14px 0}
+#tb-design-lab .tbp .p-audit-card .p-section-label{padding:0;margin:0 0 10px;font-size:9px}
+#tb-design-lab .tbp .p-audit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#tb-design-lab .tbp .p-audit-grid>div{border:1px solid var(--p-line);border-radius:7px;background:var(--p-panel);padding:9px;min-width:0}
+#tb-design-lab .tbp .p-audit-grid small,#tb-design-lab .tbp .p-audit-grid span{display:block;color:var(--p-muted);font-size:9px;line-height:1.45}
+#tb-design-lab .tbp .p-audit-grid strong{display:block;font-size:12px;margin:3px 0;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-audit-result{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--p-line);margin-top:10px;padding-top:10px}
+#tb-design-lab .tbp .p-audit-result span{font-size:10px;color:var(--p-muted)}
+#tb-design-lab .tbp .p-audit-result strong{font-size:17px}
+@media(max-width:700px){#tb-design-lab .tbp .p-psych-summary,#tb-design-lab .tbp .p-audit-grid{grid-template-columns:1fr}}
