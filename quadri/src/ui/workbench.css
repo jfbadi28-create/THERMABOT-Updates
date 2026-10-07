@@ -63,3 +63,14 @@ html.embedded #tb-design-lab .tbp,html.embedded #tb-design-lab .tbp.control{grid
 @media(max-width:650px){#tb-design-lab .tbp .p-geometry-workbench{grid-template-columns:1fr;gap:8px}#tb-design-lab .tbp .p-dimensions{gap:8px}.p-geometry-mode label{flex-wrap:wrap}}
 
 #tb-design-lab .tbp .p-geometry-mode select{color:var(--p-text);background:var(--p-bg);border:1px solid var(--p-line);padding:8px 10px;border-radius:6px;font:inherit;min-height:34px}.p-geometry-summary tbody tr{cursor:pointer}
+
+/* Selected wall stays readable and editable beside the room diagram. */
+#tb-design-lab .tbp .p-geometry-reference{border-left:3px solid var(--p-accent);padding:12px 14px;background:var(--p-accent-soft);border-radius:6px;min-width:0}
+#tb-design-lab .tbp .p-geometry-reference h3{color:var(--p-accent-text);margin:5px 0;font-size:17px}
+#tb-design-lab .tbp .p-geometry-selected-direction{font-size:11px;color:var(--p-accent-text);font-weight:600}
+#tb-design-lab .tbp .p-geometry-measures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+#tb-design-lab .tbp .p-geometry-measures .p-geometry-size{grid-column:1/-1}.p-geometry-measures dt{font-size:10px;color:var(--p-muted);margin-bottom:4px}.p-geometry-measures dd{margin:0;font-size:15px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--p-text)}
+#tb-design-lab .tbp .p-geometry-measures .p-geometry-size dd{font-size:20px}.p-geometry-properties{display:grid;gap:5px;color:var(--p-muted);font-size:10px;margin:0 0 12px}
+#tb-design-lab .tbp .p-geometry-reference .p-cardinal-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+#tb-design-lab .tbp .p-geometry-dimensions path{fill:none;stroke:var(--p-muted);stroke-width:1;opacity:.55}.p-geometry-dimensions text{fill:var(--p-accent-text);font-size:10px;font-weight:600}
+#tb-design-lab .tbp .p-geometry-svg{max-height:310px}.p-geometry-reference>.p-button{width:100%;justify-content:center}
