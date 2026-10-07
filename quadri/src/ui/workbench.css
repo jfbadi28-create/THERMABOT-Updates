@@ -438,3 +438,37 @@ html.embedded #tb-design-lab .tbp,html.embedded #tb-design-lab .tbp.control{grid
 #tb-design-lab .tbp .p-flow-dashboard .p-workbench-validation h3{margin:0 0 5px;font-size:11px}
 #tb-design-lab .tbp .p-flow-dashboard [data-dashboard-summary] h3{margin:7px 0 4px}
 }
+/* Step 02: readable surrounding controls, grouped in the shared scroll canvas. */
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-step{padding:0!important;border:0!important;background:none!important;font-size:12px;line-height:17px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-step .p-dimensions{padding:12px;border:1px solid var(--p-line);border-radius:8px;background:var(--p-bg);gap:10px;margin:0 0 12px;position:relative}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-step .p-dimensions:before{content:'Dimensiones del ambiente';grid-column:1/-1;font-size:13px;line-height:18px;font-weight:650;color:var(--p-text)}
+#tb-design-lab .tbp .p-flow-dashboard .p-dimension>span{font-size:11px;line-height:15px;margin-bottom:5px}
+#tb-design-lab .tbp .p-flow-dashboard .p-dimension input{font-size:22px;line-height:26px;min-height:47px}
+#tb-design-lab .tbp .p-flow-dashboard .p-dimension select{font-size:12px;min-height:47px;height:auto;padding:8px}
+#tb-design-lab .tbp .p-flow-dashboard .p-dimension .p-unit{font-size:10px}
+#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference{font-size:12px;line-height:17px;padding:12px;align-self:start}
+#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference .p-field{font-size:11px;line-height:15px;gap:5px}
+#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference .p-field input,#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference .p-field select{font-size:12px;min-height:37px;height:auto;padding:8px}
+#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference-heading{font-size:12px;line-height:17px;margin:9px 0}
+#tb-design-lab .tbp .p-flow-dashboard .p-selected-facts>div,#tb-design-lab .tbp .p-flow-dashboard .p-geometry-measures>div{font-size:12px;line-height:17px;padding:6px}
+#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference summary{font-size:11px;line-height:17px;padding:5px 0}
+#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference .p-note,#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference .p-field small{font-size:10px;line-height:15px}
+#tb-design-lab .tbp .p-flow-dashboard .p-element-edit{padding-top:8px;margin-top:9px}
+#tb-design-lab .tbp .p-flow-dashboard .p-element-edit .p-button{font-size:11px;min-height:32px}
+#tb-design-lab .tbp .p-flow-dashboard [data-envelope-list]{border:1px solid var(--p-line);border-radius:8px;background:var(--p-bg);padding:12px;margin-top:12px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-tabs{margin:0 0 10px;gap:14px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-tabs button{font-size:12px;line-height:17px;padding:7px 0}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-tabs small{font-size:10px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-table-wrap{max-height:none;overflow-x:auto;overflow-y:visible}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-table th{font-size:11px;line-height:16px;padding:8px 7px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-table td{font-size:12px;line-height:17px;padding:8px 7px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-table td button{font-size:12px;line-height:17px}
+#tb-design-lab .tbp .p-flow-dashboard .p-table-actions .p-button{min-height:28px;height:28px;padding:5px}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-bottom{font-size:10px;line-height:15px;margin:10px 0;gap:8px;flex-wrap:wrap}
+#tb-design-lab .tbp .p-flow-dashboard .p-envelope-bottom .p-button{font-size:11px;min-height:32px;padding:6px 9px}
+#tb-design-lab .tbp .p-flow-dashboard .p-floor-options{font-size:11px;line-height:17px;padding:10px 12px;border:1px solid var(--p-line);border-radius:7px;background:var(--p-bg);margin-top:10px}
+#tb-design-lab .tbp .p-flow-dashboard .p-floor-options .p-field{font-size:11px}
+#tb-design-lab .tbp .p-flow-dashboard .p-floor-options input,#tb-design-lab .tbp .p-flow-dashboard .p-floor-options select{font-size:12px;min-height:37px}
+@media(max-width:699px){#tb-design-lab .tbp .p-flow-dashboard .p-dimension input,#tb-design-lab .tbp .p-flow-dashboard .p-dimension select,#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference input,#tb-design-lab .tbp .p-flow-dashboard .p-g3-reference select{font-size:16px}#tb-design-lab .tbp .p-flow-dashboard .p-envelope-tabs{gap:9px;flex-wrap:wrap}#tb-design-lab .tbp .p-flow-dashboard .p-envelope-table{min-width:620px}}
+#tb-design-lab .tbp .p-flow-dashboard .p-selected-facts dt,#tb-design-lab .tbp .p-flow-dashboard .p-selected-facts dd,#tb-design-lab .tbp .p-flow-dashboard .p-geometry-measures dt,#tb-design-lab .tbp .p-flow-dashboard .p-geometry-measures dd{font-size:12px;line-height:17px}
+#tb-design-lab .tbp .p-flow-dashboard .p-selected-facts dd,#tb-design-lab .tbp .p-flow-dashboard .p-geometry-measures dd{overflow-wrap:anywhere}
