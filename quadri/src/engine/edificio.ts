@@ -10,6 +10,67 @@ export function demoRoom(projectId='colector'):ProjectInput {
  r.surfaces.forEach(s=>s.areaMode=s.id==='roof'?'floor':s.id==='north'||s.id==='south'?'long-wall':'short-wall');
  return prepareEnvelope(r).input;
 }
+
+function normalizeAzimuth(value:number):number {
+ let v=((value+180)%360+360)%360-180;
+ if(Math.abs(v+180)<1e-9)v=180;
+ return v;
+}
+function cardinalName(azimuth:number):string {
+ const a=normalizeAzimuth(azimuth);
+ if(Math.abs(Math.abs(a)-180)<1e-6)return 'Norte';
+ if(Math.abs(a+90)<1e-6)return 'Este';
+ if(Math.abs(a)<1e-6)return 'Sur';
+ if(Math.abs(a-90)<1e-6)return 'Oeste';
+ return a.toFixed(0)+'°';
+}
+function angularDistance(a:number,b:number):number {return Math.abs(normalizeAzimuth(a-b));}
+export function rectangularizeRoom(source:ProjectInput,referenceSurfaceId:string|undefined,referenceAzimuth:number):ProjectInput {
+ validateTree(source);const room=structuredClone(source);
+ const l=numberOf(room.geometry.length,'m'),w=numberOf(room.geometry.width,'m'),h=numberOf(room.geometry.height,'m');
+ if(!(l>0&&w>0&&h>0))throw new EngineeringError('Largo, ancho y altura deben ser mayores que cero');
+ const target=normalizeAzimuth(referenceAzimuth);if(![180,-90,0,90].some(v=>Math.abs(normalizeAzimuth(v-target))<1e-6))throw new EngineeringError('La orientación automática admite Norte, Este, Sur u Oeste');
+ const roofs=room.surfaces.filter(s=>s.kind==='roof'||s.tilt.value===0),walls=room.surfaces.filter(s=>!(s.kind==='roof'||s.tilt.value===0));
+ if(walls.length>4)throw new EngineeringError('El ambiente tiene más de cuatro muros. Usá geometría manual / irregular para no perder cerramientos.');
+ let reference=walls.find(s=>s.id===referenceSurfaceId)||walls[0];
+ let createdReference=false;
+ if(!reference){reference=structuredClone(demoInput(room.projectId).surfaces.find(s=>s.tilt.value>0)!);reference.id=room.id+'-rect-ref';createdReference=true;}
+ const oldRefAz=numberOf(reference.azimuth,'°');
+ let refMode:Surface['areaMode'];
+ if(reference.areaMode==='long-wall'||reference.areaMode==='short-wall')refMode=reference.areaMode;
+ else{
+  let gross:number;try{gross=numberOf(reference.grossArea||reference.area,'m²');}catch{gross=l*h;}
+  refMode=Math.abs(gross-l*h)<=Math.abs(gross-w*h)?'long-wall':'short-wall';
+ }
+ const otherMode:Surface['areaMode']=refMode==='long-wall'?'short-wall':'long-wall';
+ const slots=[{offset:0,mode:refMode},{offset:90,mode:otherMode},{offset:180,mode:refMode},{offset:-90,mode:otherMode}] as const;
+ const remaining=walls.filter(s=>s.id!==reference!.id),used=new Set<string>(),built:Surface[]=[];
+ const inherit=(d:Datum,label:string):Datum=>({...structuredClone(d),provenance:'heredado',source:'Copiado de pared de referencia · '+label});
+ for(const [index,slot] of slots.entries()){
+  let wall:Surface|undefined;
+  if(index===0)wall=reference;
+  else{
+   let best:Surface|undefined,bestD=Infinity;
+   for(const candidate of remaining){if(used.has(candidate.id))continue;const rel=normalizeAzimuth(numberOf(candidate.azimuth,'°')-oldRefAz),d=angularDistance(rel,slot.offset);if(d<bestD){best=candidate;bestD=d;}}
+   if(best){wall=best;used.add(best.id);}
+  }
+  const isNew=!wall||createdReference&&index===0;
+  if(!wall){wall=structuredClone(reference);wall.id=room.id+'-rect-'+index;}
+  if(isNew||wall.id.startsWith(room.id+'-rect-')){
+   for(const key of ['u','absorptance','exteriorH','emissivity','longwave','radiantFraction'] as const)wall[key]=inherit(reference[key],reference.name);
+   delete wall.quadriMaterial;delete wall.quadriDelta;
+  }
+  const az=normalizeAzimuth(target+slot.offset);
+  wall.kind='wall';wall.areaMode=slot.mode;wall.name='Muro '+cardinalName(az);
+  wall.azimuth=datum(az,'°',index===0?'ingresado':'calculado',index===0?'Pared de referencia orientada por el usuario':'Orientación derivada a 90° de la pared de referencia');
+  wall.tilt=datum(90,'°','calculado','Muro vertical de recinto rectangular');
+  wall.grossArea=datum(0,'m²','calculado',slot.mode==='long-wall'?'largo × altura':'ancho × altura');
+  built.push(wall);
+ }
+ room.surfaces=[...built,...roofs];
+ return prepareEnvelope(room).input;
+}
+
 export function createRoom(template:ProjectInput,id:string,name:string,length:number,width:number,height:number):ProjectInput {
  const room=structuredClone(template);room.id=id;room.room=name.trim();room.name='Balance · '+room.room;
  if(!room.room)throw new EngineeringError('Ingresá el nombre del ambiente');
