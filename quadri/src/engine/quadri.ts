@@ -32,9 +32,10 @@ export function quadriTrace(id:string,label:string,equation:string,variables:Rec
 }
 export function quadriOrientation(az:number):string {const normalized=((az+180)%360+360)%360;return ['N','NE','E','SE','S','SO','O','NO'][Math.round(normalized/45)%8];}
 function interp(hour:number,values:number[]):number {const n=CORRECTION_HOURS.findIndex(h=>h>=hour);if(n<0||hour<6)throw new EngineeringError('Hora sin corrección tabulada');if(CORRECTION_HOURS[n]===hour)return values[n];const a=n-1,f=(hour-CORRECTION_HOURS[a])/(CORRECTION_HOURS[n]-CORRECTION_HOURS[a]);return values[a]+f*(values[n]-values[a]);}
-export function quadriEquivalent(orientation:string,k:number,hour:number,dt:number):{value:number;row:number;base:number} {
+export function quadriEquivalent(orientation:string,k:number,hour:number,dt:number):{value:number;row:number;base:number;correction:number} {
  const rows=QUADRI_EQ[orientation],ks=orientation==='H'?[4,3,2.3,1.6,.8]:[3,2.3,1.6,.8];if(!rows||hour<6||hour>23||!Number.isInteger(hour))throw new EngineeringError('Orientación/hora sin tabla Quadri');positive(k,'K');
- const row=ks.reduce((a,b)=>Math.abs(b-k)<Math.abs(a-k)?b:a),base=rows[ks.indexOf(row)][hour-6];return {value:base+dt-10,row,base};
+ const row=ks.reduce((a,b)=>Math.abs(b-k)<Math.abs(a-k)?b:a),base=rows[ks.indexOf(row)][hour-6],correction=dt-10;
+ return {value:base+correction,row,base,correction};
 }
 export function quadriSolar(orientation:string,hour:number,latitude:number,basis:string):{value:number;source:string} {
  const col=SOLAR_ORIENTATIONS.indexOf(orientation);if(col<0||!Number.isInteger(hour)||hour<6||hour>18)throw new EngineeringError('Hora/orientación fuera de tabla solar');
@@ -94,7 +95,7 @@ export function calculateQuadri(original:ProjectInput,links:RoomPartition[]=[]):
    if(boundary==='climatizado')dt=0;else if(boundary==='no-climatizado')dt=summer?t-3-ti:ti-(ti+te)/2;
    else if(!summer)dt=ti-te;else if(sf.quadriDelta){dt=numberOf(sf.quadriDelta,'°C');vars.deltaManual=variable(sf.quadriDelta);}else {
     if(sf.kind==='roof'&&sf.tilt.value!==0||sf.kind!=='roof'&&sf.tilt.value!==90)throw new EngineeringError('Tabla Δt equivalente: sólo muro vertical/cubierta horizontal. Ingresá Δt manual para otra inclinación.',sf.name);
-    const orient=sf.kind==='roof'?'H':quadriOrientation(sf.azimuth.value),eq=quadriEquivalent(orient,k,hour,te-ti);dt=eq.value;vars.orientacion=calculated(orient,'1','Orientación más próxima a 45°');vars.Kfila=calculated(eq.row,'kcal/(h·m²·°C)','Fila tabulada más próxima · Cuadro 3-III');vars.deltaTabla=calculated(eq.base,'°C','Cuadro 3-III · 35°S / variación 11°C / Δt15=10°C');vars.deltaDiseno=calculated(te-ti,'°C','Te15−Ti');
+    const orient=sf.kind==='roof'?'H':quadriOrientation(sf.azimuth.value),eq=quadriEquivalent(orient,k,hour,te-ti);dt=eq.value;vars.orientacion=calculated(orient,'1','Orientación más próxima a 45°');vars.Kfila=calculated(eq.row,'kcal/(h·m²·°C)','Fila tabulada más próxima · Cuadro 3-III');vars.deltaTabla=calculated(eq.base,'°C','Cuadro 3-III · 35°S / variación 11°C / Δt15=10°C');vars.deltaDiseno=calculated(te-ti,'°C','Te15−Ti');vars.correccionDiseno=calculated(eq.correction,'°C','Corrección Quadri: (Te15−Ti)−10');
     if(k<(sf.kind==='roof'?.8:.8)||k>(sf.kind==='roof'?4:3))warn('K_OUTSIDE_TABLE','K='+k+' fuera del intervalo de Cuadro 3-III; se adoptó fila K='+eq.row+'. Podés ingresar Δt manual verificado.',sf.name);
     if(q.dailyRange!=='11')warn('EQUIVALENT_DAILY_RANGE','Δt equivalente tabulado para variación 11 °C; no se corrige automáticamente por otra variación diaria.',sf.name);
    }
