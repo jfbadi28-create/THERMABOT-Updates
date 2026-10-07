@@ -23,6 +23,20 @@ test('Cuadro 3-III usa base ΔT=10 y aplica 1 °C de corrección por cada 1 °C 
  const a=quadriReference(),b=structuredClone(a);b.windows[0].shgcBeam.value=.01;b.windows[0].shgcDiffuse.value=.01;assert.equal(hour15(a).QT,hour15(b).QT);
  const calc=calculateQuadri(a),trace=calc.trace.find(x=>x.id==='ne-load-15')!;assert.equal(trace.variables.correccionDiseno.value,0);assert.equal(trace.variables.correccionDiseno.source,'Corrección Quadri: (Te15−Ti)−10');
 });
+test('Desglose horario auditable conserva exactamente la demanda del equipo y separa opción 1A',()=>{
+ const r=calculateQuadri(quadriReference()),required=['muros','techo','ventanas','solar-vidrios','personas','iluminacion','equipos','aire-exterior','infiltracion','conductos','particiones'];
+ for(const h of r.hours){
+  required.forEach(key=>assert(h.components[key],key+' ausente a las '+h.hour+' h'));
+  assert.equal(h.components.envolvente,undefined);
+  const sum=Object.values(h.components).reduce((n,v)=>n+v.sensible+v.latent,0);
+  assert(Math.abs(sum-h.systemTotal)<1e-9,'el apilado no cierra a las '+h.hour+' h');
+ }
+ const hour=15,h=r.hours.find(x=>x.hour===hour)!,q=r.quadri!.hours.find(x=>x.hour===hour)!;
+ assert(Math.abs((h.components['aire-exterior'].sensible+h.components['aire-exterior'].latent)*.86-q.QTe)<1e-9);
+ assert(r.trace.some(t=>t.id==='component-muros-15'&&t.source.includes('pp.102')));
+ assert(r.trace.some(t=>t.id==='component-techo-15'&&t.source.includes('pp.102')));
+ assert(r.trace.some(t=>t.id==='component-aire-exterior-15'&&t.source.includes('pp.113')));
+});
 test('Rosario, K direccional de losa y conversiones del manual',()=>{
  assert.deepEqual(QUADRI_CITIES[0],{id:'rosario',name:'Rosario',summerT:36,summerRH:40,winterT:.4,winterRH:80});assert.equal(QUADRI_MATERIALS.find(x=>x.id==='losa1-20')!.winter,2.6);assert.equal(QUADRI_MATERIALS.find(x=>x.id==='losa1-20')!.summer,2.1);assert.equal(convert(1000,'W','kcal/h'),860);assert.equal(convert(60,'m³/min','m³/h'),3600);assert(Math.abs(convert(5,'kcal/(h·m²·°C)','W/(m²·K)')-5/.86)<1e-10);
  const i=quadriReference();i.surfaces[3].quadriMaterial='losa1-20';const summer=calculateQuadri(i);i.quadri!.season='invierno';const winter=calculateQuadri(i);assert.equal(summer.trace.find(x=>x.id==='techo-load-15')!.variables.K.value,2.1);assert.equal(winter.trace.find(x=>x.id==='techo-load-15')!.variables.K.value,2.6);
