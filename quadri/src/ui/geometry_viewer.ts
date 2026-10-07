@@ -18,7 +18,7 @@ export function fitProjection(model:ViewerModel,camera:Camera3D,width:number,hei
  for(const xx of [-x,x])for(const zz of [-z,z])for(const yy of [0,model.height])corners.push([xx,yy,zz]);
  const points=corners.map(p=>cameraCoordinates(p,camera)),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
- const scale=Math.min(Math.max(80,width-110)/Math.max(.1,maxX-minX),Math.max(100,height-130)/Math.max(.1,maxY-minY))*camera.zoom;
+ const scale=Math.min(Math.max(80,width-110)/Math.max(.1,maxX-minX),Math.max(100,height-90)/Math.max(.1,maxY-minY))*camera.zoom;
  const ox=width/2-(minX+maxX)*scale/2,oy=height/2+5-(minY+maxY)*scale/2;
  return {scale,project:(p:Point3)=>{const q=cameraCoordinates(p,camera);return {x:ox+q[0]*scale,y:oy+q[1]*scale,z:q[2]};}};
 }
