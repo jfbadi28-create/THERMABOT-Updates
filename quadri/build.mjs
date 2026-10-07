@@ -5,8 +5,8 @@ import {fileURLToPath} from 'node:url';
 const root=dirname(fileURLToPath(import.meta.url));
 const names=['types','core','psicrometria','catalogo_ashrae','rts','bibliotecas_rts','solar','envolvente','geometria_edificio','particiones','cargas_internas','ventilacion','seleccion_equipos','catalogo_quadri','revision_carga','seguridad_datos','quadri','index','demo','casos_quadri','edificio','integracion_agua'];
 let bundle='const modules=Object.create(null);\n';
-for(const name of [...names,'app']){
- const path=name==='app'?join(root,'src/ui/app.ts'):join(root,'src/engine',name+'.ts');
+for(const name of [...names,'geometry_viewer','app']){
+ const path=name==='app'||name==='geometry_viewer'?join(root,'src/ui',name+'.ts'):join(root,'src/engine',name+'.ts');
  let js=stripTypeScriptTypes(await readFile(path,'utf8'),{mode:'strip'});
  const exported=[...js.matchAll(/export\s+(?:function|const|class)\s+(\w+)/g)].map(m=>m[1]);
  js=js.replace(/import\s*\{([^}]+)\}\s*from\s*['"]([^'"]+)['"];?/g,(_,list,path)=>'const {'+list+'}=modules['+JSON.stringify(basename(path,'.ts'))+'];');
