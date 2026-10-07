@@ -9,7 +9,7 @@ import {QUADRI_MATERIALS,QUADRI_CITIES} from '../src/engine/catalogo_quadri.ts';
 const hour15=(i:any)=>calculateQuadri(i).quadri!.hours.find(h=>h.hour===15)!;
 test('Quadri: planilla independiente verano pp.117–119, hora 15, todos los subtotales publicados',()=>{
  const h=hour15(quadriReference());assert.deepEqual([h.QSi,h.QLi,h.QTi,h.Qse,h.Qle,h.QTe,h.QT,h.QST,h.C,h.Ca],[9802,450,10252,2040,2016,4056,14308,11842,60,12]);assert.equal(h.FCS,9802/10252);
- const r=calculateQuadri(quadriReference());assert.equal(r.mode,'Quadri');assert.equal(r.hours.length,13);assert.equal(r.hours[0].hour,6);assert.equal(r.hours[12].hour,18);assert.equal(r.peak.hour,16);assert(r.trace.some(t=>t.source.includes('pp.102–103')));assert(!r.warnings.some(w=>w.code==='INVALID_FACTORS'));
+ const r=calculateQuadri(quadriReference());assert.equal(r.mode,'Quadri');assert.equal(r.hours.length,18);assert.equal(r.hours[0].hour,6);assert.equal(r.hours[17].hour,23);assert.equal(r.peak.hour,16);assert(r.trace.some(t=>t.source.includes('pp.102–103')));assert(!r.warnings.some(w=>w.code==='INVALID_FACTORS'));
 });
 test('Quadri: invierno pp.130–131, Qo=6566, Qt=8208, Qse=4488 y QT=12696',()=>{
  const h=hour15(quadriReference('invierno'));assert.deepEqual([h.Qo,h.Qt,h.Qse,h.QT,h.zh,h.QLi],[6566,8208,4488,12696,0,0]);assert.equal(calculateQuadri(quadriReference('invierno')).hours.length,1);assert.equal(h.FCS,null);assert.equal(h.PRA,null);assert(Math.abs(h.supplyT!-30.0470588235)<1e-8);
@@ -22,6 +22,30 @@ test('Cuadro 3-III usa base ΔT=10 y aplica 1 °C de corrección por cada 1 °C 
  for(const [dt,value,correction] of cases){const r=quadriEquivalent('NE',1.62,15,dt);assert.equal(r.value,value);assert.equal(r.correction,correction);}
  const a=quadriReference(),b=structuredClone(a);b.windows[0].shgcBeam.value=.01;b.windows[0].shgcDiffuse.value=.01;assert.equal(hour15(a).QT,hour15(b).QT);
  const calc=calculateQuadri(a),trace=calc.trace.find(x=>x.id==='ne-load-15')!;assert.equal(trace.variables.correccionDiseno.value,0);assert.equal(trace.variables.correccionDiseno.source,'Corrección Quadri: (Te15−Ti)−10');
+});
+test('perfil Quadri de verano cubre 06–23 y no inventa radiación solar después de las 18',()=>{
+ const r=calculateQuadri(quadriReference());
+ assert.deepEqual(r.hours.map(h=>h.hour),Array.from({length:18},(_,i)=>i+6));
+ for(const hour of [19,20,21,22,23]){
+  assert.equal(r.trace.find(t=>t.id==='vidrio-ne-solar-'+hour)!.result,0);
+  assert.equal(r.hours.find(h=>h.hour===hour)!.components['solar-vidrios'].sensible,0);
+ }
+ assert.equal(r.trace.find(t=>t.id==='ne-load-23')!.variables.deltaTabla.value,8);
+ assert(r.warnings.some(w=>w.code==='TABLE_HOURS'&&w.message.includes('06–23')));
+});
+test('Desglose horario auditable conserva exactamente la demanda del equipo y separa opción 1A',()=>{
+ const r=calculateQuadri(quadriReference()),required=['muros','techo','ventanas','solar-vidrios','personas','iluminacion','equipos','aire-exterior','infiltracion','conductos','particiones'];
+ for(const h of r.hours){
+  required.forEach(key=>assert(h.components[key],key+' ausente a las '+h.hour+' h'));
+  assert.equal(h.components.envolvente,undefined);
+  const sum=Object.values(h.components).reduce((n,v)=>n+v.sensible+v.latent,0);
+  assert(Math.abs(sum-h.systemTotal)<1e-9,'el apilado no cierra a las '+h.hour+' h');
+ }
+ const hour=15,h=r.hours.find(x=>x.hour===hour)!,q=r.quadri!.hours.find(x=>x.hour===hour)!;
+ assert(Math.abs((h.components['aire-exterior'].sensible+h.components['aire-exterior'].latent)*.86-q.QTe)<1e-9);
+ assert(r.trace.some(t=>t.id==='component-muros-15'&&t.source.includes('pp.102')));
+ assert(r.trace.some(t=>t.id==='component-techo-15'&&t.source.includes('pp.102')));
+ assert(r.trace.some(t=>t.id==='component-aire-exterior-15'&&t.source.includes('pp.113')));
 });
 test('Rosario, K direccional de losa y conversiones del manual',()=>{
  assert.deepEqual(QUADRI_CITIES[0],{id:'rosario',name:'Rosario',summerT:36,summerRH:40,winterT:.4,winterRH:80});assert.equal(QUADRI_MATERIALS.find(x=>x.id==='losa1-20')!.winter,2.6);assert.equal(QUADRI_MATERIALS.find(x=>x.id==='losa1-20')!.summer,2.1);assert.equal(convert(1000,'W','kcal/h'),860);assert.equal(convert(60,'m³/min','m³/h'),3600);assert(Math.abs(convert(5,'kcal/(h·m²·°C)','W/(m²·K)')-5/.86)<1e-10);
@@ -41,7 +65,7 @@ test('Geometría: reubicar ventana descuenta sólo su muro; orientación cambia 
 });
 test('Edificio: suma simultánea con 13/1 horas, paredes compartidas conservan energía por estación',()=>{
  for(const season of ['verano','invierno'] as const){const a=quadriReference(season),b=structuredClone(a);b.id='otro';b.room='Otra oficina';if(season==='verano')b.climate.indoorTemperature.value=27;else b.quadri!.indoorWinter.value=24;
- const input={schemaVersion:1 as const,projectId:a.projectId,name:'Edificio',rooms:[a,b],partitions:[{id:'medianera',projectId:a.projectId,name:'Compartida',roomAId:a.id,roomBId:b.id,surfaceAId:'interior',surfaceBId:'interior',area:datum(10,'m²'),u:datum(2,'W/(m²·K)'),model:'estacionario' as const}]};const r=calculateBuilding(input),check=r.trace.find(t=>t.id==='partition-medianera-conservation')!;assert.deepEqual(check.result,r.hours.map(()=>0));assert.equal(r.hours.length,season==='verano'?13:1);assert.equal(r.peak.total,Math.max(...r.hours.map(h=>h.total)));assert.equal(r.results[0].trace.find(t=>t.id==='partition-medianera')!.result instanceof Array,true);}
+ const input={schemaVersion:1 as const,projectId:a.projectId,name:'Edificio',rooms:[a,b],partitions:[{id:'medianera',projectId:a.projectId,name:'Compartida',roomAId:a.id,roomBId:b.id,surfaceAId:'interior',surfaceBId:'interior',area:datum(10,'m²'),u:datum(2,'W/(m²·K)'),model:'estacionario' as const}]};const r=calculateBuilding(input),check=r.trace.find(t=>t.id==='partition-medianera-conservation')!;assert.deepEqual(check.result,r.hours.map(()=>0));assert.equal(r.hours.length,season==='verano'?18:1);assert.equal(r.peak.total,Math.max(...r.hours.map(h=>h.total)));assert.equal(r.results[0].trace.find(t=>t.id==='partition-medianera')!.result instanceof Array,true);}
  const i=quadriReference(),b=structuredClone(i);b.id='second';b.quadri!.season='invierno';assert.throws(()=>calculateBuilding({schemaVersion:1,projectId:i.projectId,name:'Mixto',rooms:[i,b]}),/mismo clima/);
 });
 test('Selección exige fuente y capacidad sensible/caudal; resultados y entradas sobreviven JSON',()=>{
