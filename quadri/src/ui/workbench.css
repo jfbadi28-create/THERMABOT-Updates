@@ -76,3 +76,54 @@ html.embedded #tb-design-lab .tbp,html.embedded #tb-design-lab .tbp.control{grid
 #tb-design-lab .tbp .p-geometry-svg{max-height:310px}.p-geometry-reference>.p-button{width:100%;justify-content:center}
 
 .p-water-table{overflow-x:auto;margin:16px 0}.p-water-table table{width:100%;font-variant-numeric:tabular-nums}.p-water-table th,.p-water-table td{padding:9px 10px;white-space:nowrap;text-align:left;border-bottom:1px solid var(--p-line)}.p-water-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.p-water-summary>div{display:grid;gap:6px;border:1px solid var(--p-line);padding:12px;border-radius:6px}.p-water-summary small{color:var(--p-muted)}.p-water-summary strong{font-size:18px}.p-water-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;list-style:none;font-size:12px;margin:18px 0}.p-water-steps li{display:flex;align-items:center;gap:6px}@media(max-width:480px){.p-water-summary,.p-water-steps{grid-template-columns:1fr}}
+
+/* Step 02 only: retain the application's existing tokens and controls. */
+#tb-design-lab .tbp .p-geometry-workbench.p-g3-workbench{grid-template-columns:minmax(0,1fr) 242px;align-items:start;gap:14px;padding:12px;min-width:0}
+#tb-design-lab .tbp .p-g3-workbench>[data-geometry-preview]{min-width:0}
+#tb-design-lab .tbp .p-g3-stage{min-width:0;background:var(--p-bg);border:1px solid var(--p-line);border-radius:7px;overflow:hidden}
+#tb-design-lab .tbp .p-g3-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px;padding:9px;border-bottom:1px solid var(--p-line)}
+#tb-design-lab .tbp .p-g3-toolbar .p-actions{gap:4px;flex-wrap:wrap}
+#tb-design-lab .tbp .p-g3-toolbar .p-button{font-size:11px;min-height:32px}
+#tb-design-lab .tbp .p-g3-svg{width:100%;height:340px;display:block;touch-action:none;cursor:grab}
+#tb-design-lab .tbp .p-g3-svg:active{cursor:grabbing}
+#tb-design-lab .tbp .p-g3-face polygon{fill:color-mix(in srgb,var(--p-muted) 12%,transparent);stroke:var(--p-muted);stroke-width:1.2;vector-effect:non-scaling-stroke}
+#tb-design-lab .tbp .p-g3-face.is-selected polygon{fill:color-mix(in srgb,var(--p-accent) 33%,transparent);stroke:var(--p-accent);stroke-width:2.5}
+#tb-design-lab .tbp .p-g3-face.is-host polygon{stroke:var(--p-accent)}
+#tb-design-lab .tbp .p-g3-opening polygon{fill:color-mix(in srgb,var(--p-accent) 50%,var(--p-bg));stroke:var(--p-accent-text);stroke-width:1.4}
+#tb-design-lab .tbp .p-g3-face:focus-visible polygon{stroke:var(--p-accent-text);stroke-width:3;stroke-dasharray:4 2}
+#tb-design-lab .tbp .p-g3-floor{fill:var(--p-panel);stroke:var(--p-line);stroke-width:1}
+#tb-design-lab .tbp .p-g3-selected-label{fill:var(--p-text);font-size:12px;font-weight:500;paint-order:stroke;stroke:var(--p-bg);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+#tb-design-lab .tbp .p-g3-dimension{pointer-events:none}
+#tb-design-lab .tbp .p-g3-dimension path{stroke:var(--p-accent-text);stroke-width:1;fill:none}
+#tb-design-lab .tbp .p-g3-dimension circle{fill:var(--p-accent-text)}
+#tb-design-lab .tbp .p-g3-dimension text{fill:var(--p-accent-text);font-size:12px;font-weight:500;paint-order:stroke;stroke:var(--p-bg);stroke-width:4px;stroke-linejoin:round}
+#tb-design-lab .tbp .p-g3-compass{pointer-events:none}
+#tb-design-lab .tbp .p-g3-compass circle{fill:var(--p-panel);stroke:var(--p-line);stroke-width:1}
+#tb-design-lab .tbp .p-g3-compass text{font-size:11px;fill:var(--p-muted)}
+#tb-design-lab .tbp .p-g3-compass .p-g3-north{fill:var(--p-accent-text);font-weight:600}
+#tb-design-lab .tbp .p-g3-note{fill:var(--p-muted);font-size:11px;pointer-events:none}
+#tb-design-lab .tbp .p-g3-status{padding:9px 11px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;border-top:1px solid var(--p-line);color:var(--p-muted);font-size:11px}
+#tb-design-lab .tbp .p-g3-window-note{padding:0 11px;margin:0 0 9px;font-size:11px}
+#tb-design-lab .tbp .p-geometry-reference.p-g3-reference{padding:11px 12px;border-left-width:2px}
+#tb-design-lab .tbp .p-g3-reference .p-field{font-size:11px}
+#tb-design-lab .tbp .p-g3-reference .p-field small{font-size:10px;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-reference-heading{margin:10px 0 0}
+#tb-design-lab .tbp .p-g3-reference-heading h3{font-size:15px;font-weight:600;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-reference-heading span{font-size:11px;color:var(--p-accent-text)}
+#tb-design-lab .tbp .p-g3-reference .p-geometry-measures{margin:10px 0;gap:8px}
+#tb-design-lab .tbp .p-g3-reference .p-geometry-measures dd{font-size:13px;font-weight:500;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-edit-grid{display:grid;gap:9px}
+#tb-design-lab .tbp .p-g3-reference select{min-width:0;max-width:100%;width:100%;text-overflow:ellipsis}
+#tb-design-lab .tbp .p-g3-reference [data-g3-apply]{width:100%;justify-content:center;margin-top:9px}
+#tb-design-lab .tbp .p-g3-reference-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+#tb-design-lab .tbp .p-g3-orientation{padding-top:10px;margin-top:10px;border-top:1px solid var(--p-line);font-size:11px;color:var(--p-muted)}
+#tb-design-lab .tbp .p-g3-orientation .p-cardinal-buttons{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:7px}
+#tb-design-lab .tbp .p-g3-orientation .p-button{padding:6px 3px;font-size:10px;min-width:0}
+#tb-design-lab .tbp .p-g3-source{margin-top:10px;border-top:1px solid var(--p-line);padding-top:9px;font-size:11px;color:var(--p-muted)}
+#tb-design-lab .tbp .p-g3-source p{overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-feedback{font-size:11px;margin-top:7px;overflow-wrap:anywhere;color:var(--p-accent-text)}
+#tb-design-lab .tbp .p-g3-feedback[role=alert]{color:var(--p-orange)}
+#tb-design-lab .tbp .p-geometry-mode{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+#tb-design-lab .tbp .p-g3-all-surfaces{margin:12px 0 16px;font-size:12px;color:var(--p-muted)}
+@media(max-width:1200px){#tb-design-lab .tbp .p-geometry-workbench.p-g3-workbench{grid-template-columns:minmax(0,1fr)}#tb-design-lab .tbp .p-g3-edit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#tb-design-lab .tbp .p-g3-edit-grid .p-field:first-child{grid-column:1/-1}}
+@media(max-width:440px){#tb-design-lab .tbp .p-geometry-workbench.p-g3-workbench{padding:8px}#tb-design-lab .tbp .p-g3-edit-grid{grid-template-columns:1fr}#tb-design-lab .tbp .p-g3-toolbar .p-button{min-height:38px}#tb-design-lab .tbp .p-g3-reference .p-field input,#tb-design-lab .tbp .p-g3-reference .p-field select{font-size:16px}#tb-design-lab .tbp .p-g3-reference-actions .p-button{min-height:38px}}

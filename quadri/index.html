@@ -287,6 +287,57 @@ html.embedded #tb-design-lab .tbp,html.embedded #tb-design-lab .tbp.control{grid
 #tb-design-lab .tbp .p-geometry-svg{max-height:310px}.p-geometry-reference>.p-button{width:100%;justify-content:center}
 
 .p-water-table{overflow-x:auto;margin:16px 0}.p-water-table table{width:100%;font-variant-numeric:tabular-nums}.p-water-table th,.p-water-table td{padding:9px 10px;white-space:nowrap;text-align:left;border-bottom:1px solid var(--p-line)}.p-water-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.p-water-summary>div{display:grid;gap:6px;border:1px solid var(--p-line);padding:12px;border-radius:6px}.p-water-summary small{color:var(--p-muted)}.p-water-summary strong{font-size:18px}.p-water-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;list-style:none;font-size:12px;margin:18px 0}.p-water-steps li{display:flex;align-items:center;gap:6px}@media(max-width:480px){.p-water-summary,.p-water-steps{grid-template-columns:1fr}}
+
+/* Step 02 only: retain the application's existing tokens and controls. */
+#tb-design-lab .tbp .p-geometry-workbench.p-g3-workbench{grid-template-columns:minmax(0,1fr) 242px;align-items:start;gap:14px;padding:12px;min-width:0}
+#tb-design-lab .tbp .p-g3-workbench>[data-geometry-preview]{min-width:0}
+#tb-design-lab .tbp .p-g3-stage{min-width:0;background:var(--p-bg);border:1px solid var(--p-line);border-radius:7px;overflow:hidden}
+#tb-design-lab .tbp .p-g3-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px;padding:9px;border-bottom:1px solid var(--p-line)}
+#tb-design-lab .tbp .p-g3-toolbar .p-actions{gap:4px;flex-wrap:wrap}
+#tb-design-lab .tbp .p-g3-toolbar .p-button{font-size:11px;min-height:32px}
+#tb-design-lab .tbp .p-g3-svg{width:100%;height:340px;display:block;touch-action:none;cursor:grab}
+#tb-design-lab .tbp .p-g3-svg:active{cursor:grabbing}
+#tb-design-lab .tbp .p-g3-face polygon{fill:color-mix(in srgb,var(--p-muted) 12%,transparent);stroke:var(--p-muted);stroke-width:1.2;vector-effect:non-scaling-stroke}
+#tb-design-lab .tbp .p-g3-face.is-selected polygon{fill:color-mix(in srgb,var(--p-accent) 33%,transparent);stroke:var(--p-accent);stroke-width:2.5}
+#tb-design-lab .tbp .p-g3-face.is-host polygon{stroke:var(--p-accent)}
+#tb-design-lab .tbp .p-g3-opening polygon{fill:color-mix(in srgb,var(--p-accent) 50%,var(--p-bg));stroke:var(--p-accent-text);stroke-width:1.4}
+#tb-design-lab .tbp .p-g3-face:focus-visible polygon{stroke:var(--p-accent-text);stroke-width:3;stroke-dasharray:4 2}
+#tb-design-lab .tbp .p-g3-floor{fill:var(--p-panel);stroke:var(--p-line);stroke-width:1}
+#tb-design-lab .tbp .p-g3-selected-label{fill:var(--p-text);font-size:12px;font-weight:500;paint-order:stroke;stroke:var(--p-bg);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+#tb-design-lab .tbp .p-g3-dimension{pointer-events:none}
+#tb-design-lab .tbp .p-g3-dimension path{stroke:var(--p-accent-text);stroke-width:1;fill:none}
+#tb-design-lab .tbp .p-g3-dimension circle{fill:var(--p-accent-text)}
+#tb-design-lab .tbp .p-g3-dimension text{fill:var(--p-accent-text);font-size:12px;font-weight:500;paint-order:stroke;stroke:var(--p-bg);stroke-width:4px;stroke-linejoin:round}
+#tb-design-lab .tbp .p-g3-compass{pointer-events:none}
+#tb-design-lab .tbp .p-g3-compass circle{fill:var(--p-panel);stroke:var(--p-line);stroke-width:1}
+#tb-design-lab .tbp .p-g3-compass text{font-size:11px;fill:var(--p-muted)}
+#tb-design-lab .tbp .p-g3-compass .p-g3-north{fill:var(--p-accent-text);font-weight:600}
+#tb-design-lab .tbp .p-g3-note{fill:var(--p-muted);font-size:11px;pointer-events:none}
+#tb-design-lab .tbp .p-g3-status{padding:9px 11px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;border-top:1px solid var(--p-line);color:var(--p-muted);font-size:11px}
+#tb-design-lab .tbp .p-g3-window-note{padding:0 11px;margin:0 0 9px;font-size:11px}
+#tb-design-lab .tbp .p-geometry-reference.p-g3-reference{padding:11px 12px;border-left-width:2px}
+#tb-design-lab .tbp .p-g3-reference .p-field{font-size:11px}
+#tb-design-lab .tbp .p-g3-reference .p-field small{font-size:10px;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-reference-heading{margin:10px 0 0}
+#tb-design-lab .tbp .p-g3-reference-heading h3{font-size:15px;font-weight:600;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-reference-heading span{font-size:11px;color:var(--p-accent-text)}
+#tb-design-lab .tbp .p-g3-reference .p-geometry-measures{margin:10px 0;gap:8px}
+#tb-design-lab .tbp .p-g3-reference .p-geometry-measures dd{font-size:13px;font-weight:500;overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-edit-grid{display:grid;gap:9px}
+#tb-design-lab .tbp .p-g3-reference select{min-width:0;max-width:100%;width:100%;text-overflow:ellipsis}
+#tb-design-lab .tbp .p-g3-reference [data-g3-apply]{width:100%;justify-content:center;margin-top:9px}
+#tb-design-lab .tbp .p-g3-reference-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+#tb-design-lab .tbp .p-g3-orientation{padding-top:10px;margin-top:10px;border-top:1px solid var(--p-line);font-size:11px;color:var(--p-muted)}
+#tb-design-lab .tbp .p-g3-orientation .p-cardinal-buttons{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:7px}
+#tb-design-lab .tbp .p-g3-orientation .p-button{padding:6px 3px;font-size:10px;min-width:0}
+#tb-design-lab .tbp .p-g3-source{margin-top:10px;border-top:1px solid var(--p-line);padding-top:9px;font-size:11px;color:var(--p-muted)}
+#tb-design-lab .tbp .p-g3-source p{overflow-wrap:anywhere}
+#tb-design-lab .tbp .p-g3-feedback{font-size:11px;margin-top:7px;overflow-wrap:anywhere;color:var(--p-accent-text)}
+#tb-design-lab .tbp .p-g3-feedback[role=alert]{color:var(--p-orange)}
+#tb-design-lab .tbp .p-geometry-mode{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+#tb-design-lab .tbp .p-g3-all-surfaces{margin:12px 0 16px;font-size:12px;color:var(--p-muted)}
+@media(max-width:1200px){#tb-design-lab .tbp .p-geometry-workbench.p-g3-workbench{grid-template-columns:minmax(0,1fr)}#tb-design-lab .tbp .p-g3-edit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#tb-design-lab .tbp .p-g3-edit-grid .p-field:first-child{grid-column:1/-1}}
+@media(max-width:440px){#tb-design-lab .tbp .p-geometry-workbench.p-g3-workbench{padding:8px}#tb-design-lab .tbp .p-g3-edit-grid{grid-template-columns:1fr}#tb-design-lab .tbp .p-g3-toolbar .p-button{min-height:38px}#tb-design-lab .tbp .p-g3-reference .p-field input,#tb-design-lab .tbp .p-g3-reference .p-field select{font-size:16px}#tb-design-lab .tbp .p-g3-reference-actions .p-button{min-height:38px}}
 </style></head>
 <body><div id="tb-design-lab"><section id="thermabot" class="tbp" data-appearance="dark" aria-label="THERMABOT versión de prueba"></section></div><noscript>Esta versión de prueba necesita JavaScript para calcular.</noscript><script>/**
  * @license lucide v1.8.0 - ISC
@@ -1199,6 +1250,72 @@ function validateWaterResult(data    ,projectId       )      {
 }
 
 return {WATER_STEPS,WATER_LABELS,waterInputSignature,exportWaterLoads,validateWaterResult};})();
+modules["geometry_viewer"]=(()=>{
+// Presentation geometry only. This module never changes thermal inputs.
+                                            
+                                                                                                       
+                                                                                                               
+                                                                                                                                                                                            
+                                                             
+                                                                                
+function newCamera()          {return {yaw:-.65,pitch:.52,zoom:1,view:'perspective',roof:false};}
+function geographicBearing(engineAzimuth       )        {return ((engineAzimuth+180)%360+360)%360;}
+function northVector(frontBearing       )        {const a=frontBearing*Math.PI/180;return [-Math.sin(a),0,-Math.cos(a)];}
+function cameraCoordinates(p       ,camera         )        {
+ const cy=Math.cos(camera.yaw),sy=Math.sin(camera.yaw),pitch=camera.view==='plan'?Math.PI/2:camera.pitch,cp=Math.cos(pitch),sp=Math.sin(pitch);
+ const x=p[0]*cy-p[2]*sy,z=p[0]*sy+p[2]*cy;
+ return [x,-p[1]*cp+z*sp,p[1]*sp+z*cp];
+}
+function fitProjection(model            ,camera         ,width       ,height       )              {
+ const x=model.width/2,z=model.depth/2,corners         =[];
+ for(const xx of [-x,x])for(const zz of [-z,z])for(const yy of [0,model.height])corners.push([xx,yy,zz]);
+ const points=corners.map(p=>cameraCoordinates(p,camera)),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+ const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const scale=Math.min(Math.max(80,width-110)/Math.max(.1,maxX-minX),Math.max(100,height-130)/Math.max(.1,maxY-minY))*camera.zoom;
+ const ox=width/2-(minX+maxX)*scale/2,oy=height/2+5-(minY+maxY)*scale/2;
+ return {scale,project:(p       )=>{const q=cameraCoordinates(p,camera);return {x:ox+q[0]*scale,y:oy+q[1]*scale,z:q[2]};}};
+}
+function roomFaces(model            )              {
+ const x=model.width/2,z=model.depth/2,h=model.height;
+ const corners           =[
+  [[-x,0,-z],[x,0,-z],[x,h,-z],[-x,h,-z]],
+  [[x,0,-z],[x,0,z],[x,h,z],[x,h,-z]],
+  [[x,0,z],[-x,0,z],[-x,h,z],[x,h,z]],
+  [[-x,0,z],[-x,0,-z],[-x,h,-z],[-x,h,z]]
+ ];
+ const faces             =model.wallIds.slice(0,4).map((id,n)=>({id,name:['Frente','Derecha','Fondo','Izquierda'][n],kind:'wall',points:corners[n]}));
+ model.roofIds.forEach(id=>faces.push({id,name:'Cubierta',kind:'roof',points:[[-x,h,-z],[x,h,-z],[x,h,z],[-x,h,z]]}));
+ // The existing contract stores opening area, not its surveyed width/location.
+ // Equal-height openings with exact represented area are deliberately schematic.
+ for(const face of [...faces]){
+  const openings=model.windows.filter(w=>w.parentId===face.id),count=openings.length;if(!count)continue;
+  const side=model.wallIds.indexOf(face.id),span=face.kind==='roof'?model.width:side%2===0?model.width:model.depth;
+  const vertical=face.kind==='roof'?model.depth:model.height;
+  const fraction=Math.min(1,openings.reduce((a,w)=>a+w.area,0)/(span*vertical));
+  const wh=vertical*Math.sqrt(fraction),gap=(span-span*Math.sqrt(fraction))/(count+1);let offset=-span/2+gap;
+  openings.forEach((win,n)=>{
+   if(!(win.area>0))return;
+   const ww=Math.min(span,win.area/Math.max(wh,.001)),u=offset+ww/2,v=face.kind==='roof'?0:vertical/2;offset+=ww+gap;
+   const a=u-ww/2,b=u+ww/2,lo=v-wh/2,hi=v+wh/2;
+   let pts         ;
+   if(face.kind==='roof')pts=[[a,h,-wh/2],[b,h,-wh/2],[b,h,wh/2],[a,h,wh/2]];
+   else if(side===0)pts=[[a,lo,-z],[b,lo,-z],[b,hi,-z],[a,hi,-z]];
+   else if(side===1)pts=[[x,lo,a],[x,lo,b],[x,hi,b],[x,hi,a]];
+   else if(side===2)pts=[[-b,lo,z],[-a,lo,z],[-a,hi,z],[-b,hi,z]];
+   else pts=[[-x,lo,-b],[-x,lo,-a],[-x,hi,-a],[-x,hi,-b]];
+   faces.push({id:win.id,name:win.name,kind:'window',hostId:face.id,points:pts});
+  });
+ }
+ return faces;
+}
+function orderFaces(faces             ,projection             )              {
+ const depth=(f           )=>f.points.reduce((a,p)=>a+projection.project(p).z,0)/f.points.length;
+ // Paint each opening with its host so a foreground wall can occlude it.
+ const hosts=faces.filter(f=>f.kind!=='window').sort((a,b)=>depth(a)-depth(b));
+ return hosts.flatMap(f=>[f,...faces.filter(w=>w.kind==='window'&&w.hostId===f.id)]);
+}
+
+return {newCamera,geographicBearing,northVector,cameraCoordinates,fitProjection,roomFaces,orderFaces};})();
 modules["app"]=(()=>{
 const {validateImportedData}=modules["seguridad_datos"];
 const {roomReview,reviewSignature,REVIEW_SECTIONS}=modules["revision_carga"];
@@ -1215,6 +1332,8 @@ const {prepareEnvelope,migrateEnvelope,grossSurfaceArea}=modules["geometria_edif
 const {demoRoom,createRoom,calculateBuilding,rectangularizeRoom}=modules["edificio"];
 const {resolvePartitions}=modules["particiones"];
 const {exportWaterLoads,validateWaterResult,waterInputSignature,WATER_STEPS,WATER_LABELS}=modules["integracion_agua"];
+const {newCamera,geographicBearing,northVector,cameraCoordinates,fitProjection,roomFaces,orderFaces}=modules["geometry_viewer"];
+                                                                      
 const app=document.getElementById('thermabot') ;
 const STORAGE_KEY='thermabot-building-v21-trial';
 const icon=(n       )=>'<i data-lucide="'+n+'" aria-hidden="true"></i>';
@@ -1433,25 +1552,113 @@ function roomBar(){return '<div class="p-room-bar"><label class="p-field">AMBIEN
 function refreshRoomNames(){const select=app.querySelector('[data-room-select]')                          ;if(select)select.innerHTML=projectRooms().map(r=>'<option value="'+esc(r.id)+'" '+(r.id===state.input.id?'selected':'')+'>'+esc(r.room)+'</option>').join('');}
 function roomDrawing(){const i=state.input;let marks='';for(const s of i.surfaces){if(s.tilt.value===0)continue;const az=s.azimuth.value*Math.PI/180,x=125-Math.sin(az)*45,y=70+Math.cos(az)*45;marks+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--p-accent)"/><text x="'+(125-Math.sin(az)*64)+'" y="'+(73+Math.cos(az)*57)+'" text-anchor="middle" fill="currentColor" font-size="9">'+esc(orientationLabel(s.azimuth.value))+'</text>';}return '<div class="p-room-preview"><svg viewBox="0 0 250 145" role="img" aria-label="Orientaciones de los cerramientos del ambiente"><circle cx="125" cy="70" r="45" fill="none" stroke="currentColor" opacity=".2"/><path d="M125 30V105 M87 70H164" stroke="currentColor" opacity=".2"/>'+marks+'<text x="125" y="73" text-anchor="middle" fill="currentColor" font-size="11">'+fmt(i.geometry.length.value*i.geometry.width.value,1)+' m²</text></svg><span>'+esc(i.room)+'<small>'+i.surfaces.length+' cerramientos · '+i.windows.length+' ventanas</small></span></div>';}
 
-// Geometry presentation only; the existing rectangularization engine owns areas and orientations.
+// Geometry presentation only; the existing engine owns areas and orientations.
 const geometrySelection=new Map               ();
 const geometrySlots=new Map                 ();
 const geometryModes=new Map               ();
+const geometryCameras=new Map                 ();
+let geometryResize                    =null;
 try{const preferences=JSON.parse(localStorage.getItem(STORAGE_KEY+'-geometry-ui')||'{}');Object.entries(preferences).forEach(([id,mode])=>{if(mode==='auto'||mode==='manual')geometryModes.set(id,mode);});}catch{}
+try{const cameras=JSON.parse(localStorage.getItem(STORAGE_KEY+'-geometry-camera')||'{}');Object.entries(cameras).forEach(([id,value])=>{const c=value            ;if(Number.isFinite(c.yaw)&&Number.isFinite(c.pitch)&&Number.isFinite(c.zoom))geometryCameras.set(id,{yaw:c.yaw,pitch:Math.max(.15,Math.min(1.4,c.pitch)),zoom:Math.max(.65,Math.min(1.8,c.zoom)),view:c.view==='plan'?'plan':'perspective',roof:!!c.roof});});}catch{}
+function geometryCamera(){let c=geometryCameras.get(state.input.id);if(!c){c=newCamera();geometryCameras.set(state.input.id,c);}return c;}
+function saveGeometryCamera(){try{localStorage.setItem(STORAGE_KEY+'-geometry-camera',JSON.stringify(Object.fromEntries(geometryCameras)));}catch{}}
 function geometryWalls(){return state.input.surfaces.filter(s=>!(s.kind==='roof'||s.tilt.value===0));}
 function geometryMode(){const walls=geometryWalls();return geometryModes.get(state.input.id)||(walls.length===4&&walls.every(w=>w.areaMode==='long-wall'||w.areaMode==='short-wall')?'auto':'manual');}
-function geometrySelected(){const walls=geometryWalls();const id=geometrySelection.get(state.input.id);return state.input.surfaces.find(s=>s.id===id)||walls[0]||state.input.surfaces[0];}
+function geometrySelected(){const walls=geometryWalls();const id=geometrySelection.get(state.input.id);return [...state.input.surfaces,...state.input.windows].find(s=>s.id===id)||walls[0]||state.input.surfaces[0];}
+function geometryIsWindow(id       ){return state.input.windows.some(w=>w.id===id);}
 function geometryDimensions(){return '<div class="p-dimensions">'+(['length','width','height']         ).map((key,index)=>'<label class="p-dimension"><span>'+['Largo','Ancho','Altura'][index]+'</span><div><input aria-label="'+['Largo','Ancho','Altura'][index]+' en metros" type="number" inputmode="decimal" min="0.1" step="0.1" data-field="geometry.'+key+'" value="'+state.input.geometry[key].value+'"><span aria-hidden="true">m</span></div></label>').join('')+'</div>';}
 function geometryWallWidth(w        ){return w.areaMode==='long-wall'?numberOf(state.input.geometry.length,'m'):w.areaMode==='short-wall'?numberOf(state.input.geometry.width,'m'):null;}
-function geometrySide(w        ){return ['Frente','Lateral derecho','Fondo','Lateral izquierdo'][(geometrySlots.get(state.input.id)||[]).indexOf(w.id)]||'Muro';}
-function geometryDimensionCaption(w        ){const width=geometryWallWidth(w);return width===null?'Área manual':fmt(width)+' m · '+(w.areaMode==='long-wall'?'Largo':'Ancho');}
-function geometryDiagram(){const walls=geometryWalls(),selected=geometrySelected();let slots=geometrySlots.get(state.input.id)||walls.slice().sort((a,b)=>{const ref=walls[0]?.azimuth.value||0;return ((a.azimuth.value-ref+360)%360)-((b.azimuth.value-ref+360)%360);}).map(w=>w.id);slots=slots.filter(id=>walls.some(w=>w.id===id));walls.forEach(w=>{if(!slots.includes(w.id))slots.push(w.id);});geometrySlots.set(state.input.id,slots);const arranged=slots.map(id=>walls.find(w=>w.id===id) );const faces=[{points:'220,166 90,101 90,157 220,222',x:124,y:156,label:'Frente'},{points:'350,101 220,166 220,222 350,157',x:304,y:156,label:'Lateral derecho'},{points:'220,36 350,101 350,157 220,92',x:305,y:79,label:'Fondo'},{points:'90,101 220,36 220,92 90,157',x:127,y:79,label:'Lateral izquierdo'}];const face=(index       )=>{const w=arranged[index],f=faces[index];if(!w)return '';return '<g class="p-geometry-face '+(w.id===selected?.id?'is-selected':'')+'" data-geometry-select="'+esc(w.id)+'" role="button" tabindex="0" aria-pressed="'+(w.id===selected?.id)+'" aria-label="Seleccionar '+esc(f.label)+': '+esc(w.name)+'"><polygon points="'+f.points+'"/><text x="'+f.x+'" y="'+f.y+'" text-anchor="middle">'+esc(orientationLabel(w.azimuth.value))+'</text><text class="p-face-caption" x="'+f.x+'" y="'+(f.y+14)+'" text-anchor="middle">'+f.label+(geometryWallWidth(w)===null?'':' · '+fmt(geometryWallWidth(w))+' m')+'</text></g>';};const roof=state.input.surfaces.find(w=>w.kind==='roof'||w.tilt.value===0);return '<svg viewBox="0 0 470 300" class="p-geometry-svg" aria-label="Ambiente rectangular en perspectiva. Seleccioná una pared." role="group"><polygon class="p-geometry-floor" points="220,92 350,157 220,222 90,157"/>'+face(2)+face(3)+face(0)+face(1)+(roof?'<g class="p-geometry-face p-geometry-roof '+(roof.id===selected?.id?'is-selected':'')+'" data-geometry-select="'+esc(roof.id)+'" role="button" tabindex="0" aria-pressed="'+(roof.id===selected?.id)+'" aria-label="Seleccionar cubierta"><polygon points="220,8 280,38 220,68 160,38"/><text x="220" y="42" text-anchor="middle">Cubierta</text></g>':'')+'<g class="p-geometry-dimensions"><path d="M85 173 L85 189 L211 252 M229 252 L357 189 L357 173 M369 105 L382 105 L382 157 L369 157"/><text x="125" y="224" text-anchor="middle">'+(arranged[0]?esc(geometryDimensionCaption(arranged[0])):'')+'</text><text x="315" y="224" text-anchor="middle">'+(arranged[1]?esc(geometryDimensionCaption(arranged[1])):'')+'</text><text x="389" y="133" text-anchor="start">'+fmt(numberOf(state.input.geometry.height,'m'))+' m</text></g><text class="p-geometry-hint" x="220" y="278" text-anchor="middle">Seleccioná una cara para identificar su orientación</text></svg>';}
-function geometrySummary(){return '<div class="p-geometry-summary"><table><caption>Cerramientos · áreas brutas</caption><thead><tr><th>Cerramiento</th><th>Orientación</th><th>Área</th></tr></thead><tbody>'+state.input.surfaces.map(w=>{const roof=w.kind==='roof'||w.tilt.value===0;return '<tr data-geometry-select="'+esc(w.id)+'" class="'+(w.id===geometrySelected()?.id?'is-selected':'')+'"><td><button type="button" data-geometry-select="'+esc(w.id)+'" aria-pressed="'+(w.id===geometrySelected()?.id)+'">'+esc(w.name)+'</button></td><td>'+esc(roof?'Horizontal':orientationLabel(w.azimuth.value))+'</td><td>'+fmt(grossSurfaceArea(w,state.input))+' m²</td></tr>';}).join('')+'</tbody></table><p class="p-note">Las ventanas se descuentan automáticamente del muro al calcular. Las propiedades existentes se conservan.</p></div>';}
-function geometryReference(){const current=geometrySelected();if(!current)return '<div class="p-geometry-reference"><p>Agregá un muro para definir su orientación.</p></div>';const roof=current.kind==='roof'||current.tilt.value===0,width=geometryWallWidth(current),height=numberOf(state.input.geometry.height,'m'),gross=grossSurfaceArea(current,state.input),windows=state.input.windows.filter(w=>w.parentId===current.id),glass=windows.reduce((a,w)=>a+numberOf(w.area,'m²'),0),shared=roomPartitions().filter(p=>p.roomAId===state.input.id?p.surfaceAId===current.id:p.surfaceBId===current.id).reduce((a,p)=>a+numberOf(p.area,'m²'),0),material=current.quadriMaterial?QUADRI_MATERIALS.find(m=>m.id===current.quadriMaterial):undefined,k=material?material[state.input.quadri .season==='verano'?'summer':'winter']:numberOf(current.u,'kcal/(h·m²·°C)'),dimensions=roof&&current.areaMode==='floor'?fmt(numberOf(state.input.geometry.length,'m'))+' × '+fmt(numberOf(state.input.geometry.width,'m'))+' m':width===null?'Área manual · medidas independientes':fmt(width)+' × '+fmt(height)+' m';return '<div class="p-geometry-reference" aria-live="polite"><span class="p-section-label">'+(roof?'CUBIERTA SELECCIONADA':esc(geometrySide(current))+' · MURO SELECCIONADO')+'</span><h3>'+esc(current.name)+'</h3><span class="p-geometry-selected-direction">'+esc(roof?'Horizontal':orientationLabel(current.azimuth.value))+'</span><dl class="p-geometry-measures"><div class="p-geometry-size"><dt>'+(roof?'Largo × ancho':'Ancho del muro × altura')+'</dt><dd>'+dimensions+'</dd></div><div><dt>Área bruta</dt><dd>'+fmt(gross)+' m²</dd></div><div><dt>Área exterior opaca</dt><dd>'+fmt(gross-glass-shared)+' m²</dd></div></dl><div class="p-geometry-properties"><span>K <strong>'+fmt(k)+'</strong> kcal/(h·m²·°C)</span><span>'+windows.length+' ventana'+(windows.length===1?'':'s')+' · '+fmt(glass)+' m²'+(shared?' · '+fmt(shared)+' m² compartidos':'')+'</span></div>'+btn(icon('sliders-horizontal')+' '+(roof?'Editar esta cubierta':'Editar este muro'),'data-geometry-edit="'+esc(current.id)+'"')+(roof?'':'<p>Esta pared mira al:</p><div class="p-cardinal-buttons">'+[['Norte',180],['Este',-90],['Sur',0],['Oeste',90]].map(([label,az])=>btn(label,'data-rect-orient="'+az+'" aria-pressed="'+(current.azimuth.value===az)+'"',current.azimuth.value===az?'primary':'')).join('')+'</div><p class="p-note">Medidas y áreas se actualizan al cambiar las dimensiones. La orientación se aplica a las cuatro paredes.</p>')+'</div>';}
-
-function rectangularAssistant(){const mode=geometryMode();return '<div class="p-geometry-mode"><label>Modo de carga<select data-geometry-mode><option value="auto" '+(mode==='auto'?'selected':'')+'>Automático (rectangular)</option><option value="manual" '+(mode==='manual'?'selected':'')+'>Manual / irregular</option></select></label></div>'+(mode==='auto'?'<section class="p-geometry-workbench"><div data-geometry-preview>'+geometryDiagram()+'</div><div data-geometry-reference>'+geometryReference()+'</div></section><div data-geometry-summary>'+geometrySummary()+'</div>':'<p class="p-note">Edición libre: agregá y editá cada muro, cubierta y ventana con sus áreas y orientaciones.</p>');}
-function refreshGeometry(){const preview=app.querySelector('[data-geometry-preview]'),summary=app.querySelector('[data-geometry-summary]'),reference=app.querySelector('[data-geometry-reference]');if(preview)preview.innerHTML=geometryDiagram();if(summary)summary.innerHTML=geometrySummary();if(reference)reference.innerHTML=geometryReference();bindGeometry();icons();}
-function bindGeometry(){app.querySelectorAll('[data-geometry-edit]').forEach(el=>(el               ).onclick=()=>envelopeEditor('surface',(el               ).dataset.geometryEdit ));app.querySelectorAll('[data-geometry-select]').forEach(el=>{const select=()=>{geometrySelection.set(state.input.id,(el               ).dataset.geometrySelect );refreshGeometry();};(el               ).onclick=select;(el               ).onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}};});const mode=app.querySelector('[data-geometry-mode]')                          ;if(mode)mode.onchange=()=>{try{if(mode.value==='auto'){state.input=rectangularizeRoom(state.input,geometryWalls()[0]?.id,geometryWalls()[0]?.azimuth.value??180);checkpointRoom();recalc();scheduleStore();}geometryModes.set(state.input.id,mode.value);try{localStorage.setItem(STORAGE_KEY+'-geometry-ui',JSON.stringify(Object.fromEntries(geometryModes)));}catch{}render();}catch(e){mode.value=geometryMode();toast((e         ).message);}};app.querySelectorAll('[data-rect-orient]').forEach(el=>(el               ).onclick=()=>{try{const selected=geometrySelected();state.input=rectangularizeRoom(state.input,selected?.id,Number((el               ).dataset.rectOrient));checkpointRoom();log('Orientación rectangular actualizada · '+state.input.room);recalc();render();scheduleStore();}catch(e){toast((e         ).message);}});}
+function geometryArranged(){const walls=geometryWalls();let slots=geometrySlots.get(state.input.id)||walls.slice().sort((a,b)=>{const ref=walls[0]?.azimuth.value||0;return ((a.azimuth.value-ref+360)%360)-((b.azimuth.value-ref+360)%360);}).map(w=>w.id);slots=slots.filter(id=>walls.some(w=>w.id===id));walls.forEach(w=>{if(!slots.includes(w.id))slots.push(w.id);});geometrySlots.set(state.input.id,slots);return slots.map(id=>walls.find(w=>w.id===id) );}
+function geometrySide(w        ){return ['Frente','Lateral derecho','Fondo','Lateral izquierdo'][geometryArranged().findIndex(s=>s.id===w.id)]||'Muro';}
+function geometryModel()             {
+ const i=state.input,arranged=geometryArranged(),swap=arranged[0]?.areaMode==='short-wall';
+ return {width:numberOf(i.geometry[swap?'width':'length'],'m'),depth:numberOf(i.geometry[swap?'length':'width'],'m'),height:numberOf(i.geometry.height,'m'),frontBearing:geographicBearing(arranged[0]?.azimuth.value??180),wallIds:arranged.map(w=>w.id),roofIds:i.surfaces.filter(s=>s.kind==='roof'||s.tilt.value===0).map(s=>s.id),windows:i.windows.map(w=>({id:w.id,name:w.name,parentId:w.parentId,area:numberOf(w.area,'m²')}))};
+}
+function geometryDiagram(){const c=geometryCamera();return '<div class="p-g3-stage"><div class="p-g3-toolbar" aria-label="Controles de cámara"><div class="p-actions">'+btn('Perspectiva','data-g3-view="perspective" aria-pressed="'+(c.view==='perspective')+'"',c.view==='perspective'?'primary':'')+btn('Planta','data-g3-view="plan" aria-pressed="'+(c.view==='plan')+'"',c.view==='plan'?'primary':'')+'</div><div class="p-actions">'+btn('−','data-g3-camera="out" aria-label="Alejar cámara"')+btn('+','data-g3-camera="in" aria-label="Acercar cámara"')+btn(icon('rotate-cw'),'data-g3-camera="turn" aria-label="Girar cámara 30 grados"')+btn('Cubierta','data-g3-camera="roof" aria-pressed="'+c.roof+'"',c.roof?'primary':'')+'</div></div><svg class="p-g3-svg" data-g3-svg role="group" aria-label="Recinto 3D interactivo. Seleccioná un cerramiento; arrastrá para girar la cámara o usá los controles."></svg><div class="p-g3-status"><span>Arrastrar: cámara · Rueda: zoom</span><span data-g3-camera-label></span></div><p class="p-note p-g3-window-note">Ventanas: posición y forma esquemáticas; su área es la declarada.</p></div>';}
+function drawGeometry(){const svg=app.querySelector('[data-g3-svg]')                      ;if(!svg)return;const model=geometryModel(),camera=geometryCamera(),selected=geometrySelected(),width=Math.max(180,svg.clientWidth),height=340;
+ svg.setAttribute('viewBox','0 0 '+width+' '+height);const projection=fitProjection(model,camera,width,height),project=projection.project,xy=(p       )=>{const v=project(p);return v.x.toFixed(2)+','+v.y.toFixed(2);};
+ const walls=state.input.surfaces,visible=roomFaces(model).filter(f=>{const host=walls.find(s=>s.id===(f.hostId||f.id));return camera.roof||host?.kind!=='roof'&&host?.tilt.value!==0;});
+ const x=model.width/2,z=model.depth/2,h=model.height;
+ let marks='<title>'+esc(state.input.room)+' · recinto 3D</title><desc>Dimensiones reales. Norte geográfico independiente de la cámara. Ventanas con área declarada y ubicación esquemática.</desc><polygon class="p-g3-floor" points="'+[[-x,0,-z],[x,0,-z],[x,0,z],[-x,0,z]].map(p=>xy(p          )).join(' ')+'"/>';
+ let activeLabels='';for(const face of orderFaces(visible,projection)){
+  const item=[...state.input.surfaces,...state.input.windows].find(s=>s.id===face.id) ;
+  const active=selected?.id===face.id,hostSelected=face.kind==='wall'&&geometryIsWindow(selected?.id||'')&&state.input.windows.find(w=>w.id===selected?.id)?.parentId===face.id;
+  const direction=face.kind==='roof'?'Horizontal':orientationLabel(item.azimuth.value);
+  marks+='<g class="p-g3-face '+(face.kind==='window'?'p-g3-opening ':'')+(active?'is-selected ':'')+(hostSelected?'is-host':'')+'" data-geometry-select="'+esc(face.id)+'" role="button" tabindex="0" aria-pressed="'+active+'" aria-label="Seleccionar '+esc(item.name)+'"><title>'+esc(item.name)+' · '+esc(direction)+'</title><polygon points="'+face.points.map(xy).join(' ')+'"/>';
+  if(active){const mid=face.points.reduce((a,p)=>a.map((v,i)=>v+p[i]/4)          ,[0,0,0]          ),pos=project(mid);activeLabels+='<text class="p-g3-selected-label" x="'+pos.x+'" y="'+(pos.y-10)+'" text-anchor="middle">'+esc(face.kind==='window'?item.name:direction)+'</text>';}
+  marks+='</g>';
+ }
+ marks+=activeLabels;const usedLabels                                  =[],center=project([0,h/2,0]);
+ const dimension=(a       ,b       ,label       )=>{
+  const p=project(a),q=project(b),dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1;
+  let nx=-dy/len,ny=dx/len;const mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
+  if(nx*(mx-center.x)+ny*(my-center.y)<0){nx=-nx;ny=-ny;}
+  let offset=22,tx=mx+nx*offset,ty=my+ny*offset;
+  const half=label.length*3.2+4;
+  for(let attempt=0;attempt<7;attempt++){
+   tx=Math.max(half+8,Math.min(width-half-8,mx+nx*(offset+8)));
+   ty=Math.max(76,Math.min(height-12,my+ny*(offset+8)));
+   if(!usedLabels.some(v=>Math.abs(v.x-tx)<v.half+half+6&&Math.abs(v.y-ty)<19))break;
+   offset+=19;
+  }
+  usedLabels.push({x:tx,y:ty,half});
+  return '<g class="p-g3-dimension"><path d="M'+p.x+','+p.y+' L'+(p.x+nx*offset)+','+(p.y+ny*offset)+' L'+(q.x+nx*offset)+','+(q.y+ny*offset)+' L'+q.x+','+q.y+'"/><text x="'+tx+'" y="'+(ty+4)+'" text-anchor="middle">'+label+'</text></g>';
+ };
+ const nearZ=Math.cos(camera.yaw)>=0?z:-z,nearX=Math.sin(camera.yaw)>=0?x:-x;
+ marks+=dimension([-x,0,nearZ],[x,0,nearZ],fmt(model.width)+' m')+dimension([nearX,0,-z],[nearX,0,z],fmt(model.depth)+' m');
+ if(camera.view!=='plan'){const corner=([[-x,0,-z],[x,0,-z],[x,0,z],[-x,0,z]]            ).sort((a,b)=>project(b).x-project(a).x)[0];marks+=dimension(corner,[corner[0],h,corner[2]],fmt(h)+' m');}
+ const n=cameraCoordinates(northVector(model.frontBearing),camera),angle=Math.atan2(n[1],n[0]),cx=width-42,cy=42;
+ const directions=[['N',0],['E',Math.PI/2],['S',Math.PI],['O',-Math.PI/2]]         ;
+ marks+='<g class="p-g3-compass" aria-label="Brújula geográfica"><circle cx="'+cx+'" cy="'+cy+'" r="25"/>';
+ directions.forEach(([label,offset])=>{marks+='<text class="'+(label==='N'?'p-g3-north':'')+'" x="'+(cx+Math.cos(angle+offset)*17)+'" y="'+(cy+Math.sin(angle+offset)*17+4)+'" text-anchor="middle">'+label+'</text>';});
+ marks+='</g><text class="p-g3-note" x="12" y="23">NORTE GEOGRÁFICO</text><text class="p-g3-note" x="12" y="41">Frente: '+Math.round(model.frontBearing)+'° desde N</text>';
+ svg.innerHTML=marks;const status=app.querySelector('[data-g3-camera-label]');if(status)status.textContent='Cámara '+Math.round(((camera.yaw*180/Math.PI)%360+360)%360)+'° · '+Math.round(camera.zoom*100)+' %';bindGeometryFaces();
+}
+function geometrySummary(){const selected=geometrySelected();return '<div class="p-geometry-summary"><table><caption>Cerramientos · áreas brutas</caption><thead><tr><th>Cerramiento</th><th>Orientación</th><th>Área</th></tr></thead><tbody>'+state.input.surfaces.map(w=>{const roof=w.kind==='roof'||w.tilt.value===0;return '<tr class="'+(w.id===selected?.id?'is-selected':'')+'"><td><button type="button" data-geometry-select="'+esc(w.id)+'" aria-pressed="'+(w.id===selected?.id)+'">'+esc(w.name)+'</button></td><td>'+esc(roof?'Horizontal':orientationLabel(w.azimuth.value))+'</td><td>'+fmt(grossSurfaceArea(w,state.input))+' m²</td></tr>';}).join('')+'</tbody></table></div>';}
+function geometryReference(){const current=geometrySelected();if(!current)return '<div class="p-geometry-reference"><p>Agregá un cerramiento.</p></div>';
+ const win=geometryIsWindow(current.id),surface=win?state.input.surfaces.find(s=>s.id===(current                 ).parentId):current           ,roof=surface?.kind==='roof'||surface?.tilt.value===0;
+ const glass=win?current.area.value:state.input.windows.filter(w=>w.parentId===current.id).reduce((a,w)=>a+numberOf(w.area,'m²'),0),gross=surface?grossSurfaceArea(surface,state.input):0,shared=surface?roomPartitions().filter(p=>p.roomAId===state.input.id?p.surfaceAId===surface.id:p.surfaceBId===surface.id).reduce((a,p)=>a+numberOf(p.area,'m²'),0):0;
+ const material=current.quadriMaterial?QUADRI_MATERIALS.find(m=>m.id===current.quadriMaterial):undefined,k=material?material[state.input.quadri .season==='verano'?'summer':'winter']:numberOf(current.u,'kcal/(h·m²·°C)');
+ const area=win?current.area.value:Math.max(0,gross-glass-shared),direction=roof?'Horizontal':orientationLabel(current.azimuth.value),bearing=geographicBearing(current.azimuth.value);
+ const choices=[...state.input.surfaces,...state.input.windows].map(el=>'<option value="'+esc(el.id)+'" '+(el.id===current.id?'selected':'')+'>'+esc(el.name)+'</option>').join('');
+ const materialChoices=QUADRI_MATERIALS.filter(m=>m.kind===(win?'window':roof?'roof':'wall')).map(m=>'<option value="'+esc(m.id)+'" '+(m.id===current.quadriMaterial?'selected':'')+'>'+esc(m.name)+'</option>').join('');
+ const boundary=(current           ).quadriBoundary||'exterior',window=current                 ;
+ return '<div class="p-geometry-reference p-g3-reference"><label class="p-field">Elemento seleccionado<select data-g3-element aria-label="Elemento seleccionado">'+choices+'</select></label><div class="p-g3-reference-heading"><h3>'+esc(current.name)+'</h3><span>'+esc(direction)+(roof?'':' · '+fmt(bearing,0)+'° desde N')+'</span></div><dl class="p-geometry-measures"><div><dt>'+(win?'Área de vidrio':'Área bruta')+'</dt><dd>'+fmt(win?area:gross)+' m²</dd></div><div><dt>'+(win?'Cerramiento':'Opaca exterior')+'</dt><dd>'+(win?esc(surface?.name||'Sin vincular'):fmt(area)+' m²')+'</dd></div></dl><form data-g3-properties><div class="p-g3-edit-grid"><label class="p-field">Composición · biblioteca<select data-g3-material><option value="manual" '+(!current.quadriMaterial?'selected':'')+'>K manual / heredado</option>'+materialChoices+'</select></label><label class="p-field">Transmitancia K<input type="number" data-g3-k aria-label="Transmitancia K del elemento" min="0.001" step="any" value="'+Number(k.toPrecision(12))+'"><small>kcal/(h·m²·°C) · U '+fmt(convert(k,'kcal/(h·m²·°C)','W/(m²·K)'))+' W/(m²·K)</small></label>'+(win?'<label class="p-field">Área de ventana · m²<input type="number" data-g3-area min="0.001" step="any" value="'+area+'"></label><label class="p-field">Vidrio / protección<select data-g3-shading><option value="manual" '+(!window.quadriShading?'selected':'')+'>Coeficiente c manual</option>'+QUADRI_SHADING.map(row=>'<option value="'+esc(row[0])+'" '+(window.quadriShading===row[0]?'selected':'')+'>'+esc(row[1])+'</option>').join('')+'</select></label><label class="p-field">Coeficiente solar c<input type="number" data-g3-c min="0" max="1" step="any" value="'+(window.quadriC?.value??1)+'"></label>':'<label class="p-field">Condición de borde<select data-g3-boundary>'+[['exterior','Exterior'],['no-climatizado','Local sin climatizar'],['climatizado','Local a igual temperatura']].map(([value,label])=>'<option value="'+value+'" '+(value===boundary?'selected':'')+'>'+label+'</option>').join('')+'</select></label>')+'</div><div class="p-g3-feedback" data-g3-feedback role="status"></div>'+btn('Aplicar al elemento','data-g3-apply','primary')+'</form><div class="p-g3-reference-actions">'+btn('Más propiedades','data-geometry-edit="'+esc(current.id)+'"')+(win?'':btn('+ Ventana','data-g3-add-window="'+esc(current.id)+'"'))+'</div>'+(!win&&!roof?'<div class="p-g3-orientation"><span>Orientación real de este muro</span><div class="p-cardinal-buttons">'+[['Norte',180],['Este',-90],['Sur',0],['Oeste',90]].map(([label,az])=>btn(label,'data-rect-orient="'+az+'" aria-pressed="'+(Math.abs(current.azimuth.value          -Number(az))<.01)+'"',Math.abs(current.azimuth.value          -Number(az))<.01?'primary':'')).join('')+'</div><p class="p-note">Orienta el recinto completo; la cámara no cambia el balance.</p></div>':'')+'<details class="p-g3-source"><summary>Procedencia y sombras</summary><p class="p-note">'+esc(current.u.source)+'</p>'+(win?'<p class="p-note">Coeficiente c de Quadri; las fracciones soleadas por hora se editan en Más propiedades.</p>':'<p class="p-note">'+fmt(glass)+' m² de vidrio · '+fmt(shared)+' m² compartidos. Ventanas descontadas una sola vez por el motor.</p>')+'</details></div>';
+}
+function rectangularAssistant(){const mode=geometryMode();return '<div class="p-geometry-mode"><label>Modo de carga<select data-geometry-mode><option value="auto" '+(mode==='auto'?'selected':'')+'>Automático (rectangular)</option><option value="manual" '+(mode==='manual'?'selected':'')+'>Manual / irregular</option></select></label><span class="p-note">'+fmt(state.input.geometry.length.value*state.input.geometry.width.value)+' m² · '+fmt(state.input.geometry.length.value*state.input.geometry.width.value*state.input.geometry.height.value)+' m³</span></div>'+(mode==='auto'?'<section class="p-geometry-workbench p-g3-workbench"><div data-geometry-preview>'+geometryDiagram()+'</div><div data-geometry-reference>'+geometryReference()+'</div></section><details class="p-g3-all-surfaces"><summary>Todos los cerramientos</summary><div data-geometry-summary>'+geometrySummary()+'</div></details>':'<p class="p-note">Edición libre: conservá las áreas y orientaciones de cada muro, cubierta y ventana. La vista rectangular 3D requiere el modo automático.</p>');}
+function refreshGeometry(){const summary=app.querySelector('[data-geometry-summary]'),reference=app.querySelector('[data-geometry-reference]');if(summary)summary.innerHTML=geometrySummary();if(reference)reference.innerHTML=geometryReference();drawGeometry();bindGeometry();icons();}
+function selectGeometry(id       ){geometrySelection.set(state.input.id,id);const host=state.input.surfaces.find(s=>s.id===id)||state.input.surfaces.find(s=>s.id===state.input.windows.find(w=>w.id===id)?.parentId);if(host?.kind==='roof'||host?.tilt.value===0)geometryCamera().roof=true;refreshGeometry();}
+function bindGeometryFaces(){app.querySelectorAll('[data-geometry-select]').forEach(el=>{const select=()=>selectGeometry((el               ).dataset.geometrySelect );if(!el.closest('[data-g3-svg]'))(el               ).onclick=select;(el               ).onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();select();}};});}
+function bindGeometry(){geometryResize?.disconnect();geometryResize=null;bindGeometryFaces();
+ app.querySelectorAll('[data-geometry-edit]').forEach(el=>(el               ).onclick=()=>{const id=(el               ).dataset.geometryEdit ;envelopeEditor(geometryIsWindow(id)?'window':'surface',id);});
+ const element=app.querySelector('[data-g3-element]')                          ;if(element)element.onchange=()=>selectGeometry(element.value);
+ const form=app.querySelector('[data-g3-properties]')                        ;
+ if(form){const material=form.querySelector('[data-g3-material]')                     ,k=form.querySelector('[data-g3-k]')                    ,shading=form.querySelector('[data-g3-shading]')                          ,c=form.querySelector('[data-g3-c]')                         ;
+  material.onchange=()=>{const m=QUADRI_MATERIALS.find(m=>m.id===material.value);if(m)k.value=String(m[state.input.quadri .season==='verano'?'summer':'winter']);};k.oninput=()=>material.value='manual';
+  if(shading&&c){shading.onchange=()=>{const row=QUADRI_SHADING.find(r=>r[0]===shading.value);if(row)c.value=String(row[2]);};c.oninput=()=>shading.value='manual';}
+  form.onsubmit=e=>e.preventDefault();
+  (form.querySelector('[data-g3-apply]')               ).onclick=()=>{if(!form.reportValidity())return;try{const current=geometrySelected() ,win=geometryIsWindow(current.id),next=clone(state.input),item=(win?next.windows:next.surfaces).find(s=>s.id===current.id) ;
+    item.u=datum(k.valueAsNumber,'kcal/(h·m²·°C)','ingresado','Carga manual · '+item.name+' · K');delete item.quadriMaterial;
+    const m=QUADRI_MATERIALS.find(m=>m.id===material.value);if(m){item.quadriMaterial=m.id;item.u=datum(m[state.input.quadri .season==='verano'?'summer':'winter'],'kcal/(h·m²·°C)','biblioteca','Cuadro 3-I · pp.44–45 · '+m.name);}
+    if(win){const w=item                 ;w.area=datum((form.querySelector('[data-g3-area]')                    ).valueAsNumber,'m²','ingresado','Área declarada · '+w.name);w.quadriC=datum(c .valueAsNumber,'1','ingresado','Coeficiente solar manual · '+w.name);delete w.quadriShading;const row=QUADRI_SHADING.find(r=>r[0]===shading .value);if(row){w.quadriShading=row[0];w.quadriC=datum(row[2],'1','biblioteca','Cuadro 5-III · p.108 · '+row[1]);}}
+    else (item           ).quadriBoundary=(form.querySelector('[data-g3-boundary]')                     ).value                             ;
+    const result=calculateRoom(next);state.input=result.input;checkpointRoom();changed();const feedback=app.querySelector('[data-g3-feedback]');if(feedback)feedback.textContent='Elemento aplicado al balance.';
+   }catch(error){const feedback=form.querySelector('[data-g3-feedback]') ;feedback.setAttribute('role','alert');feedback.textContent=(error         ).message;}}
+ }
+ app.querySelectorAll('[data-g3-add-window]').forEach(el=>(el               ).onclick=()=>{envelopeEditor('window');const host=app.querySelector('[data-env-choice="parentId"]')                          ;if(host){host.value=(el               ).dataset.g3AddWindow ;host.dispatchEvent(new Event('change'));}});
+ const mode=app.querySelector('[data-geometry-mode]')                          ;if(mode)mode.onchange=()=>{try{if(mode.value==='auto'){state.input=rectangularizeRoom(state.input,geometryWalls()[0]?.id,geometryWalls()[0]?.azimuth.value??180);checkpointRoom();recalc();scheduleStore();}geometryModes.set(state.input.id,mode.value);try{localStorage.setItem(STORAGE_KEY+'-geometry-ui',JSON.stringify(Object.fromEntries(geometryModes)));}catch{}render();}catch(e){mode.value=geometryMode();toast((e         ).message);}};
+ app.querySelectorAll('[data-rect-orient]').forEach(el=>(el               ).onclick=()=>{try{const selected=geometrySelected();state.input=rectangularizeRoom(state.input,selected?.id,Number((el               ).dataset.rectOrient));checkpointRoom();log('Orientación rectangular actualizada · '+state.input.room);recalc();render();scheduleStore();}catch(e){toast((e         ).message);}});
+ const svg=app.querySelector('[data-g3-svg]')                      ;if(!svg)return;const camera=geometryCamera();
+ const update=()=>{drawGeometry();app.querySelectorAll('[data-g3-view]').forEach(el=>{const active=(el               ).dataset.g3View===camera.view;el.setAttribute('aria-pressed',String(active));el.classList.toggle('primary',active);});const roof=app.querySelector('[data-g3-camera="roof"]');if(roof){roof.setAttribute('aria-pressed',String(camera.roof));roof.classList.toggle('primary',camera.roof);}};
+ app.querySelectorAll('[data-g3-view]').forEach(el=>(el               ).onclick=()=>{camera.view=(el               ).dataset.g3View                    ;update();saveGeometryCamera();});
+ app.querySelectorAll('[data-g3-camera]').forEach(el=>(el               ).onclick=()=>{const action=(el               ).dataset.g3Camera;if(action==='in')camera.zoom=Math.min(1.8,camera.zoom*1.12);if(action==='out')camera.zoom=Math.max(.65,camera.zoom/1.12);if(action==='turn')camera.yaw+=Math.PI/6;if(action==='roof')camera.roof=!camera.roof;update();saveGeometryCamera();});
+ let down                                                                                         =null;
+ svg.onpointerdown=e=>{if(e.button!==0)return;down={x:e.clientX,y:e.clientY,yaw:camera.yaw,pitch:camera.pitch,id:(e.target           ).closest             ('[data-geometry-select]')?.dataset.geometrySelect,moved:false,pointer:e.pointerId};svg.setPointerCapture(e.pointerId);};
+ svg.onpointermove=e=>{if(!down||e.pointerId!==down.pointer)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>4)down.moved=true;if(!down.moved)return;camera.yaw=down.yaw+dx*.008;if(camera.view!=='plan')camera.pitch=Math.max(.15,Math.min(1.4,down.pitch+dy*.006));drawGeometry();};
+ svg.onpointerup=e=>{if(!down||e.pointerId!==down.pointer)return;const gesture=down;down=null;if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);if(!gesture.moved&&gesture.id)selectGeometry(gesture.id);else saveGeometryCamera();};svg.onpointercancel=()=>down=null;
+ svg.onwheel=e=>{e.preventDefault();camera.zoom=Math.max(.65,Math.min(1.8,camera.zoom*Math.exp(-e.deltaY*.001)));update();saveGeometryCamera();};
+ geometryResize=new ResizeObserver(()=>{if(svg.isConnected)drawGeometry();});geometryResize.observe(svg);update();
+}
 
 
 function envelopeForm(){return '<section class="p-panel"><div class="p-panel-title"><h2>Geometría y cerramientos</h2>'+btn(icon('library')+' Bibliotecas','data-library')+'</div>'+geometryDimensions()+rectangularAssistant()+'<div data-envelope-list>'+envelopeRows()+'</div>'+((removedEnvelope?.roomId===state.input.id)?'<div class="p-actions" style="margin-top:14px">'+btn('Deshacer eliminación','data-undo-envelope')+'</div>':'')+'</section>';}
