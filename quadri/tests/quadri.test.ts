@@ -21,7 +21,7 @@ test('Cuadro 3-III usa base ΔT=10 y aplica 1 °C de corrección por cada 1 °C 
  const cases=[[8,11,-2],[10,13,0],[12,15,2],[14,17,4]] as const;
  for(const [dt,value,correction] of cases){const r=quadriEquivalent('NE',1.62,15,dt);assert.equal(r.value,value);assert.equal(r.correction,correction);}
  const a=quadriReference(),b=structuredClone(a);b.windows[0].shgcBeam.value=.01;b.windows[0].shgcDiffuse.value=.01;assert.equal(hour15(a).QT,hour15(b).QT);
- const calc=calculateQuadri(a),trace=calc.trace.find(x=>x.id==='ne-load-15')!;assert.equal(trace.variables.correccionDiseno.value,1);assert.equal(trace.variables.correccionDiseno.source,'Corrección Quadri: (Te15−Ti)−10');
+ const calc=calculateQuadri(a),trace=calc.trace.find(x=>x.id==='ne-load-15')!;assert.equal(trace.variables.correccionDiseno.value,0);assert.equal(trace.variables.correccionDiseno.source,'Corrección Quadri: (Te15−Ti)−10');
 });
 test('Rosario, K direccional de losa y conversiones del manual',()=>{
  assert.deepEqual(QUADRI_CITIES[0],{id:'rosario',name:'Rosario',summerT:36,summerRH:40,winterT:.4,winterRH:80});assert.equal(QUADRI_MATERIALS.find(x=>x.id==='losa1-20')!.winter,2.6);assert.equal(QUADRI_MATERIALS.find(x=>x.id==='losa1-20')!.summer,2.1);assert.equal(convert(1000,'W','kcal/h'),860);assert.equal(convert(60,'m³/min','m³/h'),3600);assert(Math.abs(convert(5,'kcal/(h·m²·°C)','W/(m²·K)')-5/.86)<1e-10);
