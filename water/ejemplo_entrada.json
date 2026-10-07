@@ -1,0 +1,188 @@
+{
+  "schema": "thermabot.carrier-water.v1",
+  "balance_termico": {
+    "schema": "thermabot.water-loads.v1",
+    "proyecto": {
+      "id": "demo-agua",
+      "nombre": "DEMO SINTÉTICA · integración de cargas"
+    },
+    "fecha": "2026-10-07",
+    "motor": "fixture-software-no-comercial",
+    "base_carga": "local",
+    "revision": {
+      "revisado": false
+    },
+    "espacios": [
+      {
+        "id": "A",
+        "nombre": "Ambiente de prueba",
+        "verano": {
+          "unidad": "BTU/h",
+          "total": 10000,
+          "sensible": 7000,
+          "perfil": [
+            {
+              "hora": 9,
+              "total": 8000,
+              "sensible": 6000
+            },
+            {
+              "hora": 15,
+              "total": 10000,
+              "sensible": 7000
+            }
+          ]
+        },
+        "invierno": {
+          "unidad": "BTU/h",
+          "total": 8000
+        },
+        "procedencia": {
+          "motor": "fixture-software-no-comercial",
+          "trace_ids": [
+            "demo-total-9",
+            "demo-total-15",
+            "demo-calef"
+          ],
+          "nota": "Datos sintéticos para tests, no ejemplo Carrier ni selección comercial"
+        }
+      }
+    ]
+  },
+  "configuracion_agua": {
+    "layout": {
+      "tipo": "reverse_return",
+      "orden_exposiciones": [],
+      "secciones": [
+        {
+          "id": "ida",
+          "nps": "auto",
+          "L_recta_ft": 40.0,
+          "tipo": "general",
+          "fittings": {},
+          "exposiciones_servidas": [],
+          "gpm_diseno": 0.0,
+          "v_fps": 0.0,
+          "L_eq_ft": 0.0,
+          "dh_ft": 0.0,
+          "nps_sugerido": null,
+          "espacios_servidos": [
+            "A"
+          ],
+          "friction_rate_verificado": null,
+          "friction_rate_calef_verificado": null,
+          "referencia_gpm": null,
+          "referencia_calef_gpm": null,
+          "referencia_nps": null,
+          "fuente_friccion": "",
+          "gpm_frio": 0.0,
+          "gpm_calef": 0.0,
+          "dh_frio_ft": 0.0,
+          "dh_calef_ft": 0.0,
+          "friccion_frio": {},
+          "friccion_calef": {},
+          "direccion": "ida"
+        },
+        {
+          "id": "retorno",
+          "nps": "auto",
+          "L_recta_ft": 40.0,
+          "tipo": "general",
+          "fittings": {},
+          "exposiciones_servidas": [],
+          "gpm_diseno": 0.0,
+          "v_fps": 0.0,
+          "L_eq_ft": 0.0,
+          "dh_ft": 0.0,
+          "nps_sugerido": null,
+          "espacios_servidos": [
+            "A"
+          ],
+          "friction_rate_verificado": null,
+          "friction_rate_calef_verificado": null,
+          "referencia_gpm": null,
+          "referencia_calef_gpm": null,
+          "referencia_nps": null,
+          "fuente_friccion": "",
+          "gpm_frio": 0.0,
+          "gpm_calef": 0.0,
+          "dh_frio_ft": 0.0,
+          "dh_calef_ft": 0.0,
+          "friccion_frio": {},
+          "friccion_calef": {},
+          "direccion": "retorno"
+        }
+      ],
+      "circuitos": [
+        {
+          "id": "circuito-A",
+          "espacio_id": "A",
+          "secciones": [
+            "ida",
+            "retorno"
+          ],
+          "perdidas_equipo_ft": 4.0,
+          "perdidas_equipo_calef_ft": 2.0,
+          "fuente_perdidas": "DEMO: pérdidas declaradas, no ficha comercial"
+        }
+      ],
+      "diversidad": "sin_diversidad"
+    },
+    "catalogo_fcu": [
+      {
+        "codigo": "DEMO-NO-COMERCIAL",
+        "Q_tot_nom_btuh": 12000.0,
+        "Q_sens_nom_btuh": 10000.0,
+        "CFM_nom": 500.0,
+        "GPM_nom": 2.4,
+        "OD_tubo_in": 0.5,
+        "N_circuitos": 2,
+        "dP_agua_psi": 1.0,
+        "dP_aire_inH2O": 0.0,
+        "Q_calef_nom_btuh": 10000.0,
+        "GPM_calef_nom": 1.5,
+        "dP_calef_psi": 0.5,
+        "gpm_min_circuito": null,
+        "fuente": "DEMO SINTÉTICA: no usar para selección de fabricante",
+        "condiciones_verificadas": true,
+        "condiciones": {
+          "T_agua_frio_F": 45.0,
+          "T_interior_verano_F": 75.0,
+          "T_agua_caliente_F": 140.0,
+          "T_interior_invierno_F": 70.0,
+          "fuente_psicrometrica": "DEMO: capacidad sensible/total declarada"
+        }
+      }
+    ],
+    "tabla_leq": "table11",
+    "material": "steel",
+    "tanque": {
+      "volumen_equipos_gal": 20.0,
+      "E": 0.02,
+      "P_a": 1.0,
+      "P_f": 0.6,
+      "fuente": "DEMO: coeficientes adimensionales ilustrativos, no tabla Carrier"
+    },
+    "tuberias": {},
+    "condiciones_diseno": {
+      "T_OA_verano_F": 95.0,
+      "T_OA_invierno_F": 35.0,
+      "T_interior_verano_F": 75.0,
+      "T_interior_invierno_F": 70.0,
+      "T_agua_frio_F": 45.0,
+      "T_agua_caliente_F": 140.0,
+      "delta_T_agua_F": 10.0,
+      "horas_operacion_anual": 6000,
+      "friction_rate_diseno": 10.0,
+      "delta_T_calef_F": 20.0,
+      "rugosidad_ft": 0.00015,
+      "viscosidad_frio_ft2_s": 1.5e-05,
+      "viscosidad_calef_ft2_s": 5e-06,
+      "fuente_fluido": "DEMO SINTÉTICA: propiedades declaradas para probar software",
+      "fluido": "water"
+    },
+    "exposiciones": {
+      "A": "N"
+    }
+  }
+}

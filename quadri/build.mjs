@@ -3,7 +3,7 @@ import {stripTypeScriptTypes} from 'node:module';
 import {dirname,join,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=dirname(fileURLToPath(import.meta.url));
-const names=['types','core','psicrometria','catalogo_ashrae','rts','bibliotecas_rts','solar','envolvente','geometria_edificio','particiones','cargas_internas','ventilacion','seleccion_equipos','catalogo_quadri','revision_carga','seguridad_datos','quadri','index','demo','casos_quadri','edificio'];
+const names=['types','core','psicrometria','catalogo_ashrae','rts','bibliotecas_rts','solar','envolvente','geometria_edificio','particiones','cargas_internas','ventilacion','seleccion_equipos','catalogo_quadri','revision_carga','seguridad_datos','quadri','index','demo','casos_quadri','edificio','integracion_agua'];
 let bundle='const modules=Object.create(null);\n';
 for(const name of [...names,'app']){
  const path=name==='app'?join(root,'src/ui/app.ts'):join(root,'src/engine',name+'.ts');
