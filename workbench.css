@@ -32,3 +32,43 @@ body[data-theme=dark] .suite .tag.wait{color:#edbd71}
 .cloud-health.saving i{animation:cloud-pulse .9s ease-in-out infinite}
 @keyframes cloud-pulse{50%{opacity:.35;transform:scale(.8)}}
 @media(max-width:900px){.cloud-health span{display:none}.cloud-health{padding:0 8px}}
+/* Keep the balance workspace within the viewport; other modules are unchanged. */
+body[data-module="calculator"]{height:100dvh;overflow:hidden}
+body[data-module="calculator"] .tracker-shell{height:100dvh;min-height:0;grid-template-columns:64px minmax(0,1fr)!important}
+body[data-module="calculator"] .rail{padding:15px 7px;height:100%;min-height:0}
+body[data-module="calculator"] .rail .brand{font-size:0}
+body[data-module="calculator"] .rail .brand:before{content:'TB';font-size:17px;color:var(--accent)}
+body[data-module="calculator"] .rail .brand-sub,body[data-module="calculator"] .rail .step span,body[data-module="calculator"] .rail .save-status{display:none}
+body[data-module="calculator"] .rail .step{justify-content:center;padding:10px 5px}
+body[data-module="calculator"] .rail .rail-toggle{font-size:0}
+body[data-module="calculator"] .rail .rail-toggle:after{content:'›';font-size:18px}
+body[data-module="calculator"] .tracker-workspace{padding:0 10px 8px;display:flex;flex-direction:column;height:100%;min-height:0;max-width:none}
+body[data-module="calculator"] .tracker-topbar{flex:none;position:static;padding:7px 0;margin:0;min-height:42px;gap:8px}
+body[data-module="calculator"] .tracker-topbar h1{font-size:16px;margin:0}
+body[data-module="calculator"] #trackerMeta,body[data-module="calculator"] #newProjectBtn,body[data-module="calculator"] #globalSearchBtn{display:none}
+body[data-module="calculator"] .top-actions{margin:0;width:auto;gap:5px;flex-wrap:nowrap}
+body[data-module="calculator"] .top-actions .pill{padding:5px 8px;min-height:28px;font-size:10px}
+body[data-module="calculator"] #view-calculator.active-view{display:flex;flex-direction:column;flex:1;min-height:0}
+body[data-module="calculator"] .module-context{padding:6px 8px;margin:0 0 6px;gap:7px;flex:none}
+body[data-module="calculator"] .module-context label{min-width:140px;max-width:350px;font-size:9px;gap:2px}
+body[data-module="calculator"] .module-context select{padding:4px 7px;min-height:27px;font-size:11px}
+body[data-module="calculator"] .module-context button{padding:5px 8px;min-height:27px;font-size:10px}
+body[data-module="calculator"] .workbench-context-note{display:none}
+body[data-module="calculator"] .module-stage{flex:1;min-height:0;border:1px solid var(--line);border-radius:8px}
+body[data-module="calculator"] .module-stage .module-frame{height:100%;min-height:0;border:0;border-radius:0;display:block}
+body[data-module="calculator"] #message,body[data-module="calculator"] #cloudSaveStatus{flex:none;margin:0!important;font-size:9px!important;padding:0!important;line-height:14px}
+@media(max-width:699px){body[data-module="calculator"] .tracker-shell{display:flex!important;flex-direction:column}body[data-module="calculator"] .rail{display:none}body[data-module="calculator"] .tracker-workspace{padding:0 5px 4px;flex:1}body[data-module="calculator"] .tracker-topbar{min-height:32px;padding:4px 2px}body[data-module="calculator"] .tracker-topbar>div:first-child{width:auto}body[data-module="calculator"] .tracker-topbar h1{font-size:13px}body[data-module="calculator"] #driveQuickBtn{display:none}body[data-module="calculator"] .module-context{flex-wrap:nowrap;padding:4px 6px}body[data-module="calculator"] .module-context label{min-width:90px;max-width:none}body[data-module="calculator"] .module-context .actions{flex-wrap:nowrap;gap:4px}body[data-module="calculator"] .module-context button{font-size:9px;padding:5px}body[data-module="calculator"] .module-context .subtle{display:none}}
+@media print{body[data-module="calculator"],body[data-module="calculator"] .tracker-shell,body[data-module="calculator"] .tracker-workspace{height:auto;overflow:visible}body[data-module="calculator"] .module-stage .module-frame{height:1200px}}
+
+
+body[data-module="calculator"] .module-context .subtle{display:none}
+body[data-module="calculator"] .tb-ai-launcher{bottom:8px}
+
+@media(min-width:700px) and (max-height:850px){
+ body[data-module="calculator"] .tracker-topbar{min-height:32px;padding:3px 0}
+ body[data-module="calculator"] .module-context{padding:4px 7px}
+ body[data-module="calculator"] .module-context label{display:flex;align-items:center;gap:6px;max-width:400px}
+ body[data-module="calculator"] .module-context select{min-width:120px}
+}
+
+@media(min-width:700px) and (max-height:850px){body[data-module="calculator"] .module-context label{display:flex!important;flex-direction:row!important;align-items:center;white-space:nowrap}body[data-module="calculator"] .module-context{min-height:35px}body[data-module="calculator"] .module-context select{flex:1;min-width:100px}}
