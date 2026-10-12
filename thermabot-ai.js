@@ -25,7 +25,7 @@ function build(){
   <header class="tb-ai-head"><div class="tb-ai-brand"><div class="tb-ai-mark">AI</div><div><div class="tb-ai-title">THERMABOT AI</div><div class="tb-ai-sub">Asistente técnico</div></div></div><button class="tb-ai-close" id="tbAiClose" aria-label="Cerrar">×</button></header>
   <div class="tb-ai-context"><span class="tb-ai-context-dot"></span><span class="tb-ai-context-text" id="tbAiContext"></span></div>
   <div class="tb-ai-messages" id="tbAiMessages"></div><div class="tb-ai-actions"><button type="button" id="tbAiPortfolio">Panel de prioridades</button><button type="button" id="tbAiAudit">Auditoría de proyecto</button><button type="button" id="tbAiDocs">Documentos vinculados</button><button type="button" id="tbAiProposal">Preparar cambio</button></div>
-  <form class="tb-ai-form" id="tbAiForm"><div class="tb-ai-box"><textarea class="tb-ai-input" id="tbAiInput" rows="1" placeholder="Preguntá sobre tus proyectos…"></textarea><button class="tb-ai-send" id="tbAiSend" type="submit" aria-label="Enviar">↑</button></div><div class="tb-ai-foot">V1 · consulta y análisis · no modifica datos${ON_GITHUB_PAGES?'':' · <button id="tbAiCheck" class="tb-ai-check" type="button">Comprobar conexión</button>'}</div></form>
+  <form class="tb-ai-form" id="tbAiForm"><div class="tb-ai-box"><textarea class="tb-ai-input" id="tbAiInput" rows="1" placeholder="Preguntá sobre tus proyectos…"></textarea><button class="tb-ai-send" id="tbAiSend" type="submit" aria-label="Enviar">↑</button></div><div class="tb-ai-foot">V3 · consultas y propuestas · edición protegida${ON_GITHUB_PAGES?'':' · <button id="tbAiCheck" class="tb-ai-check" type="button">Comprobar conexión</button>'}</div></form>
  </section>`;
  document.body.append(...wrap.childNodes);
 }
@@ -59,7 +59,33 @@ async function send(text){
  finally{$('#tbAiSend').disabled=false;$('#tbAiInput').focus()}
 }
 async function localAction(kind){try{const suite=await loadSuite(),data=readState(),selected=context().project; if(kind==='portfolio'){const a=suite.analyze(data);add('assistant',`Resumen local (${a.asOf}): ${a.counts.projects} proyectos, ${a.counts.active} abiertos, ${a.counts.overdue} seguimientos vencidos, ${a.counts.blocked} con bloqueos o esperas y ${a.counts.inconsistent} inconsistencias. Prioridades:\n${a.queue.slice(0,8).map((x,i)=>`${i+1}. ${x.establishment} — ${x.name}: ${x.nextAction}${x.overdue?' [seguimiento vencido]':''}`).join('\n')}\nFuente: datos de este navegador, no confirmados en producción.`);return;}if(!selected){add('system','Abrí primero la ficha del proyecto para consultar su auditoría o documentos.');return;}if(kind==='audit'){const audit=suite.technicalChecklist(data,selected.id);add('assistant',`Revisión orientativa — ${selected.name}\n${audit.checks.map(x=>'- '+x.topic+': '+x.status).join('\n')}\n${audit.warning}`);return;}if(kind==='docs'){const docs=suite.linkedDocs(data,selected.id);add('assistant',docs.length?`Documentos registrados (${docs.length}):\n${docs.map(d=>'- '+d.title+' '+d.revision+(d.url?' — '+d.url:'')).join('\n')}`:'No hay documentos vinculados registrados en el navegador. No significa que no existan en Drive.');}}catch(e){add('system','No se pudo completar el análisis local: '+e.message);}}
-async function prepareChange(){try{const suite=await loadSuite(),selected=context().project;if(!selected){add('system','Abrí un proyecto antes de preparar cambios.');return;}const field=prompt('Campo a proponer: priority, stage, status, progress, nextAction, nextDueDate, blocker, specRevision, drawingRevision, system, notes, waitingFor','nextAction');if(field===null)return;const value=prompt('Nuevo valor para '+field+' (borrador sin guardar):','');if(value===null)return;const result=suite.proposedChange(readState(),selected.id,{[field.trim()]:value});if(!result.ok){add('system',result.error);return;}const p=result.proposal;add('assistant',`PROPUESTA SIN GUARDAR — ${p.projectName}\n${p.changes.map(x=>x.field+': '+String(x.before??'(vacío)')+' → '+String(x.after)).join('\n')}\nPendiente de aprobación. No se realizaron cambios en la base ni en la web.`);}catch(e){add('system','Error preparando propuesta: '+e.message);}}
+async function prepareChange(){
+ try{
+  const suite=await loadSuite(),selected=context().project;
+  if(!selected){add('system','Abrí un proyecto antes de preparar cambios.');return;}
+  const field=prompt('Campo a modificar: priority, stage, status, progress, nextAction, nextDueDate, blocker, specRevision, drawingRevision, system, notes, waitingFor','nextAction');
+  if(field===null)return;
+  const raw=prompt('Nuevo valor para '+field+' (se verificará antes de guardar):','');
+  if(raw===null)return;
+  const value=field.trim()==='progress'?Number(raw):raw;
+  const local=suite.proposedChange(readState(),selected.id,{[field.trim()]:value});
+  if(!local.ok){add('system',local.error);return;}
+  add('system','Comprobando proyecto y versión en la base privada…');
+  const endpoint=new URL('/api/ai-project-edit',location.origin);
+  endpoint.searchParams.set('id',selected.id);
+  const res=await fetch(endpoint,{cache:'no-store',credentials:'same-origin'});
+  const remote=await res.json().catch(()=>null);
+  if(!res.ok||!remote?.ok){add('system','Edición no disponible: '+(remote?.error||'HTTP '+res.status)+'. El proyecto no fue modificado.');return;}
+  const changes=local.proposal.changes.map(c=>({field:c.field,before:remote.project.fields[c.field]??null,after:c.after}));
+  const text=changes.map(c=>c.field+': '+String(c.before??'(vacío)')+' → '+String(c.after)).join('\n');
+  const approved=confirm('CONFIRMAR MODIFICACIÓN EN THERMABOT\nProyecto: '+remote.project.name+'\n'+text+'\n\nSe guardará en Drive y quedará registrada en el historial. ¿Autorizar?');
+  if(!approved){add('system','Operación cancelada: no se realizaron cambios.');return;}
+  const save=await fetch('/api/ai-project-edit',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-THERMABOT-Confirm':'1'},body:JSON.stringify({projectId:selected.id,revision:remote.revision,changes})});
+  const result=await save.json().catch(()=>null);
+  if(!save.ok||!result?.ok){add('system','No se confirmó el guardado: '+(result?.error||'HTTP '+save.status)+'. Verificá el estado antes de reintentar.');return;}
+  add('assistant','CAMBIO GUARDADO Y VERIFICADO — '+remote.project.name+'\n'+text+'\nNueva revisión: '+result.revision+'\nActualizá la vista para recargar la base.');
+ }catch(e){add('system','No se pudo completar la edición: '+e.message);}
+}
 function syncContext(){const el=$('#tbAiContext');if(el)el.textContent=label(context())}
 window.addEventListener('DOMContentLoaded',()=>{
  build();syncContext();welcome();
