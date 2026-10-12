@@ -27,7 +27,7 @@ export async function publishInventory(env,state,google=g){
  await google(env,`https://sheets.googleapis.com/v4/spreadsheets/${sheet}/values/${encodeURIComponent("'"+AUTO+"'!A1:K6001")}?valueInputOption=RAW`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});
 }
 export async function runMaintenance(env,google=g){
- const stateId=id(env.THERMABOT_AUTOMATION_STATE_ID);id(env.THERMABOT_DOCUMENT_INDEX_SHEET_ID);
+ const stateId=id(env.THERMABOT_AUTOMATION_STATE_ID);if([env.THERMABOT_DRIVE_MASTER_ID,env.THERMABOT_DRIVE_BACKUP_ID].includes(stateId))throw Error('INVALID_STATE');id(env.THERMABOT_DOCUMENT_INDEX_SHEET_ID);
  const meta=await json(google,env,`https://www.googleapis.com/drive/v2/files/${stateId}?fields=id,etag`);if(!meta.etag)throw Error('MISSING_ETAG');
  const stored=await json(google,env,`https://www.googleapis.com/drive/v3/files/${stateId}?alt=media`);if(!stored||typeof stored!=='object'||Array.isArray(stored))throw Error('INVALID_STATE');if(stored.format&&stored.format!=='thermabot-automation-v1'||!stored.format&&Object.keys(stored).length)throw Error('INVALID_STATE');
  let state=stored.format?stored:{format:'thermabot-automation-v1',documents:[]};if(!Array.isArray(state.documents)||state.documents.length>MAX||state.crawl&&(!Array.isArray(state.crawl.queue)||!Array.isArray(state.crawl.seen)||!state.crawl.files||!Array.isArray(state.crawl.errors)))throw Error('INVALID_STATE');if(state.publishPending&&!state.crawl){await publishInventory(env,state,google);state.publishPending=false;}let crawl=state.crawl;
@@ -39,7 +39,7 @@ export async function runMaintenance(env,google=g){
    if(page.nextPageToken)folder.token=page.nextPageToken;else{crawl.seen.push(folder.id);crawl.queue.shift();}
   }catch(e){if(/INDEX_TOO_LARGE|INCOMPLETE_SEARCH/.test(e.message))throw e;crawl.errors.push({folderId:folder.id,error:'Carpeta no verificada'});crawl.queue.shift();}
  }
- if(!crawl.queue.length){const found=Object.values(crawl.files),missing=(state.documents||[]).filter(d=>!crawl.files[d.id]).map(d=>({...d,driveStatus:'not-located'}));state.documents=[...found,...missing];if(state.documents.length>MAX)throw Error('INDEX_TOO_LARGE');state.completedAt=new Date().toISOString();state.lastErrors=crawl.errors;delete state.crawl;state.publishPending=true;}
+ if(!crawl.queue.length){const found=Object.values(crawl.files),missing=(state.documents||[]).filter(d=>!crawl.files[d.id]).map(d=>({...d,driveStatus:env.THERMABOT_INVENTORY_ROOT_ID||state.works.some(w=>w.code===d.code)?'not-located':'not-in-scope'}));state.documents=[...found,...missing];if(state.documents.length>MAX)throw Error('INDEX_TOO_LARGE');state.completedAt=new Date().toISOString();state.lastErrors=crawl.errors;delete state.crawl;state.publishPending=true;}
  state.updatedAt=new Date().toISOString();const body=JSON.stringify(state);if(new TextEncoder().encode(body).length>8*1024*1024)throw Error('STATE_TOO_LARGE');
  await google(env,`https://www.googleapis.com/upload/drive/v2/files/${stateId}?uploadType=media`,{method:'PUT',headers:{'Content-Type':'application/json','If-Match':meta.etag},body});
  if(state.publishPending&&!state.crawl){await publishInventory(env,state,google);}
