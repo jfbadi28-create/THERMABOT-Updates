@@ -11,10 +11,10 @@ function complete(data,taskId,input){
  }else{const task=data.milestones.find(t=>t.id===taskId&&t.projectId===p.id);if(!task||task.status==='Cumplido')throw Error('La tarea ya cambió.');task.status='Cumplido';task.completedAt=input.at;if(next)data.milestones.push({id:input.nextId,projectId:p.id,title:next,type:'Otro',status:'Pendiente',dueDate:due,owner:task.owner||p.owner||''});}
  p.updatedAt=input.at;p.followUpLog=p.followUpLog||[];p.followUpLog.push({id:input.eventId,at:input.at,actor:input.actor,note:'Tarea cumplida'+(next?' · Siguiente: '+next:' · Sin siguiente acción'),changes:[]});
 }
-function approve(data,id,{at,actor,expectedVersion}){
+function approve(data,id,{at,actor,expectedVersion,driveMetadata}){
  const d=data.documents.find(d=>d.id===id);if(!d)throw Error('El documento ya no existe.');const p=data.projects.find(p=>p.id===d.projectId);if(!p)throw Error('El proyecto ya no existe.');if((p.updatedAt||'')!==expectedVersion)throw Error('El proyecto cambió. Revisá sus documentos.');
  for(const other of data.documents)if(other.id!==d.id&&other.projectId===d.projectId&&other.type===d.type&&other.current===true){other.current=false;other.status='Histórico';}
- d.current=true;d.status='Aprobado';d.approvedAt=at;d.approvedBy=actor;p.updatedAt=at;p.followUpLog=p.followUpLog||[];p.followUpLog.push({id:'doc:'+id+':'+at,at,actor,note:'Documento aprobado y vigente: '+d.title+' · '+(d.revision||'Sin revisión'),changes:[]});
+ if(driveMetadata){d.approvedDriveVersion=String(driveMetadata.version||'');d.approvedDriveModifiedAt=driveMetadata.modifiedTime||'';}d.current=true;d.status='Aprobado';d.approvedAt=at;d.approvedBy=actor;p.updatedAt=at;p.followUpLog=p.followUpLog||[];p.followUpLog.push({id:'doc:'+id+':'+at,at,actor,note:'Documento aprobado y vigente: '+d.title+' · '+(d.revision||'Sin revisión'),changes:[]});
 }
 const api={complete,approve};if(typeof module!=='undefined')module.exports=api;else root.TBDailyActionsCore=api;
 })(typeof window==='undefined'?globalThis:window);

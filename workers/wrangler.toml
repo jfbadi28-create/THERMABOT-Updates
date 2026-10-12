@@ -1,0 +1,7 @@
+name = "thermabot-drive-maintenance"
+main = "automation-scheduler.js"
+compatibility_date = "2026-10-12"
+[triggers]
+crons = ["*/5 * * * *"]
+# Configure Google credentials and private Drive IDs as Worker secrets.
+# No production IDs, passwords, or tokens belong in this file.
