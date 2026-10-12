@@ -4,6 +4,8 @@ on:
     paths:
       - 'thermabot-ai-suite.js'
       - 'thermabot-ai.js'
+      - 'thermabot-council-l3.js'
+      - 'tests/thermabot-council-l3.test.cjs'
       - 'tests/thermabot-ai-suite.test.cjs'
       - '.github/workflows/thermabot-ai-suite.yml'
   push:
@@ -26,4 +28,5 @@ jobs:
           node-version: '22'
       - run: node --check thermabot-ai-suite.js
       - run: node --check thermabot-ai.js
-      - run: node --test tests/thermabot-ai-suite.test.cjs
+      - run: node --check thermabot-council-l3.js
+      - run: node --test tests/thermabot-ai-suite.test.cjs tests/thermabot-council-l3.test.cjs
