@@ -326,7 +326,7 @@
     const d=id?data.documents.find(x=>x.id===id):{};
     modal(id?'Editar documento':'Nuevo documento',`<form id="documentForm" class="modal-grid"><input type="hidden" name="id" value="${esc(d?.id||'')}"/><label>Proyecto<select name="projectId">${projectSelectOptions(d?.projectId||selectedProjectId||'')}</select></label><label>Tipo<select name="type">${optionList(DOCUMENT_TYPES,d?.type||'Pliego')}</select></label><label>Documento<input name="title" required value="${esc(d?.title||'')}"/></label><label>Revisión<input name="revision" value="${esc(d?.revision||'R00')}"/></label><label>Estado<select name="status">${optionList(DOCUMENT_STATUSES,d?.status||'Borrador')}</select></label><label>Link de Google Drive<input name="driveUrl" type="url" value="${esc(d?.driveUrl||'')}" placeholder="https://drive.google.com/…"/></label><label class="span-2">Observaciones<textarea name="notes" rows="3">${esc(d?.notes||'')}</textarea></label><div class="modal-actions span-2"><button type="button" class="pill" data-close-modal>Cancelar</button><button type="submit" class="pill dark">Guardar documento</button></div></form>`);
     document.querySelector('[data-close-modal]').onclick=closeModal;
-    $('documentForm').onsubmit=e2=>{e2.preventDefault();const o=Object.fromEntries(new FormData(e2.currentTarget).entries());o.updatedAt=nowIso();if(o.id){const ix=data.documents.findIndex(x=>x.id===o.id);data.documents[ix]={...data.documents[ix],...o};}else{o.id=uid('doc');data.documents.push(o);}saveLocal();closeModal();renderAll();};
+    $('documentForm').onsubmit=e2=>{e2.preventDefault();const o=Object.fromEntries(new FormData(e2.currentTarget).entries());o.updatedAt=nowIso();if(o.id){const ix=data.documents.findIndex(x=>x.id===o.id),previous=data.documents[ix];if(!previous)throw Error('El documento ya no existe.');if(['projectId','title','type','revision','driveUrl'].some(k=>String(previous[k]||'')!==String(o[k]||''))){o.current=false;o.status='Borrador';o.approvedAt=null;o.approvedBy='';}else if(o.status!=='Aprobado')o.current=false;data.documents[ix]={...previous,...o};}else{o.id=uid('doc');data.documents.push(o);}saveLocal();closeModal();renderAll();};
   }
 
   function deleteItem(collection,id){
@@ -584,7 +584,7 @@
     editEquipment:openEquipmentModal,
     editMilestone:openMilestoneModal,
     editDocument:openDocumentModal,
-    mutate:fn=>{const old=data;data=JSON.parse(JSON.stringify(data));try{fn(data);saveLocal();}catch(error){data=old;throw error;}renderAll();},
+    mutate:fn=>{const old=data;data=JSON.parse(JSON.stringify(data));try{fn(data);if(window.TBWorkdayCore)window.TBWorkdayCore.validateClosures(old,data);saveLocal();}catch(error){data=old;throw error;}renderAll();},
     refresh:()=>{data=loadLocal();if(!projectById(selectedProjectId))selectedProjectId=data.projects[0]?.id||null;renderAll();}
   };
 

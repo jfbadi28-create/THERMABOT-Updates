@@ -1,7 +1,7 @@
 /* The Drive inventory stays read-only. Only an explicit folder association edits a project. */
 window.TBDriveDocuments=function(options){
   'use strict';
-  const {API,tracker,esc,toast,onLinked}=options;
+  const {API,tracker,esc,toast,onLinked,onDocument}=options;
   const core=TBDocumentIndexCore;
   let index=null,error='',loading=null,source=null,generation=0;
   const views=new Map();
@@ -21,7 +21,8 @@ window.TBDriveDocuments=function(options){
     host.innerHTML='<div class="suite-head"><div><h3>Expediente en Drive</h3><p>Archivos del inventario · '+esc(work?.code||'carpeta por asociar')+'</p></div><div class="actions"><a class="pill" href="'+esc(source.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Registro maestro</a><button id="refreshDocumentIndex">Actualizar índice</button></div></div>'+
       '<div class="suite-toolbar"><label class="grow">Carpeta de la obra<select id="documentIndexWork"><option value="">Sin asociación</option>'+index.works.map(w=>option(w.code,w.code+' · '+w.title,work?.code)).join('')+'</select></label><button id="linkDocumentIndexWork">Guardar asociación</button></div>'+
       '<p class="subtle">La asociación automática se basa en el ID de Drive. Elegí una carpeta si la referencia antigua apunta a otro documento. Guardar la asociación no cambia la etapa ni el estado del proyecto.</p>'+
-      (work?'<div class="actions"><a class="pill" href="'+esc(work.driveUrl)+'" target="_blank" rel="noopener noreferrer">Abrir carpeta de la obra</a></div><div class="suite-toolbar"><label class="grow">Buscar documento<input id="documentIndexQuery" value="'+esc(view.query)+'" placeholder="Pliego, plano, cálculo, revisión…"></label><label>Tipo<select id="documentIndexType"><option value="">Todos</option>'+types.map(t=>option(t,t,view.type)).join('')+'</select></label></div><p>La revisión visible y el inventario no acreditan aprobación. Verificá el estado antes de usar un archivo.</p><div class="technical-table"><table><thead><tr><th>Documento</th><th>Tipo / revisión</th><th>Estado y pendiente</th><th></th></tr></thead><tbody>'+list.map(d=>'<tr><td><strong>'+esc(d.title)+'</strong><small>'+esc(d.path)+'</small></td><td>'+esc(d.type||d.format)+'<small>'+esc(d.revision||'Sin revisión identificada')+'</small></td><td>'+esc(d.state)+'<small>'+esc(d.action)+'</small></td><td>'+(d.driveUrl?'<a href="'+esc(d.driveUrl)+'" target="_blank" rel="noopener noreferrer">Abrir en Drive</a>':'Enlace por verificar')+'</td></tr>').join('')+'</tbody></table></div><p class="subtle">'+list.length+' archivos en esta selección. Consulta del índice: '+esc(new Date(source.checkedAt).toLocaleString('es-AR'))+'.</p>':'<p>Seleccioná la carpeta correspondiente para consultar los archivos. No se atribuyen documentos por parecido de nombres.</p>');
+      (work?'<div class="actions"><a class="pill" href="'+esc(work.driveUrl)+'" target="_blank" rel="noopener noreferrer">Abrir carpeta de la obra</a></div><div class="suite-toolbar"><label class="grow">Buscar documento<input id="documentIndexQuery" value="'+esc(view.query)+'" placeholder="Pliego, plano, cálculo, revisión…"></label><label>Tipo<select id="documentIndexType"><option value="">Todos</option>'+types.map(t=>option(t,t,view.type)).join('')+'</select></label></div><p>La revisión visible y el inventario no acreditan aprobación. Verificá el estado antes de usar un archivo.</p><div class="technical-table"><table><thead><tr><th>Documento</th><th>Tipo / revisión</th><th>Estado y pendiente</th><th></th></tr></thead><tbody>'+list.map(d=>'<tr><td><strong>'+esc(d.title)+'</strong><small>'+esc(d.path)+'</small></td><td>'+esc(d.type||d.format)+'<small>'+esc(d.revision||'Sin revisión identificada')+'</small></td><td>'+esc(d.state)+'<small>'+esc(d.action)+'</small></td><td>'+(d.driveUrl?'<a href="'+esc(d.driveUrl)+'" target="_blank" rel="noopener noreferrer">Abrir en Drive</a>':'Enlace por verificar')+(d.driveUrl?'<button data-link-index-doc="'+esc(d.id)+'">Vincular al proyecto</button>':'')+'</td></tr>').join('')+'</tbody></table></div><p class="subtle">'+list.length+' archivos en esta selección. Consulta del índice: '+esc(new Date(source.checkedAt).toLocaleString('es-AR'))+'.</p>':'<p>Seleccioná la carpeta correspondiente para consultar los archivos. No se atribuyen documentos por parecido de nombres.</p>');
+    host.querySelectorAll('[data-link-index-doc]').forEach(b=>b.onclick=()=>onDocument?.(index.documents.find(d=>d.id===b.dataset.linkIndexDoc),id));
     host.querySelector('#refreshDocumentIndex').onclick=()=>mount(id,true);
     host.querySelector('#linkDocumentIndexWork').onclick=()=>{
       const code=host.querySelector('#documentIndexWork').value,next=index.works.find(w=>w.code===code);
@@ -51,5 +52,7 @@ window.TBDriveDocuments=function(options){
     }
     paint(id,token);if(loading)await loading;paint(id,token);
   }
-  return {html,mount};
+  async function search(query){if(!index){await mount(API.selectedId());}if(!index){throw Error(error||'Índice no disponible.');}const q=String(query||'').trim().toLocaleLowerCase('es');return index.documents.filter(d=>[d.title,d.path,d.type,d.revision].join(' ').toLocaleLowerCase('es').includes(q)).slice(0,60).map(d=>({...d,kind:'Drive',detail:[d.path,d.revision].filter(Boolean).join(' · ')}));}
+  function folder(id){const p=project(id);return index&&p?core.resolveWork(p,index)?.driveUrl||'':'';}
+  return {html,mount,search,folder};
 };

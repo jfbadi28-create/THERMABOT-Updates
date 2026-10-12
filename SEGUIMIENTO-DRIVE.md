@@ -25,3 +25,11 @@ La ruta privada usa el middleware de autenticación existente. No incluye creden
 `node --test tests/daily-work.cjs tests/document-index.cjs tests/document-index.test.mjs tests/workspace-sync.test.mjs`
 
 La verificación local no acredita un despliegue conectado. La prueba final necesita una sesión autenticada y la configuración de producción.
+
+## Operación diaria y captura móvil
+
+- `Ctrl + K`: registros locales, documentos del índice conectado y acciones. `Alt + Shift + R`: registrar. `Alt + Shift + H`: Mi día.
+- Chat: `/tarea texto`, `/novedad texto`, `/doc búsqueda`, `/hoy`, `/ayuda`. Los comandos abren formularios; no guardan silenciosamente.
+- La vinculación desde el índice registra un borrador; la vigencia exige aprobación explícita.
+- Capturas móviles: configurar `THERMABOT_CAPTURE_FOLDER_ID` con una carpeta privada y conceder acceso de escritura a la cuenta de servicio existente. Se admiten JPEG, PNG y WebP hasta 8 MB. La API mantiene autenticación Basic y comprobación de origen. Sin configuración, el formulario informa el problema y conserva el texto. La foto se sube antes de vincularla; si cambia el proyecto, se muestra el enlace del archivo ya subido para recuperarlo.
+- La consulta del inventario sigue siendo de sólo lectura y no vuelve a recorrer Drive. Actualizar archivos del inventario requiere actualizar la planilla fuente.

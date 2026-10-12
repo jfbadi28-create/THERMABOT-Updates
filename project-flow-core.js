@@ -1,10 +1,10 @@
 /* Project updates and their history share one atomic tracker record. HVAC math is untouched. */
 (function(root){
   'use strict';
-  const fields=['status','stage','nextAction','nextDueDate','waitingFor','waitingSince','blocker','lastMove','completedOn','installedTR','installedOn','progress','reportGroup','decisionRequired','decisionRequest','engineeringState','technicalPending','targetYear'];
+  const fields=['status','stage','nextAction','nextDueDate','waitingFor','waitingSince','blocker','lastMove','closureEvidence','completedOn','installedTR','installedOn','progress','reportGroup','decisionRequired','decisionRequest','engineeringState','technicalPending','targetYear'];
   const labels={status:'Estado',stage:'Etapa',nextAction:'Próxima acción',nextDueDate:'Fecha de seguimiento',waitingFor:'Esperando a',waitingSince:'Esperando desde',blocker:'Bloqueo',lastMove:'Último movimiento'};
   function validDate(value){if(!value)return true;const d=new Date(value+'T12:00:00Z');return /^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===value;}
-  Object.assign(labels,{completedOn:'Fecha de finalización',installedTR:'TR instaladas',installedOn:'Fecha de instalación'});
+  Object.assign(labels,{closureEvidence:'Evidencia de puesta en marcha / recepción',completedOn:'Fecha de finalización',installedTR:'TR instaladas',installedOn:'Fecha de instalación'});
   Object.assign(labels,{progress:'Avance técnico (%)',reportGroup:'Sección del informe',decisionRequired:'Requiere decisión de Dirección',decisionRequest:'Decisión requerida',engineeringState:'Estado de ingeniería',technicalPending:'Pendiente técnico',targetYear:'Año objetivo'});
   function reporting(project,input){
     const patch={};for(const field of ['reportGroup','decisionRequest','engineeringState','technicalPending','targetYear']){patch[field]=String(input[field]??project[field]??'').trim();if(patch[field].length>1500)throw Error('El campo '+labels[field]+' excede 1500 caracteres.');}
@@ -27,7 +27,7 @@
     if(installedTR!==null&&installedTR>0&&!installedOn)throw Error('Indicá la fecha en que se instaló esa capacidad.');
     if(status==='Finalizado'&&project.status!=='Finalizado'&&!completedOn)throw Error('Indicá la fecha de finalización del proyecto.');
     if(installedTR===null&&installedOn)throw Error('Ingresá las TR instaladas o quitá la fecha de instalación.');
-    return {installedTR,installedOn,completedOn};
+    const closureEvidence=String(input.closureEvidence??project.closureEvidence??'').trim();if(closureEvidence.length>1500)throw Error('La evidencia de cierre debe tener hasta 1500 caracteres.');if(status==='Finalizado'&&project.status!=='Finalizado'&&!closureEvidence)throw Error('Registrá el acta o la evidencia de puesta en marcha para cerrar.');return {installedTR,installedOn,completedOn,closureEvidence};
   }
   function weekly(data,workflow,today){
     const monday=value=>{const d=new Date(value+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);};
