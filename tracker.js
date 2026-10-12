@@ -22,8 +22,8 @@
   const EQUIPMENT_STATUSES = ['A definir','Cotización','Pedido','En instalación','En servicio','Mantenimiento','Fuera de servicio'];
   const MILESTONE_STATUSES = ['Pendiente','En curso','Esperando respuesta','Cumplido','Vencido'];
   const MILESTONE_TYPES = ['Ingeniería','Pliego','Compra','Licitación','Obra','Puesta en marcha','Validación','Administrativo','Otro'];
-  const DOCUMENT_TYPES = ['Pliego','Plano','Memoria','Informe','Cotización','Acta','Certificación','Protocolo','Manual','Otro'];
-  const DOCUMENT_STATUSES = ['Borrador','En revisión','Vigente','Reemplazado','Aprobado'];
+  const DOCUMENT_TYPES = ['Pliego','Plano','Memoria','Informe','Presupuesto','Cotización','Acta','Certificación','Protocolo','Manual','Otro'];
+  const DOCUMENT_STATUSES = ['Borrador','En revisión','Vigente','Reemplazado','Histórico','Aprobado'];
 
   const $ = id => document.getElementById(id);
   const n = (v,d=0) => Number.isFinite(Number(v)) ? Number(v) : d;
