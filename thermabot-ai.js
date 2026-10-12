@@ -9,7 +9,7 @@ const ON_GITHUB_PAGES=location.hostname.endsWith('github.io');
 const API_URL=ON_GITHUB_PAGES?'https://thermabot-ai-backend.vercel.app/api/ai-chat':new URL('/api/ai-chat',location.origin).href;
 function readState(){try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return{}}}
 function context(){
- const data=readState(),params=new URLSearchParams(location.search),id=params.get('projectId');
+ const data=readState(),params=new URLSearchParams(location.search),id=window.TBTracker?.selectedId()||params.get('projectId');
  const p=(data.projects||[]).find(x=>x.id===id)||null;
  const project=p?{id:p.id,name:p.name,establishment:p.establishment,sector:p.sector,system:p.system,priority:p.priority,stage:p.stage,status:p.status,progress:p.progress,targetDate:p.targetDate,lastMove:p.lastMove,nextAction:p.nextAction,blocker:p.blocker,specRevision:p.specRevision,drawingRevision:p.drawingRevision,supplier:p.supplier,expediente:p.expediente,notes:p.notes}:null;
  return {project,portfolio:{projects:(data.projects||[]).map(x=>({id:x.id,name:x.name,establishment:x.establishment,sector:x.sector,system:x.system,priority:x.priority,stage:x.stage,status:x.status,progress:x.progress,targetDate:x.targetDate,nextAction:x.nextAction,blocker:x.blocker})),milestones:(data.milestones||[]).slice(0,150),equipment:(data.equipment||[]).slice(0,150),documents:(data.documents||[]).slice(0,150)}};
@@ -25,7 +25,7 @@ function build(){
   <header class="tb-ai-head"><div class="tb-ai-brand"><div class="tb-ai-mark">AI</div><div><div class="tb-ai-title">THERMABOT AI</div><div class="tb-ai-sub">Asistente técnico</div></div></div><button class="tb-ai-close" id="tbAiClose" aria-label="Cerrar">×</button></header>
   <div class="tb-ai-context"><span class="tb-ai-context-dot"></span><span class="tb-ai-context-text" id="tbAiContext"></span></div>
   <div class="tb-ai-messages" id="tbAiMessages"></div><div class="tb-ai-actions"><button type="button" id="tbAiPortfolio">Panel de prioridades</button><button type="button" id="tbAiAudit">Auditoría de proyecto</button><button type="button" id="tbAiDocs">Documentos vinculados</button><button type="button" id="tbAiProposal">Preparar cambio</button></div>
-  <form class="tb-ai-form" id="tbAiForm"><div class="tb-ai-box"><textarea class="tb-ai-input" id="tbAiInput" rows="1" placeholder="Preguntá sobre tus proyectos…"></textarea><button class="tb-ai-send" id="tbAiSend" type="submit" aria-label="Enviar">↑</button></div><div class="tb-ai-foot">Consultas rápidas locales · preguntas abiertas requieren API${ON_GITHUB_PAGES?'':' · <button id="tbAiCheck" class="tb-ai-check" type="button">Comprobar conexión</button>'}</div></form>
+  <form class="tb-ai-form" id="tbAiForm"><div class="tb-ai-box"><textarea class="tb-ai-input" id="tbAiInput" rows="1" placeholder="Preguntá o usá /tarea, /novedad, /doc, /hoy…"></textarea><button class="tb-ai-send" id="tbAiSend" type="submit" aria-label="Enviar">↑</button></div><div class="tb-ai-foot">Consultas rápidas locales · preguntas abiertas requieren API${ON_GITHUB_PAGES?'':' · <button id="tbAiCheck" class="tb-ai-check" type="button">Comprobar conexión</button>'}</div></form>
  </section>`;
  document.body.append(...wrap.childNodes);
 }
@@ -60,6 +60,7 @@ async function offlineReply(text){
 }
 async function send(text){
  text=String(text||'').trim();if(!text)return;
+ if(text.startsWith('/')&&window.TBWorkday){add('user',text);$('#tbAiInput').value='';try{add('assistant',await window.TBWorkday.command(text));}catch(error){add('system',error.message);}return;}
  add('user',text);$('#tbAiInput').value='';$('#tbAiSend').disabled=true;const loading=add('assistant','Analizando…','loading');
  const h=loadHistory();
  try{

@@ -1,8 +1,8 @@
 {
-  "name": "THERMABOT — Cálculo de cargas térmicas",
+  "name": "THERMABOT — Proyectos e ingeniería",
   "short_name": "THERMABOT",
-  "description": "Aplicación HVAC para cálculo térmico",
-  "start_url": "./",
+  "description": "Proyectos, seguimiento diario, documentos y cálculos HVAC",
+  "start_url": "./tracker.html?view=projects",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3efe6",

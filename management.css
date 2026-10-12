@@ -90,3 +90,10 @@ body[data-theme=dark] .inline-error{color:#ff899c}
 .drive-document-index .technical-table{max-height:560px;overflow:auto}
 .drive-document-index td{vertical-align:top;min-width:160px}
 .drive-document-index td small{display:block;margin-top:5px}
+/* Daily operations stay within reach on desktop and phone. */
+.project-shortcuts{display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:5;padding:10px;background:var(--card);border-bottom:1px solid var(--line);margin-bottom:16px}
+.workday-sections>section,.workday-sections>details{margin:16px 0;padding:12px;border:1px solid var(--line);border-radius:8px}.workday-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}.workday-row>span{flex:1;min-width:160px}
+#captureVisitForm{display:grid;gap:12px}#captureVisitForm label{display:grid;gap:6px}.current-documents{margin-bottom:18px}.current-documents small{display:block}.tracker-topbar{position:sticky;top:0;z-index:20;background:var(--bg)}
+@media(max-width:640px){.tracker-topbar{position:relative}.top-actions{gap:6px;flex-wrap:wrap}#quickRegisterBtn{position:fixed;bottom:18px;left:16px;z-index:9100;box-shadow:0 3px 12px #0003}#workdayBtn{font-weight:700}.project-shortcuts{top:0;gap:6px}.project-shortcuts button{flex:1;min-width:100px}.workday-row>span{flex-basis:100%}.suite-dialog{max-height:90dvh;overflow:auto}#suitePalette input{font-size:16px}}
+.quick-secondary{position:relative}.quick-secondary summary{cursor:pointer;padding:8px 12px}.quick-secondary[open]{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.topbar .quick-secondary button{margin:4px}
+@media(max-width:640px){.toast{bottom:140px;left:16px;right:16px;max-width:none}.tb-ai-launcher{bottom:18px;right:16px}.tb-ai-panel{bottom:76px;right:16px;height:min(620px,calc(100dvh - 100px))}}

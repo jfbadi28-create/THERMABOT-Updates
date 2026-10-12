@@ -1,6 +1,6 @@
 {
-  "version": "0.9.2",
-  "date": "2026-10-04",
+  "version": "0.10.0",
+  "date": "2026-10-12",
   "channel": "stable",
-  "description": "Estado unificado de Drive, última escritura confirmada y verificación de conexión sin reemplazar cambios locales."
+  "description": "Registro rápido, Mi día, documentos de Drive y comandos de trabajo."
 }

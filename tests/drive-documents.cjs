@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 function setup(fetch){
   let selected='p1',mutations=0;
-  const controls=new Map(),host={innerHTML:'',querySelector(selector){if(!controls.has(selector))controls.set(selector,{value:'',focus(){},setSelectionRange(){}});return controls.get(selector);}};
+  const controls=new Map(),host={innerHTML:'',querySelectorAll(){return [];},querySelector(selector){if(!controls.has(selector))controls.set(selector,{value:'',focus(){},setSelectionRange(){}});return controls.get(selector);}};
   const context={window:{},URL,Response,AbortSignal,Date,fetch,document:{getElementById:id=>id==='driveDocumentIndex'?host:null}};
   vm.createContext(context);vm.runInContext(fs.readFileSync('document-index-core.js','utf8'),context);vm.runInContext(fs.readFileSync('drive-documents.js','utf8'),context);
   const projects=[{id:'p1',sourceDriveUrl:'https://drive.google.com/drive/folders/f1'},{id:'p2',sourceDriveUrl:'https://drive.google.com/drive/folders/f2'}];
