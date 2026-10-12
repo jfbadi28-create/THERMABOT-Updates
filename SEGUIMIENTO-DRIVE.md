@@ -66,3 +66,7 @@ El Worker privado está en `workers/automation-scheduler.js`; `workers/wrangler.
 ### Google Drive personal y creación de archivos
 
 Google no permite que una cuenta de servicio sea propietaria de archivos nuevos en Mi unidad. Para ese caso se admite OAuth del usuario: configurar como secretos `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET` y `GOOGLE_DRIVE_REFRESH_TOKEN`, obtenidos con consentimiento del usuario y acceso offline a Drive y Sheets. El servidor renueva el token; ninguna credencial se envía al navegador o a GitHub. Si no se configura OAuth, se conserva la cuenta de servicio existente; sus creaciones deben dirigirse a una unidad compartida compatible. No basta compartir una carpeta personal para habilitar propiedad o cuota de una cuenta de servicio.
+
+## Acceso al pliego y carpeta de cada proyecto
+
+El panel lateral y la ficha muestran accesos directos a la carpeta y al pliego. Una carpeta guardada como enlace se abre sin depender del índice. `Conectar enlaces` permite registrar la carpeta y seleccionar un pliego explícitamente, con revisión y control de concurrencia. Cambiar título/revisión retira la aprobación anterior. Cuando no hay un pliego registrado, se consultan candidatos del inventario exclusivamente de la obra asociada; no se elige una revisión como aprobada por nombre o fecha. Sin índice disponible se puede pegar el enlace directamente. La barra de guardado distingue persistencia local y confirmación de Drive.

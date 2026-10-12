@@ -53,6 +53,7 @@ window.TBDriveDocuments=function(options){
     paint(id,token);if(loading)await loading;paint(id,token);
   }
   async function search(query){if(!index){await mount(API.selectedId());}if(!index){throw Error(error||'Índice no disponible.');}const q=String(query||'').trim().toLocaleLowerCase('es');return index.documents.filter(d=>[d.title,d.path,d.type,d.revision].join(' ').toLocaleLowerCase('es').includes(q)).slice(0,60).map(d=>({...d,kind:'Drive',detail:[d.path,d.revision].filter(Boolean).join(' · ')}));}
-  function folder(id){const p=project(id);return index&&p?core.resolveWork(p,index)?.driveUrl||'':'';}
-  return {html,mount,search,folder};
+  function folder(id){const p=project(id);if(!p)return '';const direct=window.TBProjectDriveCore?.folder(p);return direct|| (index?core.resolveWork(p,index)?.driveUrl||'':'');}
+  async function specifications(id){if(!index)await mount(id);if(!index)throw Error(error||'Índice no disponible.');const p=project(id),work=p&&core.resolveWork(p,index);return work?core.forWork(index,work.code).filter(d=>/pliego/i.test(d.type)||/pliego/i.test(d.title)):[];}
+  return {html,mount,search,folder,specifications};
 };

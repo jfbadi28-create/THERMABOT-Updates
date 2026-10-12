@@ -24,7 +24,7 @@
   }
   function resolveWork(project,index){
     if(project.driveProjectCode){const exact=index.works.find(w=>w.code===project.driveProjectCode);return exact||null;}
-    const id=driveId(project.sourceDriveUrl);if(!id)return null;
+    const id=driveId(project.driveFolderUrl||project.sourceDriveUrl);if(!id)return null;
     const folder=index.works.filter(w=>w.folderId===id);if(folder.length===1)return folder[0];
     const codes=[...new Set(index.documents.filter(d=>d.id===id).map(d=>d.code))];
     return codes.length===1?index.works.find(w=>w.code===codes[0])||null:null;
