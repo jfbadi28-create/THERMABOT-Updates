@@ -1,6 +1,6 @@
 {
-  "version": "0.11.1",
+  "version": "0.12.0",
   "date": "2026-10-12",
   "channel": "stable",
-  "description": "Accesos directos al pliego y carpeta de cada proyecto, sin depender del índice."
+  "description": "Autorización Google guiada y selección verificada de recursos Drive."
 }

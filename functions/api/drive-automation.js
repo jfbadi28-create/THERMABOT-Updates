@@ -1,3 +1,4 @@
+import {connectionEnv} from '../google-connection-store.js';
 import {g,hasGoogleCredentials} from './tracker-sync.js';
 import {readIndex} from './document-index.js';
 const MIME='application/vnd.google-apps.folder',AUTO='AUTO - INVENTARIO DRIVE',MAX=6000;
@@ -26,7 +27,7 @@ export async function publishInventory(env,state,google=g){
  while(rows.length<MAX+1)rows.push(Array(11).fill(''));
  await google(env,`https://sheets.googleapis.com/v4/spreadsheets/${sheet}/values/${encodeURIComponent("'"+AUTO+"'!A1:K6001")}?valueInputOption=RAW`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});
 }
-export async function runMaintenance(env,google=g){
+export async function runMaintenance(env,google=g){env=await connectionEnv(env);
  const stateId=id(env.THERMABOT_AUTOMATION_STATE_ID);if([env.THERMABOT_DRIVE_MASTER_ID,env.THERMABOT_DRIVE_BACKUP_ID].includes(stateId))throw Error('INVALID_STATE');id(env.THERMABOT_DOCUMENT_INDEX_SHEET_ID);
  const meta=await json(google,env,`https://www.googleapis.com/drive/v2/files/${stateId}?fields=id,etag`);if(!meta.etag)throw Error('MISSING_ETAG');
  const stored=await json(google,env,`https://www.googleapis.com/drive/v3/files/${stateId}?alt=media`);if(!stored||typeof stored!=='object'||Array.isArray(stored))throw Error('INVALID_STATE');if(stored.format&&stored.format!=='thermabot-automation-v1'||!stored.format&&Object.keys(stored).length)throw Error('INVALID_STATE');
@@ -45,7 +46,7 @@ export async function runMaintenance(env,google=g){
  if(state.publishPending&&!state.crawl){await publishInventory(env,state,google);}
  return {running:!!state.crawl,remaining:state.crawl?.queue.length||0,documents:state.documents.length,completedAt:state.completedAt||null,warnings:state.lastErrors?.length||state.crawl?.errors.length||0};
 }
-export async function onRequest(ctx,google=g){const req=ctx.request,url=new URL(req.url),action=url.searchParams.get('action')||'status';if(req.method==='GET'&&action==='status')return reply({inventoryConfigured:!!(ctx.env.THERMABOT_AUTOMATION_STATE_ID&&ctx.env.THERMABOT_DOCUMENT_INDEX_SHEET_ID),structureConfigured:!!(ctx.env.THERMABOT_OBRAS_ROOT_ID&&ctx.env.THERMABOT_DRIVE_MASTER_ID),googleConfigured:!!(hasGoogleCredentials(ctx.env))});
+export async function onRequest(ctx,google=g){try{ctx={...ctx,request:ctx.request,env:await connectionEnv(ctx.env)};}catch{return reply({error:'No se pudo leer la conexión privada de Google.'},503);}const req=ctx.request,url=new URL(req.url),action=url.searchParams.get('action')||'status';if(req.method==='GET'&&action==='status')return reply({inventoryConfigured:!!(ctx.env.THERMABOT_AUTOMATION_STATE_ID&&ctx.env.THERMABOT_DOCUMENT_INDEX_SHEET_ID),structureConfigured:!!(ctx.env.THERMABOT_OBRAS_ROOT_ID&&ctx.env.THERMABOT_DRIVE_MASTER_ID),googleConfigured:!!(hasGoogleCredentials(ctx.env))});
  if(!hasGoogleCredentials(ctx.env))return reply({error:'Drive requiere configurar la cuenta de servicio.'},503);
  try{if(req.method==='GET'&&action==='inspect'){const ids=(url.searchParams.get('ids')||'').split(',').filter(Boolean);if(ids.length>20)return reply({error:'Consultá hasta 20 archivos por lote.'},400);return reply({files:await inspectFiles(ctx.env,ids,google)});}
  if(req.method!=='POST')return reply({error:'Método no permitido.'},405);if(req.headers.get('Origin')!==url.origin||req.headers.get('X-THERMABOT-Save')!=='1')return reply({error:'Origen no permitido.'},403);
