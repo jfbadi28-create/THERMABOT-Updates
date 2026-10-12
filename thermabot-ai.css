@@ -6,3 +6,8 @@
 html[data-theme=dark] .tb-ai-panel{background:#1a2d26;border-color:#35483e;color:#e7f0eb}html[data-theme=dark] .tb-ai-head,html[data-theme=dark] .tb-ai-form{background:#1a2d26;border-color:#35483e}html[data-theme=dark] .tb-ai-context{background:#14231e;border-color:#35483e}html[data-theme=dark] .tb-ai-msg.assistant{color:#e7f0eb}html[data-theme=dark] .tb-ai-msg.system,html[data-theme=dark] .tb-ai-chip,html[data-theme=dark] .tb-ai-box{background:#20352d;border-color:#405349;color:#d9e4de}html[data-theme=dark] .tb-ai-input{color:#e7f0eb!important}
 @media(max-width:640px){.tb-ai-launcher{right:14px;bottom:66px}.tb-ai-panel{right:10px;bottom:120px;width:calc(100vw - 20px);height:min(72vh,620px);border-radius:16px}}
 @media print{.tb-ai-launcher,.tb-ai-panel{display:none!important}}
+/* Comprobación gratuita de configuración: sin generar consultas pagas. */
+.tb-ai-check{border:0;padding:0;background:transparent;color:#7a551c;text-decoration:underline;cursor:pointer;font:inherit}
+.tb-ai-check:hover{text-decoration:none}
+.tb-ai-check:disabled{opacity:.5;cursor:default}
+html[data-theme=dark] .tb-ai-check{color:#e6a33a}
