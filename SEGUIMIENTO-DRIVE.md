@@ -62,3 +62,7 @@ El Worker privado está en `workers/automation-scheduler.js`; `workers/wrangler.
 2. Configurar Pages y comprobar Automatizaciones → Actualizar inventario, verificando el avance y la pestaña generada.
 3. Desplegar el Worker con `npx wrangler deploy --config workers/wrangler.toml`; configurar sus secretos sin incluirlos en GitHub.
 4. Verificar ejecuciones completas y advertencias en Cloudflare. La frecuencia es de lotes, no una promesa de actualización instantánea de todo Drive.
+
+### Google Drive personal y creación de archivos
+
+Google no permite que una cuenta de servicio sea propietaria de archivos nuevos en Mi unidad. Para ese caso se admite OAuth del usuario: configurar como secretos `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET` y `GOOGLE_DRIVE_REFRESH_TOKEN`, obtenidos con consentimiento del usuario y acceso offline a Drive y Sheets. El servidor renueva el token; ninguna credencial se envía al navegador o a GitHub. Si no se configura OAuth, se conserva la cuenta de servicio existente; sus creaciones deben dirigirse a una unidad compartida compatible. No basta compartir una carpeta personal para habilitar propiedad o cuota de una cuenta de servicio.

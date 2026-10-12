@@ -105,7 +105,7 @@ jobs:
           node tests/workspace.cjs
           node tests/suite.cjs
           node --test --test-isolation=none tests/workspace-sync.test.mjs
-          node --test tests/automation-core.cjs tests/drive-automation.test.mjs tests/workday.cjs tests/capture-upload.test.mjs tests/daily-actions.cjs tests/daily-work.cjs tests/document-index.cjs tests/document-index.test.mjs tests/drive-documents.cjs
+          node --test tests/google-auth.test.mjs tests/automation-core.cjs tests/drive-automation.test.mjs tests/workday.cjs tests/capture-upload.test.mjs tests/daily-actions.cjs tests/daily-work.cjs tests/document-index.cjs tests/document-index.test.mjs tests/drive-documents.cjs
           cd quadri && node --test --test-isolation=none tests/*.test.ts && cd ..
           node --input-type=module --check < functions/_middleware.js
           node --input-type=module --check < functions/api/tracker-sync.js

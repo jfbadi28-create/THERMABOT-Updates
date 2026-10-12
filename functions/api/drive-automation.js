@@ -1,4 +1,4 @@
-import {g} from './tracker-sync.js';
+import {g,hasGoogleCredentials} from './tracker-sync.js';
 import {readIndex} from './document-index.js';
 const MIME='application/vnd.google-apps.folder',AUTO='AUTO - INVENTARIO DRIVE',MAX=6000;
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'private, no-store'}});
@@ -45,8 +45,8 @@ export async function runMaintenance(env,google=g){
  if(state.publishPending&&!state.crawl){await publishInventory(env,state,google);}
  return {running:!!state.crawl,remaining:state.crawl?.queue.length||0,documents:state.documents.length,completedAt:state.completedAt||null,warnings:state.lastErrors?.length||state.crawl?.errors.length||0};
 }
-export async function onRequest(ctx,google=g){const req=ctx.request,url=new URL(req.url),action=url.searchParams.get('action')||'status';if(req.method==='GET'&&action==='status')return reply({inventoryConfigured:!!(ctx.env.THERMABOT_AUTOMATION_STATE_ID&&ctx.env.THERMABOT_DOCUMENT_INDEX_SHEET_ID),structureConfigured:!!(ctx.env.THERMABOT_OBRAS_ROOT_ID&&ctx.env.THERMABOT_DRIVE_MASTER_ID),googleConfigured:!!(ctx.env.GOOGLE_SERVICE_ACCOUNT_EMAIL&&ctx.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY)});
- if(!ctx.env.GOOGLE_SERVICE_ACCOUNT_EMAIL||!ctx.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY)return reply({error:'Drive requiere configurar la cuenta de servicio.'},503);
+export async function onRequest(ctx,google=g){const req=ctx.request,url=new URL(req.url),action=url.searchParams.get('action')||'status';if(req.method==='GET'&&action==='status')return reply({inventoryConfigured:!!(ctx.env.THERMABOT_AUTOMATION_STATE_ID&&ctx.env.THERMABOT_DOCUMENT_INDEX_SHEET_ID),structureConfigured:!!(ctx.env.THERMABOT_OBRAS_ROOT_ID&&ctx.env.THERMABOT_DRIVE_MASTER_ID),googleConfigured:!!(hasGoogleCredentials(ctx.env))});
+ if(!hasGoogleCredentials(ctx.env))return reply({error:'Drive requiere configurar la cuenta de servicio.'},503);
  try{if(req.method==='GET'&&action==='inspect'){const ids=(url.searchParams.get('ids')||'').split(',').filter(Boolean);if(ids.length>20)return reply({error:'Consultá hasta 20 archivos por lote.'},400);return reply({files:await inspectFiles(ctx.env,ids,google)});}
  if(req.method!=='POST')return reply({error:'Método no permitido.'},405);if(req.headers.get('Origin')!==url.origin||req.headers.get('X-THERMABOT-Save')!=='1')return reply({error:'Origen no permitido.'},403);
  if(action==='scan')return reply(await runMaintenance(ctx.env,google));if(action==='structure'){if(Number(req.headers.get('Content-Length'))>4096)return reply({error:'Solicitud demasiado grande.'},413);const text=await req.text();if(text.length>4096)return reply({error:'Solicitud demasiado grande.'},413);return reply(await createStructure(ctx.env,JSON.parse(text),google));}return reply({error:'Acción no permitida.'},400);
