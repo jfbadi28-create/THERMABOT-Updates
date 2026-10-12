@@ -2,6 +2,8 @@
 const STORAGE='thermabot.tracker.v1';
 const HISTORY='thermabot.ai.history.v1';
 const $=s=>document.querySelector(s);
+const SUITE_URL=new URL('./thermabot-ai-suite.js',document.currentScript?.src||location.href).href;
+function loadSuite(){return new Promise((resolve,reject)=>{if(window.ThermabotAISuite)return resolve(window.ThermabotAISuite);const el=document.createElement('script');el.src=SUITE_URL;el.onload=()=>window.ThermabotAISuite?resolve(window.ThermabotAISuite):reject(Error('Módulo incompleto'));el.onerror=()=>reject(Error('No se cargó el módulo de análisis'));document.head.appendChild(el);});}
 // Cloudflare Pages y dominios propios consultan su API local; GitHub Pages conserva Vercel.
 const ON_GITHUB_PAGES=location.hostname.endsWith('github.io');
 const API_URL=ON_GITHUB_PAGES?'https://thermabot-ai-backend.vercel.app/api/ai-chat':new URL('/api/ai-chat',location.origin).href;
@@ -22,7 +24,7 @@ function build(){
  <section class="tb-ai-panel" id="tbAiPanel" hidden aria-label="THERMABOT AI">
   <header class="tb-ai-head"><div class="tb-ai-brand"><div class="tb-ai-mark">AI</div><div><div class="tb-ai-title">THERMABOT AI</div><div class="tb-ai-sub">Asistente técnico</div></div></div><button class="tb-ai-close" id="tbAiClose" aria-label="Cerrar">×</button></header>
   <div class="tb-ai-context"><span class="tb-ai-context-dot"></span><span class="tb-ai-context-text" id="tbAiContext"></span></div>
-  <div class="tb-ai-messages" id="tbAiMessages"></div>
+  <div class="tb-ai-messages" id="tbAiMessages"></div><div class="tb-ai-actions"><button type="button" id="tbAiPortfolio">Panel de prioridades</button><button type="button" id="tbAiAudit">Auditoría de proyecto</button><button type="button" id="tbAiDocs">Documentos vinculados</button></div>
   <form class="tb-ai-form" id="tbAiForm"><div class="tb-ai-box"><textarea class="tb-ai-input" id="tbAiInput" rows="1" placeholder="Preguntá sobre tus proyectos…"></textarea><button class="tb-ai-send" id="tbAiSend" type="submit" aria-label="Enviar">↑</button></div><div class="tb-ai-foot">V1 · consulta y análisis · no modifica datos${ON_GITHUB_PAGES?'':' · <button id="tbAiCheck" class="tb-ai-check" type="button">Comprobar conexión</button>'}</div></form>
  </section>`;
  document.body.append(...wrap.childNodes);
@@ -56,6 +58,7 @@ async function send(text){
  }catch(e){loading.remove();add('system','No pude consultar la IA: '+e.message)}
  finally{$('#tbAiSend').disabled=false;$('#tbAiInput').focus()}
 }
+async function localAction(kind){try{const suite=await loadSuite(),data=readState(),selected=context().project; if(kind==='portfolio'){const a=suite.analyze(data);add('assistant',`Resumen local (${a.asOf}): ${a.counts.projects} proyectos, ${a.counts.active} abiertos, ${a.counts.overdue} seguimientos vencidos, ${a.counts.blocked} con bloqueos o esperas y ${a.counts.inconsistent} inconsistencias. Prioridades:\n${a.queue.slice(0,8).map((x,i)=>`${i+1}. ${x.establishment} — ${x.name}: ${x.nextAction}${x.overdue?' [seguimiento vencido]':''}`).join('\n')}\nFuente: datos de este navegador, no confirmados en producción.`);return;}if(!selected){add('system','Abrí primero la ficha del proyecto para consultar su auditoría o documentos.');return;}if(kind==='audit'){const audit=suite.technicalChecklist(data,selected.id);add('assistant',`Revisión orientativa — ${selected.name}\n${audit.checks.map(x=>'- '+x.topic+': '+x.status).join('\n')}\n${audit.warning}`);return;}if(kind==='docs'){const docs=suite.linkedDocs(data,selected.id);add('assistant',docs.length?`Documentos registrados (${docs.length}):\n${docs.map(d=>'- '+d.title+' '+d.revision+(d.url?' — '+d.url:'')).join('\n')}`:'No hay documentos vinculados registrados en el navegador. No significa que no existan en Drive.');}}catch(e){add('system','No se pudo completar el análisis local: '+e.message);}}
 function syncContext(){const el=$('#tbAiContext');if(el)el.textContent=label(context())}
 window.addEventListener('DOMContentLoaded',()=>{
  build();syncContext();welcome();
@@ -64,6 +67,9 @@ window.addEventListener('DOMContentLoaded',()=>{
  $('#tbAiForm').onsubmit=e=>{e.preventDefault();send($('#tbAiInput').value)};
  $('#tbAiInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#tbAiForm').requestSubmit()}});
  if(!ON_GITHUB_PAGES)$('#tbAiCheck').onclick=checkConnection;
+ $('#tbAiPortfolio').onclick=()=>localAction('portfolio');
+ $('#tbAiAudit').onclick=()=>localAction('audit');
+ $('#tbAiDocs').onclick=()=>localAction('docs');
  window.addEventListener('thermabot:navigate',syncContext);window.addEventListener('thermabot:render',syncContext);
 });
 })();
