@@ -1,3 +1,4 @@
+import {connectionEnv} from '../google-connection-store.js';
 import {g,hasGoogleCredentials} from './tracker-sync.js';
 import * as loaded from '../../document-index-core.js';
 const core=loaded.default||globalThis.TBDocumentIndexCore;
@@ -24,7 +25,7 @@ export async function readIndex(env,google=g){
   return {...parsed,sourceUrl:`https://docs.google.com/spreadsheets/d/${id}/edit`,checkedAt:new Date().toISOString()};
 }
 
-export async function onRequest(ctx){
+export async function onRequest(ctx){try{ctx={...ctx,request:ctx.request,env:await connectionEnv(ctx.env)};}catch{return reply({error:'No se pudo leer la conexión privada de Google.'},503);}
   if(ctx.request.method!=='GET')return reply({error:'Método no permitido.'},405);
   if(!hasGoogleCredentials(ctx.env)||!ctx.env.THERMABOT_DOCUMENT_INDEX_SHEET_ID)return reply({error:'El índice documental de Drive todavía no está conectado.',code:'INDEX_NOT_CONFIGURED'},503);
   try{return reply(await readIndex(ctx.env));}

@@ -26,6 +26,10 @@ jobs:
         run: |
           set -euo pipefail
           required=(
+            drive-connect.js
+            functions/google-connection-store.js
+            functions/api/google-auth.js
+            functions/api/drive-connection.js
             suite.js
             suite-core.js
             daily-actions-core.js
@@ -90,6 +94,11 @@ jobs:
           node --check workspace.js
           node --check workspace-core.js
           node --check cloud-sync.js
+          node --check drive-connect.js
+          node --input-type=module --check < functions/api/google-auth.js
+          node --input-type=module --check < functions/api/drive-connection.js
+          node --input-type=module --check < functions/google-connection-store.js
+          node --test tests/google-connection.test.mjs
           node --check suite.js
           node --check suite-core.js
           node --check document-index-core.js

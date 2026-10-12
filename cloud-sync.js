@@ -6,6 +6,7 @@ if(parent===window&&window.TBDesignPreview){
 }
 const keys=['thermabot.tracker.v1','thermabot.suite.v1','thermabot.workspace.v1','thermabot.proyectos.v1','thermabot-building-v21-trial'],pendingKey='thermabot.cloud.pending.v1';
 const api=new URL('api/workspace-sync',document.currentScript.src).href;
+let paused=false;
 let remote=null,busy=false,timer,message='Drive: comprobando conexión…',phase='checking',dirty=localStorage.getItem(pendingKey)==='1',generation=0;
 const original=Storage.prototype.setItem;
 const state=()=>({phase,message,pending:dirty,busy,verified:phase==='saved'&&!dirty,updatedAt:remote?.updatedAt||null});
@@ -85,7 +86,7 @@ function hasCriticalLoss(beforeRaw,afterRaw){
   }catch{return [];}
 }
 async function save(){
-  if(busy)return;if(!dirty)return check();
+  if(paused||busy)return;if(!dirty)return check();
   busy=true;const savingGeneration=generation;
   try{
     if(!remote)remote=await request();
@@ -104,7 +105,7 @@ async function save(){
 }
 // Check is read-only when clean: it never replaces edits or silently rebases a conflict.
 async function check(){
-  if(busy)return;if(dirty)return save();
+  if(paused||busy)return;if(dirty)return save();
   busy=true;const checkingGeneration=generation;status('Comprobando Drive…','checking');
   try{
     const latest=await request();
@@ -114,7 +115,7 @@ async function check(){
   finally{busy=false;status(message,phase);if(dirty)timer=setTimeout(save,2200);}
 }
 Storage.prototype.setItem=function(k,v){const before=this.getItem(k);if(this===localStorage&&k==='thermabot.tracker.v1'&&before!==String(v))rememberTracker(before);original.call(this,k,v);if(this===localStorage&&keys.includes(k)&&before!==String(v))changed();};
-window.TBCloud={status:()=>message,state,save,check,changed};
+window.TBCloud={status:()=>message,state,save,check,changed,pause:()=>{if(busy||dirty)throw Error("Hay una comprobación o guardado pendiente. Esperá y reintentá.");paused=true;clearTimeout(timer);},resume:()=>{paused=false;}};
 window.TBCloudReady=(async()=>{
   try{
     remote=await request();
