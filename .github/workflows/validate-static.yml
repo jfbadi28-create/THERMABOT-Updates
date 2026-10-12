@@ -28,6 +28,9 @@ jobs:
           required=(
             suite.js
             suite-core.js
+            document-index-core.js
+            drive-documents.js
+            functions/api/document-index.js
             suite.css
             workspace.html
             workspace.css
@@ -82,6 +85,8 @@ jobs:
           node --check cloud-sync.js
           node --check suite.js
           node --check suite-core.js
+          node --check document-index-core.js
+          node --check drive-documents.js
           node --check engineering-core.js
           node --check project-flow-core.js
           node --check project-flow.js
@@ -94,11 +99,13 @@ jobs:
           node tests/workspace.cjs
           node tests/suite.cjs
           node --test --test-isolation=none tests/workspace-sync.test.mjs
+          node --test tests/daily-work.cjs tests/document-index.cjs tests/document-index.test.mjs tests/drive-documents.cjs
           cd quadri && node --test --test-isolation=none tests/*.test.ts && cd ..
           node --input-type=module --check < functions/_middleware.js
           node --input-type=module --check < functions/api/tracker-sync.js
           node --input-type=module --check < functions/api/ai-chat.js
           node --input-type=module --check < functions/api/workspace-sync.js
+          node --input-type=module --check < functions/api/document-index.js
 
       - name: Validate JSON files
         run: |

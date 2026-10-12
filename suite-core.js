@@ -3,6 +3,7 @@
   'use strict';
   const active=p=>!['Finalizado','Suspendido'].includes(p.status);
   const fold=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const meaningfulAction=value=>!!String(value??'').trim().replace(/^[-–—.\s]+$/,'');
   function search(tracker,balances,query){
     const q=fold(query).trim();
     const project=id=>tracker.projects.find(p=>p.id===id)?.name||'Sin proyecto';
@@ -10,16 +11,26 @@
       ...tracker.equipment.map(e=>({kind:'Equipo',id:e.id,projectId:e.projectId,title:e.name,detail:[project(e.projectId),e.model,e.tag].filter(Boolean).join(' · ')})),
       ...tracker.documents.map(d=>({kind:'Documento',id:d.id,projectId:d.projectId,title:d.title,detail:[project(d.projectId),d.type,d.revision].join(' · ')})),
       ...tracker.milestones.map(m=>({kind:'Hito',id:m.id,projectId:m.projectId,title:m.title,detail:project(m.projectId)})),
-      ...tracker.projects.filter(p=>active(p)&&p.nextAction).map(p=>({kind:'Tarea',id:'next:'+p.id,projectId:p.id,title:p.nextAction,detail:[p.name,p.owner].filter(Boolean).join(' · ')})),
+      ...tracker.projects.filter(p=>active(p)&&meaningfulAction(p.nextAction)).map(p=>({kind:'Tarea',id:'next:'+p.id,projectId:p.id,title:p.nextAction,detail:[p.name,p.owner].filter(Boolean).join(' · ')})),
       ...balances.map(b=>({kind:'Cálculo',id:b.id,title:b.nombre,detail:b.condiciones?.ciudad||''}))];
     return rows.filter(r=>!q||fold(r.title+' '+r.detail+' '+r.kind).includes(q)).slice(0,40);
   }
   function tasks(tracker,today,workflow={}){
     const projects=tracker.projects.filter(active),ids=new Set(projects.map(p=>p.id));
     return [...tracker.milestones.filter(m=>ids.has(m.projectId)).map(m=>({...m,kind:'milestone',project:projects.find(p=>p.id===m.projectId)?.name})),
-      ...projects.filter(p=>p.nextAction).map(p=>({id:'next:'+p.id,projectId:p.id,title:p.nextAction,project:p.name,status:workflow[p.id]?.nextTaskStatus||'Pendiente',dueDate:p.nextDueDate===undefined?p.targetDate:p.nextDueDate,owner:p.owner,kind:'next'}))]
+      ...projects.filter(p=>meaningfulAction(p.nextAction)).map(p=>({id:'next:'+p.id,projectId:p.id,title:p.nextAction,project:p.name,status:workflow[p.id]?.nextTaskStatus||'Pendiente',dueDate:p.nextDueDate===undefined?p.targetDate:p.nextDueDate,owner:p.owner,kind:'next'}))]
       .map(t=>({...t,overdue:!!t.dueDate&&t.dueDate<today&&t.status!=='Cumplido'}))
       .sort((a,b)=>Number(b.overdue)-Number(a.overdue)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999'));
+  }
+  function dailyQueue(tracker,today,workflow={}){
+    const all=tasks(tracker,today,workflow).filter(t=>t.status!=='Cumplido');
+    const byId=new Map(tracker.projects.map(p=>[p.id,p]));
+    const end=new Date(today+'T12:00:00Z');end.setUTCDate(end.getUTCDate()+6);
+    const last=end.toISOString().slice(0,10);
+    return {all,today:all.filter(t=>t.overdue||t.dueDate===today||['Urgente','Bloqueado'].includes(byId.get(t.projectId)?.status)),
+      overdue:all.filter(t=>t.overdue),week:all.filter(t=>t.dueDate&&t.dueDate>=today&&t.dueDate<=last),
+      undated:all.filter(t=>!t.dueDate),waiting:all.filter(t=>t.status==='Esperando respuesta'||byId.get(t.projectId)?.status==='Esperando tercero'),
+      missingAction:tracker.projects.filter(p=>active(p)&&!meaningfulAction(p.nextAction))};
   }
   function projectLane(p){if(p.status==='Finalizado')return 'Finalizado';if(p.status==='Esperando tercero')return 'Esperando tercero';if(['Bloqueado','Urgente'].includes(p.status))return 'Bloqueado';if(p.status==='Suspendido')return 'Suspendido';return 'Activo';}
   function financial(finance={}){
@@ -47,6 +58,6 @@
       if(u.pathname.toLowerCase().endsWith('.pdf'))return u.href;
     }catch{}return null;
   }
-  const api={active,search,tasks,projectLane,financial,marketing,publicSnapshot,previewUrl};
+  const api={active,meaningfulAction,search,tasks,dailyQueue,projectLane,financial,marketing,publicSnapshot,previewUrl};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TBSuiteCore=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
