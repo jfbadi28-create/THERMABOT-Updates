@@ -1,6 +1,6 @@
 {
-  "version": "0.11.0",
+  "version": "0.11.1",
   "date": "2026-10-12",
   "channel": "stable",
-  "description": "Automatizaciones de inventario, seguimiento, documentos, informes y estructura de obras."
+  "description": "Accesos directos al pliego y carpeta de cada proyecto, sin depender del índice."
 }
