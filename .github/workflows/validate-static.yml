@@ -111,6 +111,7 @@ jobs:
           node --check reports.js
           node --test tests/ai-chat.test.cjs
           node --test --test-isolation=none tests/engineering.cjs tests/project-flow.cjs tests/reports.cjs
+          node tests/cloud-status.cjs
           node tests/tracker-reliability.cjs
           node tests/workspace.cjs
           node tests/suite.cjs

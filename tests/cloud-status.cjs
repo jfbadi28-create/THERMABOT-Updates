@@ -45,3 +45,6 @@ test('Checking a changed remote revision does not replace local records or silen
 test('Local design preview never contacts Drive or claims a confirmed save',async()=>{
   const h=setup({preview:true});await h.ready;await h.cloud.save();await h.cloud.check();assert.equal(h.calls.length,0);assert.equal(h.cloud.state().phase,'preview');assert.equal(h.cloud.state().verified,false);
 });
+test('Base selection pauses reads and writes and rejects unsaved edits',async()=>{
+ const h=setup();await h.ready;const before=h.calls.length;h.cloud.pause();await h.cloud.save();await h.cloud.check();assert.equal(h.calls.length,before);h.cloud.resume();await h.cloud.check();assert.equal(h.calls.length,before+1);h.context.localStorage.setItem(TRACKER,'{"projects":[{"id":"p1","name":"Pending"}]}');assert.throws(()=>h.cloud.pause(),/pendiente/);assert.equal(h.cloud.state().pending,true);
+});
