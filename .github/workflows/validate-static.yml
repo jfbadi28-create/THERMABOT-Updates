@@ -58,6 +58,8 @@ jobs:
             icon-512.png
             functions/_middleware.js
             functions/api/tracker-sync.js
+            functions/api/ai-chat.js
+            thermabot-ai.js
             .nojekyll
           )
           for f in "${required[@]}"; do
@@ -74,6 +76,7 @@ jobs:
           node --check tracker.js
           node --check tracker-drive-autosync.js
           node --check sw.js
+          node --check thermabot-ai.js
           node --check workspace.js
           node --check workspace-core.js
           node --check cloud-sync.js
@@ -85,6 +88,7 @@ jobs:
           node --check report-core.js
           node --check report-docx.js
           node --check reports.js
+          node --test tests/ai-chat.test.cjs
           node --test --test-isolation=none tests/engineering.cjs tests/project-flow.cjs tests/reports.cjs
           node tests/tracker-reliability.cjs
           node tests/workspace.cjs
@@ -93,6 +97,7 @@ jobs:
           cd quadri && node --test --test-isolation=none tests/*.test.ts && cd ..
           node --input-type=module --check < functions/_middleware.js
           node --input-type=module --check < functions/api/tracker-sync.js
+          node --input-type=module --check < functions/api/ai-chat.js
           node --input-type=module --check < functions/api/workspace-sync.js
 
       - name: Validate JSON files
