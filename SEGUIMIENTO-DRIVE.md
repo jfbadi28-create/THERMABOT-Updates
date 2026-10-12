@@ -33,3 +33,36 @@ La verificación local no acredita un despliegue conectado. La prueba final nece
 - La vinculación desde el índice registra un borrador; la vigencia exige aprobación explícita.
 - Capturas móviles: configurar `THERMABOT_CAPTURE_FOLDER_ID` con una carpeta privada y conceder acceso de escritura a la cuenta de servicio existente. Se admiten JPEG, PNG y WebP hasta 8 MB. La API mantiene autenticación Basic y comprobación de origen. Sin configuración, el formulario informa el problema y conserva el texto. La foto se sube antes de vincularla; si cambia el proyecto, se muestra el enlace del archivo ya subido para recuperarlo.
 - La consulta del inventario sigue siendo de sólo lectura y no vuelve a recorrer Drive. Actualizar archivos del inventario requiere actualizar la planilla fuente.
+
+## Automatizaciones 0.11
+
+La web muestra novedades desde la última visita, inactividad por etapa, reclamos listos para copiar, listas por etapa sin duplicados y un informe de los últimos siete días (fecha argentina). No envía mensajes externos ni aprueba documentos. Las listas son guías de gestión, no certificados normativos.
+
+### Inventario automático y verificación documental
+
+`functions/api/drive-automation.js` recorre carpetas por lotes de 12 consultas, conserva paginación y cursor y publica sólo al completar el recorrido. Mantiene el inventario clasificado original y escribe únicamente `AUTO - INVENTARIO DRIVE`. El buscador superpone la metadata actual por ID. Archivos no localizados o carpetas inaccesibles se señalan para verificación, sin asegurar que fueron eliminados.
+
+Configurar en Cloudflare Pages:
+- Cuenta de servicio Google existente, con permiso de lectura en las carpetas y escritura en el registro y archivo de estado.
+- `THERMABOT_DOCUMENT_INDEX_SHEET_ID`: planilla ya organizada.
+- `THERMABOT_AUTOMATION_STATE_ID`: archivo JSON privado dedicado, inicialmente `{}`; nunca usar la base de proyectos ni su respaldo.
+- `THERMABOT_INVENTORY_ROOT_ID`: opcional. Sin él se recorren las obras del control estructural; con él, el árbol de esa raíz.
+
+La web visible consulta cada cinco minutos. Las versiones de Drive se verifican al aprobar documentos enlazados y al revisar los vinculados; cambios posteriores producen alertas. Documentos aprobados antes de disponer de una versión verificable se señalan como sin base de comparación.
+
+### Estructuras de obras nuevas
+
+Configurar `THERMABOT_OBRAS_ROOT_ID` y el maestro real explícito en `THERMABOT_DRIVE_MASTER_ID`. La API verifica el proyecto en el maestro y crea sólo carpeta y secciones faltantes identificadas por `appProperties`. Un proyecto que ya tiene referencia a Drive exige asociar su carpeta existente. La vinculación al proyecto usa el control habitual de revisión; si hay conflicto, muestra la carpeta creada para recuperarla.
+
+### Ejecución con la web cerrada
+
+El Worker privado está en `workers/automation-scheduler.js`; `workers/wrangler.toml` define un disparo cada cinco minutos. No expone acciones públicas. Debe desplegarse por separado en la misma cuenta Cloudflare y recibir la cuenta de servicio y los IDs de inventario/estado como secretos. Publicar Pages no despliega ese Worker ni activa su horario.
+
+1. Crear y verificar un archivo de estado privado dedicado y conceder los permisos mínimos indicados.
+2. Configurar Pages y comprobar Automatizaciones → Actualizar inventario, verificando el avance y la pestaña generada.
+3. Desplegar el Worker con `npx wrangler deploy --config workers/wrangler.toml`; configurar sus secretos sin incluirlos en GitHub.
+4. Verificar ejecuciones completas y advertencias en Cloudflare. La frecuencia es de lotes, no una promesa de actualización instantánea de todo Drive.
+
+### Google Drive personal y creación de archivos
+
+Google no permite que una cuenta de servicio sea propietaria de archivos nuevos en Mi unidad. Para ese caso se admite OAuth del usuario: configurar como secretos `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET` y `GOOGLE_DRIVE_REFRESH_TOKEN`, obtenidos con consentimiento del usuario y acceso offline a Drive y Sheets. El servidor renueva el token; ninguna credencial se envía al navegador o a GitHub. Si no se configura OAuth, se conserva la cuenta de servicio existente; sus creaciones deben dirigirse a una unidad compartida compatible. No basta compartir una carpeta personal para habilitar propiedad o cuota de una cuenta de servicio.

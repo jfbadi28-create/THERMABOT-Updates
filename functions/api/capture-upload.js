@@ -1,13 +1,13 @@
-import {g} from './tracker-sync.js';
+import {g,hasGoogleCredentials} from './tracker-sync.js';
 const MAX=8*1024*1024;
 const reply=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store, private'}});
 export function validImage(bytes,type){if(type==='image/jpeg')return bytes[0]===255&&bytes[1]===216&&bytes[2]===255;if(type==='image/png')return [137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v);if(type==='image/webp')return new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP';return false;}
 export async function onRequest(ctx,google=g){
  const req=ctx.request;
- if(req.method==='GET'&&new URL(req.url).searchParams.get('status')==='1')return reply({configured:Boolean(ctx.env.THERMABOT_CAPTURE_FOLDER_ID&&ctx.env.GOOGLE_SERVICE_ACCOUNT_EMAIL&&ctx.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY)});
+ if(req.method==='GET'&&new URL(req.url).searchParams.get('status')==='1')return reply({configured:Boolean(ctx.env.THERMABOT_CAPTURE_FOLDER_ID&&hasGoogleCredentials(ctx.env))});
  if(req.method!=='POST')return reply({error:'Método no permitido.'},405);
  if(req.headers.get('Origin')!==new URL(req.url).origin||req.headers.get('X-THERMABOT-Save')!=='1')return reply({error:'Origen no permitido.'},403);
- const folder=ctx.env.THERMABOT_CAPTURE_FOLDER_ID;if(!folder||!ctx.env.GOOGLE_SERVICE_ACCOUNT_EMAIL||!ctx.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY)return reply({error:'La carga de fotos todavía no está configurada. Podés guardar la visita sin foto o conservar el texto y reintentar.'},503);
+ const folder=ctx.env.THERMABOT_CAPTURE_FOLDER_ID;if(!folder||!hasGoogleCredentials(ctx.env))return reply({error:'La carga de fotos todavía no está configurada. Podés guardar la visita sin foto o conservar el texto y reintentar.'},503);
  if(!/^[\w-]+$/.test(folder))return reply({error:'Carpeta de capturas inválida.'},503);
  if(Number(req.headers.get('Content-Length'))>MAX+65536)return reply({error:'La foto supera 8 MB.'},413);
  try{
