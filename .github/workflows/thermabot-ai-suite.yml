@@ -1,0 +1,29 @@
+name: THERMABOT AI suite tests
+on:
+  pull_request:
+    paths:
+      - 'thermabot-ai-suite.js'
+      - 'thermabot-ai.js'
+      - 'tests/thermabot-ai-suite.test.cjs'
+      - '.github/workflows/thermabot-ai-suite.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'thermabot-ai-suite.js'
+      - 'thermabot-ai.js'
+      - 'tests/thermabot-ai-suite.test.cjs'
+      - '.github/workflows/thermabot-ai-suite.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check thermabot-ai-suite.js
+      - run: node --check thermabot-ai.js
+      - run: node --test tests/thermabot-ai-suite.test.cjs
