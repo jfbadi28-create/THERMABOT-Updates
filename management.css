@@ -84,3 +84,9 @@ body[data-theme=dark] .inline-error{color:#ff899c}
 /* Vista única V2 y estado Drive */
 .portfolio-mode-toggle{display:none!important}
 @media(min-width:641px){.tracker-topbar #cloudHealthIndicator,.tracker-topbar #driveQuickBtn{display:inline-flex!important}}
+
+.daily-missing-actions{display:grid;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#dce2df)}
+.drive-document-index{margin-top:22px;padding:20px}
+.drive-document-index .technical-table{max-height:560px;overflow:auto}
+.drive-document-index td{vertical-align:top;min-width:160px}
+.drive-document-index td small{display:block;margin-top:5px}
