@@ -1,0 +1,8 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
+const sandbox={};vm.runInNewContext(fs.readFileSync('thermabot-council-l3.js','utf8'),sandbox);const c=sandbox.ThermabotCouncilL3;
+const projects={projects:[{id:'a',name:'TMO hospital',establishment:'Hospital',system:'UTA HEPA',sector:'Internación',status:'Activo',progress:80},{id:'b',name:'UTI hospital',system:'UTA HEPA',sector:'Internación',status:'Finalizado',progress:100},{id:'c',name:'Otro',system:'Split',status:'Activo'}]};
+test('five roles and cross review',()=>{const r=c.report(projects,'a');assert.equal(r.roles.length,5);assert.equal(r.ok,true);assert.ok(r.findings.length>=3);assert.equal(r.readOnly,true);});
+test('retrieval excludes itself and ranks related project',()=>{const r=c.memories(projects,'a');assert.equal(r[0].projectId,'b');assert.equal(r.some(x=>x.projectId==='a'),false);});
+test('physical inputs yield deterministic ACH, not pressure claim',()=>{const r=c.scenario({supplyM3h:1250,extractM3h:1000,volumeM3:30.6});assert.equal(r.ok,true);assert.equal(r.ach,40.85);assert.equal(r.balanceM3h,250);assert.match(r.warning,/NO determina/);});
+test('invalid cases reject',()=>{assert.equal(c.scenario({supplyM3h:1,extractM3h:-1,volumeM3:4}).ok,false);assert.equal(c.scenario({supplyM3h:2,extractM3h:2,volumeM3:0}).ok,false);assert.equal(c.report(projects,'unknown').ok,false);});
+test('no project mutation from report and redesign',()=>{const before=JSON.stringify(projects);const r=c.report(projects,'a');assert.equal(r.redesign.applied,false);assert.equal(JSON.stringify(projects),before);});
