@@ -109,6 +109,8 @@ jobs:
           node --check report-core.js
           node --check report-docx.js
           node --check reports.js
+          node --check api/ai-chat.js
+          node --test tests/legacy-vercel-ai.test.cjs
           node --test tests/ai-chat.test.cjs
           node --test --test-isolation=none tests/engineering.cjs tests/project-flow.cjs tests/reports.cjs
           node tests/cloud-status.cjs
