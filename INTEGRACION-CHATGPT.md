@@ -27,4 +27,12 @@ La clave vive en `ctx.env.OPENAI_API_KEY`, dentro de Cloudflare Pages Functions.
 
 La protección HTTP Basic en `functions/_middleware.js` cubre la web y sus funciones. No eliminarla. Los datos de proyecto/cartera preparados por el frontend se envían a OpenAI; revisá su sensibilidad y tus controles de acceso. La IA es de **solo lectura** y no puede modificar proyectos.
 
-El alojamiento antiguo de GitHub Pages sigue usando el endpoint Vercel que ya estaba programado; se configura por separado. Para la web Cloudflare actual no hace falta Vercel como intermediario.
+## Retiro del puente legado de Vercel (seguridad)
+
+El endpoint `https://thermabot-ai-backend.vercel.app/api/ai-chat` fue retirado del código: `api/ai-chat.js` responde **HTTP 410 / LEGACY_AI_DISABLED** para cualquier método y nunca llama a OpenAI. La antigua API carecía de autenticación propia; comprobar el encabezado Origin o aplicar CORS no autentica al solicitante.
+
+`thermabot-ai.js` ya no envía consultas desde GitHub Pages a Vercel. Las consultas abiertas de IA funcionan únicamente en la aplicación privada de Cloudflare, donde `functions/_middleware.js` protege `/api/ai-chat`. Las funciones locales del asistente que no consumen OpenAI continúan disponibles.
+
+**Para finalizar el cierre:** desplegar esta revisión en producción, verificar que POST y GET de Vercel devuelven 410 sin consumo de OpenAI y, como defensa adicional, retirar `OPENAI_API_KEY` del entorno de Vercel si ese proyecto ya no lo necesita. Los despliegues antiguos pueden seguir disponibles bajo URLs de preview: evitar depender de su protección y revocar la antigua clave si hay dudas sobre exposición. GitHub Pages sigue siendo un alojamiento público de archivos estáticos hasta que se deshabilite por separado.
+
+La aplicación privada de Cloudflare conserva su API de IA y su secreto de producción.
