@@ -4,9 +4,10 @@ const HISTORY='thermabot.ai.history.v1';
 const $=s=>document.querySelector(s);
 const SUITE_URL=new URL('./thermabot-ai-suite.js',document.currentScript?.src||location.href).href;
 function loadSuite(){return new Promise((resolve,reject)=>{if(window.ThermabotAISuite)return resolve(window.ThermabotAISuite);const el=document.createElement('script');el.src=SUITE_URL;el.onload=()=>window.ThermabotAISuite?resolve(window.ThermabotAISuite):reject(Error('Módulo incompleto'));el.onerror=()=>reject(Error('No se cargó el módulo de análisis'));document.head.appendChild(el);});}
-// Cloudflare Pages y dominios propios consultan su API local; GitHub Pages conserva Vercel.
+// Solo la aplicación privada en Cloudflare puede enviar consultas remotas a la IA.
+// GitHub Pages tiene acceso público: no debe llamar a un backend facturable.
 const ON_GITHUB_PAGES=location.hostname.endsWith('github.io');
-const API_URL=ON_GITHUB_PAGES?'https://thermabot-ai-backend.vercel.app/api/ai-chat':new URL('/api/ai-chat',location.origin).href;
+const API_URL=new URL('/api/ai-chat',location.origin).href;
 function readState(){try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return{}}}
 function context(){
  const data=readState(),params=new URLSearchParams(location.search),id=window.TBTracker?.selectedId()||params.get('projectId');
@@ -65,6 +66,7 @@ async function send(text){
  const h=loadHistory();
  try{
   const offline=await offlineReply(text);if(offline){loading.remove();add('assistant',offline);return;}
+  if(ON_GITHUB_PAGES)throw new Error('Las consultas de IA requieren el acceso privado: https://thermabot-updates.pages.dev/tracker.html.');
   const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:h.slice(-8),context:context()})});
   const p=await r.json().catch(()=>null);loading.remove();if(!p)throw new Error('El servidor devolvió una respuesta no válida (HTTP '+r.status+').');
   if(!r.ok||!p.ok)throw new Error(p.error||('Error '+r.status));
