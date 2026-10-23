@@ -497,7 +497,7 @@
       if(quick.textContent!==text)quick.textContent=text;
       quick.dataset.cloudPhase=cloud.phase;quick.classList.toggle('dark',!!cloud.verified);
       const health=$('cloudHealthIndicator');if(health){
-        const mode=cloud.verified?'saved':cloud.phase==='saving'?'saving':cloud.pending?'pending':cloud.phase==='error'?'error':cloud.phase==='remote-change'?'warning':'checking';
+        const mode=cloud.verified?'saved':cloud.phase==='saving'?'saving':cloud.pending?'pending':cloud.phase==='error'?'error':cloud.phase==='remote-change'||cloud.phase==='readonly'?'warning':'checking';
         const labels={saved:'Guardado',saving:'Guardando…',pending:'Pendiente',error:'Sin conexión',warning:'Revisar',checking:'Verificando'};
         health.className='cloud-health '+mode;health.querySelector('span').textContent=labels[mode];health.title=text;
       }

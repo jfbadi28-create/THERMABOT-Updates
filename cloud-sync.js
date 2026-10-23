@@ -6,11 +6,20 @@ if(parent===window&&window.TBDesignPreview){
 }
 const keys=['thermabot.tracker.v1','thermabot.suite.v1','thermabot.workspace.v1','thermabot.proyectos.v1','thermabot-building-v21-trial'],pendingKey='thermabot.cloud.pending.v1';
 const api=new URL('api/workspace-sync',document.currentScript.src).href;
+// Phones and tablets only consult the base: they always load Drive and never upload a local copy over it.
+const modeKey='thermabot.cloud.mode.v1';
+function detectMode(){
+  try{const saved=localStorage.getItem(modeKey);if(saved==='viewer'||saved==='editor')return saved;}catch{}
+  const nav=globalThis.navigator||{},ua=nav.userAgent||'',touchMac=/Macintosh/.test(ua)&&(nav.maxTouchPoints||0)>1;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua)||touchMac?'viewer':'editor';
+}
+const readOnly=detectMode()==='viewer',readOnlyNotice='Solo lectura · los cambios en este dispositivo no se guardan en Drive';
+let localEdits=false;
 let paused=false;
-let remote=null,busy=false,timer,message='Drive: comprobando conexión…',phase='checking',dirty=localStorage.getItem(pendingKey)==='1',generation=0;
+let remote=null,busy=false,timer,message='Drive: comprobando conexión…',phase='checking',dirty=!readOnly&&localStorage.getItem(pendingKey)==='1',generation=0;
 const original=Storage.prototype.setItem;
 const state=()=>({phase,message,pending:dirty,busy,verified:phase==='saved'&&!dirty,updatedAt:remote?.updatedAt||null});
-function changed(){generation++;dirty=true;original.call(localStorage,pendingKey,'1');clearTimeout(timer);timer=setTimeout(save,2200);status('Cambios locales · Drive pendiente','pending');}
+function changed(){if(readOnly){generation++;localEdits=true;status(readOnlyNotice,'readonly');return;}generation++;dirty=true;original.call(localStorage,pendingKey,'1');clearTimeout(timer);timer=setTimeout(save,2200);status('Cambios locales · Drive pendiente','pending');}
 if(parent!==window&&parent.TBCloud){
   window.TBCloud=parent.TBCloud;window.TBCloudReady=parent.TBCloudReady;
   Storage.prototype.setItem=function(k,v){const before=this.getItem(k);original.call(this,k,v);if(this===localStorage&&keys.includes(k)&&before!==String(v))parent.TBCloud.changed();};return;
@@ -86,7 +95,7 @@ function hasCriticalLoss(beforeRaw,afterRaw){
   }catch{return [];}
 }
 async function save(){
-  if(paused||busy)return;if(!dirty)return check();
+  if(paused||busy)return;if(readOnly||!dirty)return check();
   busy=true;const savingGeneration=generation;
   try{
     if(!remote)remote=await request();
@@ -109,16 +118,29 @@ async function check(){
   busy=true;const checkingGeneration=generation;status('Comprobando Drive…','checking');
   try{
     const latest=await request();
-    if(remote&&latest.revision!==remote.revision)status('Hay cambios de otro dispositivo · recargá para recibirlos','remote-change');
+    if(remote&&latest.revision!==remote.revision)status(readOnly?'Hay cambios nuevos en Drive · recargá para verlos':'Hay cambios de otro dispositivo · recargá para recibirlos','remote-change');
+    else if(readOnly){remote=latest;status(localEdits?readOnlyNotice:'✓ Solo lectura · base de Drive',localEdits?'readonly':'saved');}
     else{remote=latest;status(generation!==checkingGeneration||dirty?'Cambios locales · Drive pendiente':'✓ Base verificada en Drive',dirty?'pending':'saved');}
   }catch(e){status('Copia local · '+e.message,'error');}
   finally{busy=false;status(message,phase);if(dirty)timer=setTimeout(save,2200);}
 }
 Storage.prototype.setItem=function(k,v){const before=this.getItem(k);if(this===localStorage&&k==='thermabot.tracker.v1'&&before!==String(v))rememberTracker(before);original.call(this,k,v);if(this===localStorage&&keys.includes(k)&&before!==String(v))changed();};
-window.TBCloud={status:()=>message,state,save,check,changed,pause:()=>{if(busy||dirty)throw Error("Hay una comprobación o guardado pendiente. Esperá y reintentá.");paused=true;clearTimeout(timer);},resume:()=>{paused=false;}};
+function setMode(next){
+  if(next!=='viewer'&&next!=='editor')throw Error('Modo de dispositivo no válido.');
+  if(busy||dirty)throw Error('Hay una comprobación o guardado pendiente. Esperá y reintentá.');
+  original.call(localStorage,modeKey,next);
+}
+window.TBCloud={status:()=>message,state,save,check,changed,mode:()=>readOnly?'viewer':'editor',setMode,pause:()=>{if(busy||dirty)throw Error("Hay una comprobación o guardado pendiente. Esperá y reintentá.");paused=true;clearTimeout(timer);},resume:()=>{paused=false;}};
 window.TBCloudReady=(async()=>{
   try{
     remote=await request();
+    if(readOnly){
+      // Edits left pending by an older version stay in the local tracker history, never in Drive.
+      if(localStorage.getItem(pendingKey)==='1')rememberTracker(localStorage.getItem('thermabot.tracker.v1'));
+      original.call(localStorage,pendingKey,'0');
+      for(const[k,v]of Object.entries(remote.values))if(keys.includes(k)&&typeof v==='string')original.call(localStorage,k,v);
+      localEdits=false;status('✓ Solo lectura · base cargada desde Drive','saved');return true;
+    }
     if(dirty&&remote.revision==='initial'&&remote.values['thermabot.tracker.v1']){
       const incoming=JSON.parse(remote.values['thermabot.tracker.v1']),local=JSON.parse(localStorage.getItem('thermabot.tracker.v1')||'{}');
       for(const collection of ['projects','equipment','milestones','documents']){const ids=new Set((incoming[collection]||[]).map(x=>x.id));incoming[collection]=[...(incoming[collection]||[]),...(local[collection]||[]).filter(x=>!ids.has(x.id))];}
