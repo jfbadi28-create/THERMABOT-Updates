@@ -121,7 +121,7 @@
     document.querySelectorAll('[data-view="'+next+'"]').forEach(b=>b.classList.add('active'));
     document.querySelectorAll('.tracker-view').forEach(el=>el.classList.toggle('active-view',el.id===`view-${view}`));
     document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',(el.dataset.view===view||el.dataset.view==='balances'&&['calculator','water','audits'].includes(view)));if((el.dataset.view===view||el.dataset.view==='balances'&&['calculator','water','audits'].includes(view)))el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
-    const titles = {tasks:'Tareas',project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',water:'Agua · dos caños',pressure:'Presurización',balances:'Cálculos',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
+    const titles = {today:'Hoy',tasks:'Tareas',project:'Espacio del proyecto',activity:'Actividad',marketing:'Resultados y marketing',settings:'Configuración',calculator:'Balance térmico',water:'Agua · dos caños',pressure:'Presurización',balances:'Cálculos',audits:'Revisión de ingeniería',backup:'Respaldo de cálculos',dashboard:'Centro de comando',projects:'Proyectos',equipment:'Equipos',milestones:'Hitos',documents:'Documentos',drive:'Google Drive'};
     $('trackerTitle').textContent=titles[view]||'Seguimiento de proyectos';
     const topWord=$('topWordReportBtn');if(topWord)topWord.hidden=view!=='projects';
     if(view==='drive') renderDrive();
@@ -498,8 +498,9 @@
       quick.dataset.cloudPhase=cloud.phase;quick.classList.toggle('dark',!!cloud.verified);
       const health=$('cloudHealthIndicator');if(health){
         const mode=cloud.verified?'saved':cloud.phase==='saving'?'saving':cloud.pending?'pending':cloud.phase==='error'?'error':cloud.phase==='remote-change'||cloud.phase==='readonly'?'warning':'checking';
-        const labels={saved:'Guardado',saving:'Guardando…',pending:'Pendiente',error:'Sin conexión',warning:'Revisar',checking:'Verificando'};
-        health.className='cloud-health '+mode;health.querySelector('span').textContent=labels[mode];health.title=text;
+        const viewer=window.TBCloud.mode?.()==='viewer',labels={saved:viewer?'Solo lectura':'Guardado',saving:'Guardando…',pending:'Pendiente',error:'Sin conexión',warning:viewer?'Solo lectura':'Revisar',checking:'Verificando',preview:'Prueba local'};
+        health.className='cloud-health '+(preview?'preview':mode);health.querySelector('span').textContent=labels[preview?'preview':mode];health.title=text+' · clic para comprobar';
+        if(!health.onclick){health.setAttribute('role','button');health.tabIndex=0;health.onclick=()=>window.TBCloud.check();health.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();window.TBCloud.check();}};}
       }
       $('trackerSaveStatus').textContent=text;
       $('driveStateTitle').textContent=text;$('driveStateTitle').dataset.cloudPhase=cloud.phase;
@@ -567,7 +568,7 @@
     window.addEventListener('thermabot:cloud-state',renderDrive);
     const params=new URLSearchParams(location.search); const requested=params.get('projectId');
     if(projectById(requested)) selectedProjectId=requested;
-    renderAll(); setView(['tasks','dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','water','project','activity','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
+    renderAll(); const viewerDevice=window.TBCloud?.mode?.()==='viewer',initialView=params.get('view');setView(viewerDevice&&!params.get('projectId')&&(!initialView||['dashboard','projects'].includes(initialView))?'today':['today','tasks','dashboard','projects','equipment','milestones','documents','drive','agenda','balances','audits','backup','calculator','water','project','activity','settings'].includes(params.get('view'))?params.get('view'):'dashboard');
     navigationReady=true;
     window.addEventListener('popstate',()=>{const params=new URLSearchParams(location.search);if(projectById(params.get('projectId')))selectedProjectId=params.get('projectId');renderAll();setView(params.get('view')||'dashboard',{replace:true});});
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});

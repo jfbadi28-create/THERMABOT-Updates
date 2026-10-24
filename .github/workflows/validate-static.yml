@@ -60,6 +60,8 @@ jobs:
             tracker.css
             tracker.js
             tracker-drive-autosync.js
+            today-view.js
+            ui-refresh.css
             sw.js
             manifest.webmanifest
             version.json
@@ -89,6 +91,7 @@ jobs:
           node --check pressure-app.js
           node --check tracker.js
           node --check tracker-drive-autosync.js
+          node --check today-view.js
           node --check sw.js
           node --check thermabot-ai.js
           node --check workspace.js
@@ -153,6 +156,8 @@ jobs:
           grep -q 'management.css' tracker.html
           grep -q 'tracker.js' tracker.html
           grep -q 'tracker.css' tracker.html
+          grep -q 'today-view.js' tracker.html
+          grep -q 'ui-refresh.css' tracker.html
           grep -q 'styles.css' tracker.html
           grep -q 'urn:ietf:params:oauth:grant-type:jwt-bearer' functions/api/tracker-sync.js
           grep -q 'cloud-sync.js' tracker.html

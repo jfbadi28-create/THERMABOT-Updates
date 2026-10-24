@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="suite.css" />
 <link rel="stylesheet" href="workbench.css" /><link rel="stylesheet" href="management.css" />
 <link rel="stylesheet" href="thermabot-ai.css?v=2" />
+<link rel="stylesheet" href="ui-refresh.css" />
 
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#19211e" />
@@ -29,6 +30,7 @@
       <nav class="rail-section steps tracker-nav" aria-label="Navegación principal">
         
         
+        <button class="step today-step" data-view="today" title="Hoy"><b>◷</b><span>Hoy</span></button>
         <button class="step" data-view="projects" title="Proyectos"><b>▤</b><span>Proyectos</span></button>
         <button class="step" data-view="tasks" title="Tareas"><b>✓</b><span>Tareas</span></button>
         <button class="step" data-view="balances" title="Cálculos"><b>∑</b><span>Cálculos</span></button>
@@ -44,7 +46,7 @@
           <div id="trackerMeta" class="meta">Proyectos, pendientes y seguimiento.</div>
         </div>
         <div class="top-actions">
-          <button id="workdayBtn" class="pill">Mi día</button><button id="quickRegisterBtn" class="pill dark">+ Registrar</button><button id="globalSearchBtn" class="pill" title="Buscar en toda la plataforma">Buscar proyectos, tareas… · Ctrl K</button><button id="themeBtn" class="pill" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+          <button id="workdayBtn" class="pill">Mi día</button><button id="quickRegisterBtn" class="pill dark">+ Registrar</button><button id="globalSearchBtn" class="pill" title="Buscar en toda la plataforma">Buscar proyectos, tareas… · Ctrl K</button><button id="themeBtn" class="pill" title="Cambiar tema" aria-label="Cambiar tema" data-icon="theme"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
           <button id="importBalancesBtn" class="pill">Importar balances</button>
           <span id="cloudHealthIndicator" class="cloud-health checking" title="Comprobando guardado" aria-label="Estado de guardado"><i></i><span>Verificando</span></span>
           <button id="driveQuickBtn" class="pill accent-outline">Comprobando Drive…</button>
@@ -156,6 +158,7 @@
 <p id="message" role="status" aria-live="polite"></p>
 <div id="stats" hidden></div>
 
+<section id="view-today" class="tracker-view"><div id="todayView" class="suite today-view"></div></section>
 <section id="view-tasks" class="tracker-view"><div id="taskWorkspace" class="suite"></div></section>
 <section id="view-agenda" class="tracker-view work-panel card tracker-panel"><h2>Qué necesita atención</h2><label>Filtrar por proyecto<select id="agendaProject"></select></label><div id="agendaList"></div></section>
 <section id="view-workProjects" class="tracker-view work-panel card tracker-panel"><h2>Proyectos y antecedentes</h2><label>Buscar<input id="workProjectSearch" placeholder="Proyecto, establecimiento o sector"></label><label>Mostrar<select id="projectStatus"><option value="active">En curso</option><option value="finished">Terminados</option><option value="all">Todos</option></select></label><div id="projectList"></div></section>
@@ -229,7 +232,7 @@
 <script type="application/x-thermabot" data-cloud-src="workspace-core.js"></script>
 <script type="application/x-thermabot" data-cloud-src="workspace.js"></script>
 
-<script type="application/x-thermabot" data-cloud-src="engine.js"></script><script type="application/x-thermabot" data-cloud-src="suite-core.js"></script><script type="application/x-thermabot" data-cloud-src="engineering-core.js"></script><script type="application/x-thermabot" data-cloud-src="project-flow-core.js"></script><script type="application/x-thermabot" data-cloud-src="vendor/jszip.min.js"></script><script type="application/x-thermabot" data-cloud-src="report-core.js"></script><script type="application/x-thermabot" data-cloud-src="report-docx.js"></script><script type="application/x-thermabot" data-cloud-src="reports.js"></script><script type="application/x-thermabot" data-cloud-src="project-flow.js"></script><script type="application/x-thermabot" data-cloud-src="document-index-core.js"></script><script type="application/x-thermabot" data-cloud-src="drive-documents.js"></script><script type="application/x-thermabot" data-cloud-src="project-drive-core.js"></script><script type="application/x-thermabot" data-cloud-src="automation-core.js"></script><script type="application/x-thermabot" data-cloud-src="automations.js"></script><script type="application/x-thermabot" data-cloud-src="workday-core.js"></script><script type="application/x-thermabot" data-cloud-src="daily-actions-core.js"></script><script type="application/x-thermabot" data-cloud-src="drive-connect.js"></script><script type="application/x-thermabot" data-cloud-src="suite.js"></script>
+<script type="application/x-thermabot" data-cloud-src="engine.js"></script><script type="application/x-thermabot" data-cloud-src="suite-core.js"></script><script type="application/x-thermabot" data-cloud-src="engineering-core.js"></script><script type="application/x-thermabot" data-cloud-src="project-flow-core.js"></script><script type="application/x-thermabot" data-cloud-src="vendor/jszip.min.js"></script><script type="application/x-thermabot" data-cloud-src="report-core.js"></script><script type="application/x-thermabot" data-cloud-src="report-docx.js"></script><script type="application/x-thermabot" data-cloud-src="reports.js"></script><script type="application/x-thermabot" data-cloud-src="project-flow.js"></script><script type="application/x-thermabot" data-cloud-src="document-index-core.js"></script><script type="application/x-thermabot" data-cloud-src="drive-documents.js"></script><script type="application/x-thermabot" data-cloud-src="project-drive-core.js"></script><script type="application/x-thermabot" data-cloud-src="automation-core.js"></script><script type="application/x-thermabot" data-cloud-src="automations.js"></script><script type="application/x-thermabot" data-cloud-src="today-view.js"></script><script type="application/x-thermabot" data-cloud-src="workday-core.js"></script><script type="application/x-thermabot" data-cloud-src="daily-actions-core.js"></script><script type="application/x-thermabot" data-cloud-src="drive-connect.js"></script><script type="application/x-thermabot" data-cloud-src="suite.js"></script>
 <script>TBCloudReady.then(async()=>{for(const tag of document.querySelectorAll("script[data-cloud-src]")){await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=tag.dataset.cloudSrc;s.onload=resolve;s.onerror=reject;document.body.append(s);});}window.addEventListener("thermabot:cloud-status",()=>{const btn=document.getElementById("driveQuickBtn");if(btn)btn.textContent=TBCloud.status();});});</script>
 <script src="thermabot-ai.js?v=5"></script>
 </body>
