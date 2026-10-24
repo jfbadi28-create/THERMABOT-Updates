@@ -32,5 +32,19 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),
    await page.evaluate(()=>TBTracker.navigate('settings'));await page.locator('#connectGoogleDrive').click();await page.locator('#authorizeMyGoogle').waitFor();assert(await page.locator('#authorizeMyGoogle').isDisabled());await page.locator('[data-select-google-role=THERMABOT_OBRAS_ROOT_ID]').click();await page.getByRole('button',{name:'Obras reales',exact:true}).click();await page.locator('#driveChooseThisFolder').click();await page.locator('#confirmDriveResource').click();await page.locator('#authorizeMyGoogle').waitFor();await page.locator('#closeSuiteDialog').click();
    await page.screenshot({path:'/tmp/thermabot-workday-'+viewport.width+'.png',fullPage:true});assert.deepEqual(errors,[]);await page.close();console.log('UI OK '+viewport.width+'px: registro, siguiente acción, Mi día, búsqueda Drive, vinculación, vigencia, comandos y recuperación de captura.');
   }
+  // A phone opens in the read-only "Hoy" view without editing actions.
+  const phone=await browser.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36',isMobile:true,hasTouch:true});
+  const mobile=await phone.newPage(),mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));mobile.setDefaultTimeout(10000);
+  await mobile.route('**/api/**',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Sin servidor en la prueba'})}));
+  await mobile.addInitScript(()=>{window.TBDesignPreview=true;localStorage.setItem('thermabot.tracker.v1',JSON.stringify({schemaVersion:1,projects:[{id:'v',name:'Obra consulta',establishment:'Hospital',status:'Activo',stage:'Ejecución',nextAction:'Revisar planos',nextDueDate:'2020-01-01',installedTR:'12'}],milestones:[],equipment:[],documents:[]}));});
+  await mobile.goto(`http://127.0.0.1:${server.address().port}/tracker.html?view=dashboard`);
+  await mobile.locator('#view-today.active-view .today-project').first().waitFor();
+  assert.equal(await mobile.evaluate(()=>document.documentElement.dataset.cloudMode),'viewer');
+  assert(await mobile.locator('#view-today .today-item.is-overdue').filter({hasText:'Revisar planos'}).isVisible());
+  for(const id of ['#quickRegisterBtn','#newProjectBtn'])assert.equal(await mobile.locator(id).isVisible(),false,id+' must be hidden on a read-only phone');
+  await mobile.locator('[data-view="tasks"]').first().click();await mobile.locator('#taskWorkspace .task-table tr').nth(1).waitFor();
+  assert.equal(await mobile.locator('#taskWorkspace [data-complete-task]').first().isVisible(),false);
+  const overflow=await mobile.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert(overflow<=1,'no horizontal scroll on the phone: '+overflow);
+  await mobile.screenshot({path:'/tmp/thermabot-viewer-390.png',fullPage:true});assert.deepEqual(mobileErrors,[]);await phone.close();console.log('UI OK 390px solo lectura: Hoy, sin acciones de edición, tareas en tarjetas.');
  }finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

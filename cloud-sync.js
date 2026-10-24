@@ -1,11 +1,4 @@
 (()=>{'use strict';
-if(parent===window&&window.TBDesignPreview){
-  const message='Prueba local · nube desactivada';
-  window.TBCloud={status:()=>message,state:()=>({phase:'preview',message,pending:false,busy:false,verified:false,updatedAt:null}),changed:()=>{},save:async()=>{},check:async()=>{}};
-  window.TBCloudReady=Promise.resolve(true);return;
-}
-const keys=['thermabot.tracker.v1','thermabot.suite.v1','thermabot.workspace.v1','thermabot.proyectos.v1','thermabot-building-v21-trial'],pendingKey='thermabot.cloud.pending.v1';
-const api=new URL('api/workspace-sync',document.currentScript.src).href;
 // Phones and tablets only consult the base: they always load Drive and never upload a local copy over it.
 const modeKey='thermabot.cloud.mode.v1';
 function detectMode(){
@@ -13,7 +6,17 @@ function detectMode(){
   const nav=globalThis.navigator||{},ua=nav.userAgent||'',touchMac=/Macintosh/.test(ua)&&(nav.maxTouchPoints||0)>1;
   return /Android|iPhone|iPad|iPod|Mobile/i.test(ua)||touchMac?'viewer':'editor';
 }
-const readOnly=detectMode()==='viewer',readOnlyNotice='Solo lectura · los cambios en este dispositivo no se guardan en Drive';
+const deviceMode=detectMode();
+// Lets the interface switch to its consultation layout before anything renders.
+if(document.documentElement)document.documentElement.dataset.cloudMode=deviceMode;
+if(parent===window&&window.TBDesignPreview){
+  const message='Prueba local · nube desactivada';
+  window.TBCloud={status:()=>message,state:()=>({phase:'preview',message,pending:false,busy:false,verified:false,updatedAt:null}),changed:()=>{},save:async()=>{},check:async()=>{},mode:()=>deviceMode,setMode:()=>{throw Error('La prueba local no cambia el modo del dispositivo.');}};
+  window.TBCloudReady=Promise.resolve(true);return;
+}
+const keys=['thermabot.tracker.v1','thermabot.suite.v1','thermabot.workspace.v1','thermabot.proyectos.v1','thermabot-building-v21-trial'],pendingKey='thermabot.cloud.pending.v1';
+const api=new URL('api/workspace-sync',document.currentScript.src).href;
+const readOnly=deviceMode==='viewer',readOnlyNotice='Solo lectura · los cambios en este dispositivo no se guardan en Drive';
 let localEdits=false;
 let paused=false;
 let remote=null,busy=false,timer,message='Drive: comprobando conexión…',phase='checking',dirty=!readOnly&&localStorage.getItem(pendingKey)==='1',generation=0;
